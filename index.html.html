@@ -179,6 +179,17 @@
             display: flex;
         }
 
+        /* E */
+        .empresa-badge {
+            display: inline-block;
+            background-color: #f0f9ff;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+
         /* F */
         .filter-group {
             flex: 1;
@@ -1148,6 +1159,13 @@
                 </div>
                 
                 <div class="nav-item">
+                    <a href="#empresas" class="nav-link" data-section="empresas">
+                        <i class="fas fa-building"></i>
+                        <span>Empresas</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
                     <a href="#relatorios" class="nav-link" data-section="relatorios">
                         <i class="fas fa-file-alt"></i>
                         <span>Relatórios</span>
@@ -1216,6 +1234,14 @@
                             <label>Item</label>
                             <select id="item-select">
                                 <option value="todos">Todos os Itens</option>
+                                <!-- Preenchido por JS -->
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Empresa</label>
+                            <select id="empresa-select">
+                                <option value="todos">Todas as Empresas</option>
                                 <!-- Preenchido por JS -->
                             </select>
                         </div>
@@ -1375,6 +1401,7 @@
                                 <tr>
                                     <th>Colaborador</th>
                                     <th>Departamento</th>
+                                    <th>Empresa</th>
                                     <th>Itens</th>
                                     <th>Data</th>
                                     <th>Status</th>
@@ -1426,6 +1453,13 @@
                             <!-- Preenchido por JS -->
                         </select>
                     </div>
+                    <div class="filter-group">
+                        <label>Empresa</label>
+                        <select id="filtro-empresa-colaborador">
+                            <option value="todos">Todas as Empresas</option>
+                            <!-- Preenchido por JS -->
+                        </select>
+                    </div>
                 </div>
                 
                 <div class="table-container">
@@ -1434,6 +1468,7 @@
                             <tr>
                                 <th>Nome</th>
                                 <th>Departamento</th>
+                                <th>Empresa</th>
                                 <th>Admissão</th>
                                 <th>Solicitações</th>
                                 <th>Última Solicitação</th>
@@ -1534,6 +1569,13 @@
                         </select>
                     </div>
                     <div class="filter-group">
+                        <label>Empresa</label>
+                        <select id="filtro-empresa-solicitacao">
+                            <option value="todos">Todas</option>
+                            <!-- Preenchido por JS -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>Período</label>
                         <select id="filtro-periodo-solicitacao">
                             <option value="todos">Todos</option>
@@ -1557,6 +1599,7 @@
                             <tr>
                                 <th>Colaborador</th>
                                 <th>Departamento</th>
+                                <th>Empresa</th>
                                 <th>Itens</th>
                                 <th>Data</th>
                                 <th>Status</th>
@@ -1593,6 +1636,13 @@
                         <input type="text" id="buscar-departamento" placeholder="Nome do departamento...">
                     </div>
                     <div class="filter-group">
+                        <label>Empresa</label>
+                        <select id="filtro-empresa-departamento">
+                            <option value="todos">Todas as Empresas</option>
+                            <!-- Preenchido por JS -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>Status</label>
                         <select id="filtro-status-departamento">
                             <option value="todos">Todos</option>
@@ -1607,7 +1657,7 @@
                         <thead>
                             <tr>
                                 <th>Nome</th>
-                                <th>Código</th>
+                                <th>Empresa</th>
                                 <th>Colaboradores</th>
                                 <th>Solicitações</th>
                                 <th>Status</th>
@@ -1615,6 +1665,52 @@
                             </tr>
                         </thead>
                         <tbody id="departamentos-tbody">
+                            <!-- Preenchido por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Empresas -->
+            <section id="empresas" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-building"></i>
+                        Empresas
+                    </h3>
+                    <button class="btn btn-primary" id="nova-empresa-btn">
+                        <i class="fas fa-plus"></i> Nova Empresa
+                    </button>
+                </div>
+
+                <div class="filters-row mb-4">
+                    <div class="filter-group">
+                        <label>Buscar</label>
+                        <input type="text" id="buscar-empresa" placeholder="Nome da empresa...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filtro-status-empresa">
+                            <option value="todos">Todos</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Departamentos</th>
+                                <th>Colaboradores</th>
+                                <th>Solicitações</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="empresas-tbody">
                             <!-- Preenchido por JS -->
                         </tbody>
                     </table>
@@ -1638,6 +1734,7 @@
                             <option value="colaboradores">Colaboradores</option>
                             <option value="itens">Itens</option>
                             <option value="departamentos">Departamentos</option>
+                            <option value="empresas">Empresas</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -1647,6 +1744,13 @@
                             <option value="7dias">Últimos 7 dias</option>
                             <option value="30dias">Últimos 30 dias</option>
                             <option value="mes_atual">Mês atual</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Empresa</label>
+                        <select id="empresa-relatorio">
+                            <option value="todos">Todas</option>
+                            <!-- Preenchido por JS -->
                         </select>
                     </div>
                     <div class="filter-group">
@@ -1711,6 +1815,13 @@
                     <div class="form-group">
                         <label class="form-label">Nome Completo</label>
                         <input type="text" class="form-control" id="colaborador-nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Empresa</label>
+                        <select class="form-control" id="colaborador-empresa" required>
+                            <option value="">Selecione...</option>
+                            <!-- Preenchido por JS -->
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Departamento</label>
@@ -1844,13 +1955,45 @@
                         <input type="text" class="form-control" id="departamento-nome" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Código</label>
-                        <input type="text" class="form-control" id="departamento-codigo" required>
-                        <small style="color: var(--gray);">Código único para identificar o departamento</small>
+                        <label class="form-label">Empresa</label>
+                        <select class="form-control" id="departamento-empresa" required>
+                            <option value="">Selecione...</option>
+                            <!-- Preenchido por JS -->
+                        </select>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Status</label>
                         <select class="form-control" id="departamento-status" required>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Empresa -->
+    <div id="modal-empresa" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-empresa-title">Nova Empresa</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-empresa">
+                    <input type="hidden" id="empresa-id">
+                    <div class="form-group">
+                        <label class="form-label">Nome da Empresa</label>
+                        <input type="text" class="form-control" id="empresa-nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="empresa-status" required>
                             <option value="ativo">Ativo</option>
                             <option value="inativo">Inativo</option>
                         </select>
@@ -1876,12 +2019,13 @@
                 this.dados = this.carregarDados();
                 this.charts = {};
                 this.filtrosAtivos = {
-                    dashboard: { periodo: 'todos', departamento: 'todos', colaborador: 'todos', item: 'todos' },
-                    colaboradores: { busca: '', status: 'todos', departamento: 'todos' },
+                    dashboard: { periodo: 'todos', departamento: 'todos', colaborador: 'todos', item: 'todos', empresa: 'todos' },
+                    colaboradores: { busca: '', status: 'todos', departamento: 'todos', empresa: 'todos' },
                     itens: { busca: '', categoria: 'todos', status: 'todos' },
-                    solicitacoes: { status: 'todos', departamento: 'todos', periodo: 'todos', colaborador: 'todos' },
-                    departamentos: { busca: '', status: 'todos' },
-                    relatorios: { tipo: 'solicitacoes', periodo: 'todos', departamento: 'todos', colaborador: 'todos', status: 'todos' }
+                    solicitacoes: { status: 'todos', departamento: 'todos', empresa: 'todos', periodo: 'todos', colaborador: 'todos' },
+                    departamentos: { busca: '', empresa: 'todos', status: 'todos' },
+                    empresas: { busca: '', status: 'todos' },
+                    relatorios: { tipo: 'solicitacoes', periodo: 'todos', empresa: 'todos', departamento: 'todos', colaborador: 'todos', status: 'todos' }
                 };
                 this.visualizacaoSolicitacoes = {
                     dashboard: { limite: 5, offset: 0 },
@@ -1967,11 +2111,12 @@
                         colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')),
                         itens: JSON.parse(localStorage.getItem('uniformes_itens')),
                         departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')),
-                        solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes'))
+                        solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')),
+                        empresas: JSON.parse(localStorage.getItem('uniformes_empresas'))
                     };
 
                     // Se não houver dados salvos, usar dados padrão
-                    if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.departamentos || !dadosSalvos.solicitacoes) {
+                    if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.departamentos || !dadosSalvos.solicitacoes || !dadosSalvos.empresas) {
                         console.log("Nenhum dado salvo encontrado. Carregando dados padrão.");
                         return this.getDadosPadrao();
                     }
@@ -1985,23 +2130,29 @@
             }
 
             getDadosPadrao() {
-                // Primeiro criamos os departamentos
+                // Primeiro criamos as empresas
+                const empresas = [
+                    { id: 1, nome: "Empresa A", status: "ativo", departamentos: 3, colaboradores: 4, solicitacoes: 8 },
+                    { id: 2, nome: "Empresa B", status: "ativo", departamentos: 2, colaboradores: 2, solicitacoes: 2 }
+                ];
+
+                // Depois os departamentos (agora vinculados a empresas)
                 const departamentos = [
-                    { id: 1, nome: "Vendas", codigo: "VEND", status: "ativo", colaboradores: 2, solicitacoes: 3 },
-                    { id: 2, nome: "Produção", codigo: "PROD", status: "ativo", colaboradores: 1, solicitacoes: 4 },
-                    { id: 3, nome: "Administrativo", codigo: "ADM", status: "ativo", colaboradores: 1, solicitacoes: 2 },
-                    { id: 4, nome: "Logística", codigo: "LOG", status: "ativo", colaboradores: 1, solicitacoes: 1 },
-                    { id: 5, nome: "TI", codigo: "TI", status: "ativo", colaboradores: 1, solicitacoes: 1 }
+                    { id: 1, nome: "Vendas", empresaId: 1, status: "ativo", colaboradores: 2, solicitacoes: 3 },
+                    { id: 2, nome: "Produção", empresaId: 1, status: "ativo", colaboradores: 1, solicitacoes: 4 },
+                    { id: 3, nome: "Administrativo", empresaId: 1, status: "ativo", colaboradores: 1, solicitacoes: 2 },
+                    { id: 4, nome: "Logística", empresaId: 2, status: "ativo", colaboradores: 1, solicitacoes: 1 },
+                    { id: 5, nome: "TI", empresaId: 2, status: "ativo", colaboradores: 1, solicitacoes: 1 }
                 ];
 
                 return {
                     colaboradores: [
-                        { id: 1, nome: "João Silva", departamentoId: 1, admissao: "2023-01-15", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2023-10-15" },
-                        { id: 2, nome: "Maria Santos", departamentoId: 3, admissao: "2023-03-20", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-10" },
-                        { id: 3, nome: "Carlos Oliveira", departamentoId: 2, admissao: "2023-02-10", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2023-10-20" },
-                        { id: 4, nome: "Ana Costa", departamentoId: 1, admissao: "2023-04-28", status: "ativo", solicitacoes: 1, ultimaSolicitacao: "2023-09-15" },
-                        { id: 5, nome: "Pedro Alves", departamentoId: 4, admissao: "2023-05-10", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2023-10-18" },
-                        { id: 6, nome: "Fernanda Lima", departamentoId: 5, admissao: "2023-06-22", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-12" }
+                        { id: 1, nome: "João Silva", departamentoId: 1, empresaId: 1, admissao: "2023-01-15", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2023-10-15" },
+                        { id: 2, nome: "Maria Santos", departamentoId: 3, empresaId: 1, admissao: "2023-03-20", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-10" },
+                        { id: 3, nome: "Carlos Oliveira", departamentoId: 2, empresaId: 1, admissao: "2023-02-10", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2023-10-20" },
+                        { id: 4, nome: "Ana Costa", departamentoId: 1, empresaId: 1, admissao: "2023-04-28", status: "ativo", solicitacoes: 1, ultimaSolicitacao: "2023-09-15" },
+                        { id: 5, nome: "Pedro Alves", departamentoId: 4, empresaId: 2, admissao: "2023-05-10", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2023-10-18" },
+                        { id: 6, nome: "Fernanda Lima", departamentoId: 5, empresaId: 2, admissao: "2023-06-22", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-12" }
                     ],
                     itens: [
                         { id: 1, nome: "Camisa Social", categoria: "uniforme", tamanhos: "P, M, G, GG", status: "ativo", solicitacoes: 8, mediaTroca: 3.5 },
@@ -2014,17 +2165,18 @@
                         { id: 8, nome: "Caneta Esferográfica", categoria: "materiais", tamanhos: "Azul, Preta, Vermelha", status: "ativo", solicitacoes: 7, mediaTroca: 1.2 }
                     ],
                     departamentos: departamentos,
+                    empresas: empresas,
                     solicitacoes: [
-                        { id: 1, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, itens: ["Camisa Social (M)", "Calça Jeans (40)"], data: "2023-10-15", status: "realizado" },
-                        { id: 2, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 3, itens: ["Camisa Social (P)"], data: "2023-10-10", status: "pendente" },
-                        { id: 3, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, itens: ["Tênis de Segurança (42)", "Jaleco (G)"], data: "2023-10-20", status: "realizado" },
-                        { id: 4, colaboradorId: 5, colaboradorNome: "Pedro Alves", departamentoId: 4, itens: ["Camisa Social (M)", "Calça Jeans (38)"], data: "2023-10-18", status: "realizado" },
-                        { id: 5, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 5, itens: ["Camisa Social (P)"], data: "2023-10-12", status: "realizado" },
-                        { id: 6, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, itens: ["Capacete (Único)"], data: "2023-09-28", status: "nao_precisa" },
-                        { id: 7, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, itens: ["Camisa Social (M)"], data: "2023-07-15", status: "realizado" },
-                        { id: 8, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, itens: ["Tênis de Segurança (42)"], data: "2023-04-20", status: "realizado" },
-                        { id: 9, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 3, itens: ["Papel A4 (500 folhas)", "Caneta Esferográfica (Azul)"], data: "2023-10-05", status: "realizado" },
-                        { id: 10, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 1, itens: ["Caneta Esferográfica (Preta)"], data: "2023-09-20", status: "realizado" }
+                        { id: 1, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Camisa Social (M)", "Calça Jeans (40)"], data: "2023-10-15", status: "realizado" },
+                        { id: 2, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 3, empresaId: 1, itens: ["Camisa Social (P)"], data: "2023-10-10", status: "pendente" },
+                        { id: 3, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, empresaId: 1, itens: ["Tênis de Segurança (42)", "Jaleco (G)"], data: "2023-10-20", status: "realizado" },
+                        { id: 4, colaboradorId: 5, colaboradorNome: "Pedro Alves", departamentoId: 4, empresaId: 2, itens: ["Camisa Social (M)", "Calça Jeans (38)"], data: "2023-10-18", status: "realizado" },
+                        { id: 5, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 5, empresaId: 2, itens: ["Camisa Social (P)"], data: "2023-10-12", status: "realizado" },
+                        { id: 6, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, empresaId: 1, itens: ["Capacete (Único)"], data: "2023-09-28", status: "nao_precisa" },
+                        { id: 7, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Camisa Social (M)"], data: "2023-07-15", status: "realizado" },
+                        { id: 8, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, empresaId: 1, itens: ["Tênis de Segurança (42)"], data: "2023-04-20", status: "realizado" },
+                        { id: 9, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 3, empresaId: 1, itens: ["Papel A4 (500 folhas)", "Caneta Esferográfica (Azul)"], data: "2023-10-05", status: "realizado" },
+                        { id: 10, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 1, empresaId: 1, itens: ["Caneta Esferográfica (Preta)"], data: "2023-09-20", status: "realizado" }
                     ]
                 };
             }
@@ -2042,6 +2194,7 @@
                     localStorage.setItem('uniformes_itens', JSON.stringify(this.dados.itens));
                     localStorage.setItem('uniformes_departamentos', JSON.stringify(this.dados.departamentos));
                     localStorage.setItem('uniformes_solicitacoes', JSON.stringify(this.dados.solicitacoes));
+                    localStorage.setItem('uniformes_empresas', JSON.stringify(this.dados.empresas));
                     console.log("Dados salvos com sucesso no localStorage!");
                     return true;
                 } catch (error) {
@@ -2083,6 +2236,9 @@
                             this.resetarVisualizacaoSolicitacoes('tabela');
                         } else if (sectionId === 'departamentos') {
                             this.atualizarFiltrosAtivos('departamentos');
+                        } else if (sectionId === 'empresas') {
+                            this.atualizarFiltrosAtivos('empresas');
+                            this.carregarTabelaEmpresas();
                         } else if (sectionId === 'relatorios') {
                             this.atualizarFiltrosAtivos('relatorios');
                             this.gerarRelatorio();
@@ -2107,6 +2263,7 @@
                 document.getElementById('nova-solicitacao-btn').addEventListener('click', () => this.abrirModal('solicitacao'));
                 document.getElementById('nova-solicitacao-btn2').addEventListener('click', () => this.abrirModal('solicitacao'));
                 document.getElementById('novo-departamento-btn').addEventListener('click', () => this.abrirModal('departamento'));
+                document.getElementById('nova-empresa-btn').addEventListener('click', () => this.abrirModal('empresa'));
                 
                 // Ver mais solicitações
                 document.getElementById('ver-mais-solicitacoes').addEventListener('click', () => {
@@ -2141,6 +2298,11 @@
                     this.salvarDepartamento();
                 });
                 
+                document.getElementById('form-empresa').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.salvarEmpresa();
+                });
+                
                 // Adicionar item dinâmico
                 document.getElementById('adicionar-item-btn').addEventListener('click', () => {
                     this.adicionarItemSolicitacao();
@@ -2171,6 +2333,12 @@
                     this.aplicarFiltrosDashboard();
                 });
                 
+                document.getElementById('empresa-select').addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.empresa = e.target.value;
+                    this.atualizarFiltrosAtivos('dashboard');
+                    this.aplicarFiltrosDashboard();
+                });
+                
                 // Filtros de Colaboradores (auto-aplicar)
                 document.getElementById('buscar-colaborador').addEventListener('input', (e) => {
                     this.filtrosAtivos.colaboradores.busca = e.target.value.toLowerCase();
@@ -2185,6 +2353,12 @@
                 
                 document.getElementById('filtro-departamento-colaborador').addEventListener('change', (e) => {
                     this.filtrosAtivos.colaboradores.departamento = e.target.value;
+                    this.atualizarFiltrosAtivos('colaboradores');
+                    this.filtrarColaboradores();
+                });
+                
+                document.getElementById('filtro-empresa-colaborador').addEventListener('change', (e) => {
+                    this.filtrosAtivos.colaboradores.empresa = e.target.value;
                     this.atualizarFiltrosAtivos('colaboradores');
                     this.filtrarColaboradores();
                 });
@@ -2220,6 +2394,12 @@
                     this.filtrarSolicitacoes();
                 });
                 
+                document.getElementById('filtro-empresa-solicitacao').addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.empresa = e.target.value;
+                    this.atualizarFiltrosAtivos('solicitacoes');
+                    this.filtrarSolicitacoes();
+                });
+                
                 document.getElementById('filtro-periodo-solicitacao').addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.periodo = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
@@ -2238,10 +2418,28 @@
                     this.filtrarDepartamentos();
                 });
                 
+                document.getElementById('filtro-empresa-departamento').addEventListener('change', (e) => {
+                    this.filtrosAtivos.departamentos.empresa = e.target.value;
+                    this.atualizarFiltrosAtivos('departamentos');
+                    this.filtrarDepartamentos();
+                });
+                
                 document.getElementById('filtro-status-departamento').addEventListener('change', (e) => {
                     this.filtrosAtivos.departamentos.status = e.target.value;
                     this.atualizarFiltrosAtivos('departamentos');
                     this.filtrarDepartamentos();
+                });
+                
+                // Filtros de Empresas (auto-aplicar)
+                document.getElementById('buscar-empresa').addEventListener('input', (e) => {
+                    this.filtrosAtivos.empresas.busca = e.target.value.toLowerCase();
+                    this.filtrarEmpresas();
+                });
+                
+                document.getElementById('filtro-status-empresa').addEventListener('change', (e) => {
+                    this.filtrosAtivos.empresas.status = e.target.value;
+                    this.atualizarFiltrosAtivos('empresas');
+                    this.filtrarEmpresas();
                 });
                 
                 // Filtros de Relatórios (auto-aplicar)
@@ -2252,6 +2450,11 @@
                 
                 document.getElementById('periodo-relatorio').addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.periodo = e.target.value;
+                    this.gerarRelatorio();
+                });
+                
+                document.getElementById('empresa-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.empresa = e.target.value;
                     this.gerarRelatorio();
                 });
                 
@@ -2296,14 +2499,28 @@
             }
 
             atualizarSelects() {
+                // Atualizar select de empresas para dashboard
+                const selectEmpresaDashboard = document.getElementById('empresa-select');
+                selectEmpresaDashboard.innerHTML = '<option value="todos">Todas as Empresas</option>';
+                this.dados.empresas.forEach(empresa => {
+                    if (empresa.status === 'ativo') {
+                        const option = document.createElement('option');
+                        option.value = empresa.id;
+                        option.textContent = empresa.nome;
+                        selectEmpresaDashboard.appendChild(option);
+                    }
+                });
+                
                 // Atualizar select de departamentos para dashboard
                 const selectDashboardDepto = document.getElementById('departamento-select');
                 selectDashboardDepto.innerHTML = '<option value="todos">Todos os Departamentos</option>';
                 this.dados.departamentos.forEach(depto => {
                     if (depto.status === 'ativo') {
+                        const empresa = this.dados.empresas.find(e => e.id === depto.empresaId);
+                        const empresaNome = empresa ? empresa.nome : '';
                         const option = document.createElement('option');
                         option.value = depto.id;
-                        option.textContent = `${depto.nome} (${depto.codigo})`;
+                        option.textContent = `${depto.nome} (${empresaNome})`;
                         selectDashboardDepto.appendChild(option);
                     }
                 });
@@ -2315,9 +2532,11 @@
                     if (colab.status === 'ativo') {
                         const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
                         const deptoNome = depto ? depto.nome : 'N/A';
+                        const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                        const empresaNome = empresa ? empresa.nome : '';
                         const option = document.createElement('option');
                         option.value = colab.id;
-                        option.textContent = `${colab.nome} (${deptoNome})`;
+                        option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
                         selectDashboardColab.appendChild(option);
                     }
                 });
@@ -2334,6 +2553,59 @@
                     }
                 });
                 
+                // Atualizar select de empresas para colaboradores
+                const selectEmpresaColaborador = document.getElementById('colaborador-empresa');
+                const filtroEmpresaColaborador = document.getElementById('filtro-empresa-colaborador');
+                const filtroEmpresaSolicitacao = document.getElementById('filtro-empresa-solicitacao');
+                const filtroEmpresaDepartamento = document.getElementById('filtro-empresa-departamento');
+                const relatorioEmpresa = document.getElementById('empresa-relatorio');
+                const selectEmpresaDepartamento = document.getElementById('departamento-empresa');
+                
+                selectEmpresaColaborador.innerHTML = '<option value="">Selecione...</option>';
+                filtroEmpresaColaborador.innerHTML = '<option value="todos">Todas as Empresas</option>';
+                filtroEmpresaSolicitacao.innerHTML = '<option value="todos">Todas</option>';
+                filtroEmpresaDepartamento.innerHTML = '<option value="todos">Todas as Empresas</option>';
+                relatorioEmpresa.innerHTML = '<option value="todos">Todas</option>';
+                selectEmpresaDepartamento.innerHTML = '<option value="">Selecione...</option>';
+                
+                this.dados.empresas.forEach(empresa => {
+                    if (empresa.status === 'ativo') {
+                        // Para formulário de colaborador
+                        const optionForm = document.createElement('option');
+                        optionForm.value = empresa.id;
+                        optionForm.textContent = empresa.nome;
+                        selectEmpresaColaborador.appendChild(optionForm);
+                        
+                        // Para filtros
+                        const optionFiltro1 = document.createElement('option');
+                        optionFiltro1.value = empresa.id;
+                        optionFiltro1.textContent = empresa.nome;
+                        filtroEmpresaColaborador.appendChild(optionFiltro1.cloneNode(true));
+                        
+                        const optionFiltro2 = document.createElement('option');
+                        optionFiltro2.value = empresa.id;
+                        optionFiltro2.textContent = empresa.nome;
+                        filtroEmpresaSolicitacao.appendChild(optionFiltro2);
+                        
+                        const optionFiltro3 = document.createElement('option');
+                        optionFiltro3.value = empresa.id;
+                        optionFiltro3.textContent = empresa.nome;
+                        filtroEmpresaDepartamento.appendChild(optionFiltro3);
+                        
+                        // Para relatórios
+                        const optionRel = document.createElement('option');
+                        optionRel.value = empresa.id;
+                        optionRel.textContent = empresa.nome;
+                        relatorioEmpresa.appendChild(optionRel);
+                        
+                        // Para formulário de departamento
+                        const optionDepto = document.createElement('option');
+                        optionDepto.value = empresa.id;
+                        optionDepto.textContent = empresa.nome;
+                        selectEmpresaDepartamento.appendChild(optionDepto);
+                    }
+                });
+                
                 // Atualizar select de departamentos para colaboradores
                 const selectDeptoColaborador = document.getElementById('colaborador-departamento');
                 const filtroDeptoColaborador = document.getElementById('filtro-departamento-colaborador');
@@ -2347,27 +2619,30 @@
                 
                 this.dados.departamentos.forEach(depto => {
                     if (depto.status === 'ativo') {
+                        const empresa = this.dados.empresas.find(e => e.id === depto.empresaId);
+                        const empresaNome = empresa ? empresa.nome : '';
+                        
                         // Para formulário de colaborador
                         const optionForm = document.createElement('option');
                         optionForm.value = depto.id;
-                        optionForm.textContent = `${depto.nome} (${depto.codigo})`;
+                        optionForm.textContent = `${depto.nome} (${empresaNome})`;
                         selectDeptoColaborador.appendChild(optionForm);
                         
                         // Para filtros
                         const optionFiltro1 = document.createElement('option');
                         optionFiltro1.value = depto.id;
-                        optionFiltro1.textContent = `${depto.nome} (${depto.codigo})`;
+                        optionFiltro1.textContent = `${depto.nome} (${empresaNome})`;
                         filtroDeptoColaborador.appendChild(optionFiltro1.cloneNode(true));
                         
                         const optionFiltro2 = document.createElement('option');
                         optionFiltro2.value = depto.id;
-                        optionFiltro2.textContent = `${depto.nome} (${depto.codigo})`;
+                        optionFiltro2.textContent = `${depto.nome} (${empresaNome})`;
                         filtroDeptoSolicitacao.appendChild(optionFiltro2);
                         
                         // Para relatórios
                         const optionRel = document.createElement('option');
                         optionRel.value = depto.id;
-                        optionRel.textContent = `${depto.nome} (${depto.codigo})`;
+                        optionRel.textContent = `${depto.nome} (${empresaNome})`;
                         relatorioDepto.appendChild(optionRel);
                     }
                 });
@@ -2379,9 +2654,11 @@
                     if (colab.status === 'ativo') {
                         const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
                         const deptoNome = depto ? depto.nome : 'N/A';
+                        const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                        const empresaNome = empresa ? empresa.nome : '';
                         const option = document.createElement('option');
                         option.value = colab.id;
-                        option.textContent = `${colab.nome} (${deptoNome})`;
+                        option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
                         selectColaborador.appendChild(option);
                     }
                 });
@@ -2392,9 +2669,11 @@
                 this.dados.colaboradores.forEach(colab => {
                     const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
                     const deptoNome = depto ? depto.nome : 'N/A';
+                    const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                    const empresaNome = empresa ? empresa.nome : '';
                     const option = document.createElement('option');
                     option.value = colab.id;
-                    option.textContent = `${colab.nome} (${deptoNome})`;
+                    option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
                     filtroColaborador.appendChild(option);
                 });
                 
@@ -2404,9 +2683,11 @@
                 this.dados.colaboradores.forEach(colab => {
                     const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
                     const deptoNome = depto ? depto.nome : 'N/A';
+                    const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                    const empresaNome = empresa ? empresa.nome : '';
                     const option = document.createElement('option');
                     option.value = colab.id;
-                    option.textContent = `${colab.nome} (${deptoNome})`;
+                    option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
                     relatorioColaborador.appendChild(option);
                 });
             }
@@ -2898,9 +3179,11 @@
                 solicitacoesParaExibir.forEach(solic => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
+                    const empresaNome = this.getEmpresaNome(solic.empresaId);
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
+                        <td><span class="empresa-badge">${empresaNome}</span></td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
@@ -2943,8 +3226,9 @@
                 const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
                 if (solicitacao) {
                     const departamentoNome = this.getDepartamentoNome(solicitacao.departamentoId);
+                    const empresaNome = this.getEmpresaNome(solicitacao.empresaId);
                     const itensStr = solicitacao.itens.join('\n');
-                    alert(`Solicitação #${solicitacao.id}\n\nColaborador: ${solicitacao.colaboradorNome}\nDepartamento: ${departamentoNome}\nData: ${this.formatarData(solicitacao.data)}\nStatus: ${this.formatarStatus(solicitacao.status)}\n\nItens:\n${itensStr}`);
+                    alert(`Solicitação #${solicitacao.id}\n\nColaborador: ${solicitacao.colaboradorNome}\nDepartamento: ${departamentoNome}\nEmpresa: ${empresaNome}\nData: ${this.formatarData(solicitacao.data)}\nStatus: ${this.formatarStatus(solicitacao.status)}\n\nItens:\n${itensStr}`);
                 }
             }
 
@@ -2953,6 +3237,52 @@
                 this.carregarTabelaItens();
                 this.carregarTabelaSolicitacoes();
                 this.carregarTabelaDepartamentos();
+                this.carregarTabelaEmpresas();
+            }
+
+            carregarTabelaEmpresas() {
+                const tbody = document.getElementById('empresas-tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                this.dados.empresas.forEach(empresa => {
+                    // Contar departamentos ativos na empresa
+                    const departamentosAtivos = this.dados.departamentos.filter(
+                        d => d.empresaId === empresa.id && d.status === 'ativo'
+                    ).length;
+                    
+                    // Contar colaboradores ativos na empresa
+                    const colaboradoresAtivos = this.dados.colaboradores.filter(
+                        c => {
+                            const depto = this.dados.departamentos.find(d => d.id === c.departamentoId);
+                            return depto && depto.empresaId === empresa.id && c.status === 'ativo';
+                        }
+                    ).length;
+                    
+                    // Contar solicitações da empresa
+                    const solicitacoesEmpresa = this.dados.solicitacoes.filter(
+                        s => s.empresaId === empresa.id
+                    ).length;
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${empresa.nome}</td>
+                        <td>${departamentosAtivos}</td>
+                        <td>${colaboradoresAtivos}</td>
+                        <td>${solicitacoesEmpresa}</td>
+                        <td><span class="badge ${empresa.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${empresa.status}</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="sistema.editarEmpresa(${empresa.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="sistema.excluirEmpresa(${empresa.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
 
             carregarTabelaColaboradores() {
@@ -2964,9 +3294,11 @@
                 this.dados.colaboradores.forEach(colab => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
+                    const empresaNome = this.getEmpresaNome(colab.empresaId);
                     tr.innerHTML = `
                         <td>${colab.nome}</td>
                         <td>${departamentoNome}</td>
+                        <td><span class="empresa-badge">${empresaNome}</span></td>
                         <td>${this.formatarData(colab.admissao)}</td>
                         <td>${colab.solicitacoes}</td>
                         <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
@@ -3041,12 +3373,14 @@
                 solicitacoesParaExibir.forEach(solic => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
+                    const empresaNome = this.getEmpresaNome(solic.empresaId);
                     const statusClass = this.getStatusClass(solic.status);
                     const statusFormatado = this.formatarStatus(solic.status);
                     
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
+                        <td><span class="empresa-badge">${empresaNome}</span></td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td>
@@ -3102,10 +3436,12 @@
                         s => s.departamentoId === depto.id
                     ).length;
                     
+                    const empresaNome = this.getEmpresaNome(depto.empresaId);
+                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${depto.nome}</td>
-                        <td>${depto.codigo}</td>
+                        <td><span class="empresa-badge">${empresaNome}</span></td>
                         <td>${colaboradoresAtivos}</td>
                         <td>${solicitacoesDepartamento}</td>
                         <td><span class="badge ${depto.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${depto.status}</span></td>
@@ -3148,7 +3484,7 @@
                     this.atualizarSelects();
                     this.limparItensSolicitacao();
                     this.adicionarItemSolicitacao();
-                } else if (tipo === 'colaborador') {
+                } else if (tipo === 'colaborador' || tipo === 'departamento') {
                     this.atualizarSelects();
                 }
                 
@@ -3187,7 +3523,15 @@
                         if (item) {
                             document.getElementById('colaborador-id').value = item.id;
                             document.getElementById('colaborador-nome').value = item.nome;
-                            document.getElementById('colaborador-departamento').value = item.departamentoId;
+                            document.getElementById('colaborador-empresa').value = item.empresaId;
+                            
+                            // Preencher departamentos após selecionar empresa
+                            this.atualizarDepartamentosPorEmpresa(item.empresaId);
+                            
+                            setTimeout(() => {
+                                document.getElementById('colaborador-departamento').value = item.departamentoId;
+                            }, 100);
+                            
                             document.getElementById('colaborador-admissao').value = item.admissao;
                             document.getElementById('colaborador-status').value = item.status;
                         }
@@ -3247,16 +3591,39 @@
                         if (item) {
                             document.getElementById('departamento-id').value = item.id;
                             document.getElementById('departamento-nome').value = item.nome;
-                            document.getElementById('departamento-codigo').value = item.codigo;
+                            document.getElementById('departamento-empresa').value = item.empresaId;
                             document.getElementById('departamento-status').value = item.status;
+                        }
+                        break;
+                    case 'empresa':
+                        item = this.dados.empresas.find(e => e.id === id);
+                        if (item) {
+                            document.getElementById('empresa-id').value = item.id;
+                            document.getElementById('empresa-nome').value = item.nome;
+                            document.getElementById('empresa-status').value = item.status;
                         }
                         break;
                 }
             }
 
+            atualizarDepartamentosPorEmpresa(empresaId) {
+                const select = document.getElementById('colaborador-departamento');
+                select.innerHTML = '<option value="">Selecione...</option>';
+                
+                this.dados.departamentos.forEach(depto => {
+                    if (depto.status === 'ativo' && depto.empresaId == empresaId) {
+                        const option = document.createElement('option');
+                        option.value = depto.id;
+                        option.textContent = depto.nome;
+                        select.appendChild(option);
+                    }
+                });
+            }
+
             salvarColaborador() {
                 const id = document.getElementById('colaborador-id').value;
                 const nome = document.getElementById('colaborador-nome').value;
+                const empresaId = parseInt(document.getElementById('colaborador-empresa').value);
                 const departamentoId = parseInt(document.getElementById('colaborador-departamento').value);
                 const admissao = document.getElementById('colaborador-admissao').value;
                 const status = document.getElementById('colaborador-status').value;
@@ -3268,6 +3635,7 @@
                         this.dados.colaboradores[index] = {
                             ...this.dados.colaboradores[index],
                             nome,
+                            empresaId,
                             departamentoId,
                             admissao,
                             status
@@ -3281,6 +3649,7 @@
                     this.dados.colaboradores.push({
                         id: novoId,
                         nome,
+                        empresaId,
                         departamentoId,
                         admissao,
                         status,
@@ -3389,7 +3758,7 @@
             salvarDepartamento() {
                 const id = document.getElementById('departamento-id').value;
                 const nome = document.getElementById('departamento-nome').value;
-                const codigo = document.getElementById('departamento-codigo').value.toUpperCase();
+                const empresaId = parseInt(document.getElementById('departamento-empresa').value);
                 const status = document.getElementById('departamento-status').value;
 
                 if (id) {
@@ -3399,18 +3768,11 @@
                         this.dados.departamentos[index] = {
                             ...this.dados.departamentos[index],
                             nome,
-                            codigo,
+                            empresaId,
                             status
                         };
                     }
                 } else {
-                    // Verificar se o código já existe
-                    const codigoExistente = this.dados.departamentos.find(d => d.codigo === codigo);
-                    if (codigoExistente) {
-                        this.mostrarToast('Já existe um departamento com este código!', 'error');
-                        return;
-                    }
-                    
                     // Novo
                     const novoId = this.dados.departamentos.length > 0 ? 
                         Math.max(...this.dados.departamentos.map(d => d.id)) + 1 : 1;
@@ -3418,7 +3780,7 @@
                     this.dados.departamentos.push({
                         id: novoId,
                         nome,
-                        codigo,
+                        empresaId,
                         status,
                         colaboradores: 0,
                         solicitacoes: 0
@@ -3459,6 +3821,82 @@
                         this.atualizarSelects();
                         this.calcularMediasTroca();
                         this.mostrarToast('Departamento excluído com sucesso!');
+                    }
+                }
+            }
+
+            // CRUD Empresas
+            salvarEmpresa() {
+                const id = document.getElementById('empresa-id').value;
+                const nome = document.getElementById('empresa-nome').value;
+                const status = document.getElementById('empresa-status').value;
+
+                if (id) {
+                    // Editar
+                    const index = this.dados.empresas.findIndex(e => e.id == id);
+                    if (index !== -1) {
+                        this.dados.empresas[index] = {
+                            ...this.dados.empresas[index],
+                            nome,
+                            status
+                        };
+                    }
+                } else {
+                    // Verificar se o nome já existe
+                    const nomeExistente = this.dados.empresas.find(e => e.nome.toLowerCase() === nome.toLowerCase());
+                    if (nomeExistente) {
+                        this.mostrarToast('Já existe uma empresa com este nome!', 'error');
+                        return;
+                    }
+                    
+                    // Novo
+                    const novoId = this.dados.empresas.length > 0 ? 
+                        Math.max(...this.dados.empresas.map(e => e.id)) + 1 : 1;
+                    
+                    this.dados.empresas.push({
+                        id: novoId,
+                        nome,
+                        status,
+                        departamentos: 0,
+                        colaboradores: 0,
+                        solicitacoes: 0
+                    });
+                }
+
+                const salvou = this.salvarDados();
+                if (salvou) {
+                    this.fecharModais();
+                    this.carregarTabelas();
+                    this.carregarDashboard();
+                    this.atualizarDashboardCharts();
+                    this.atualizarSelects();
+                    this.calcularMediasTroca();
+                    this.mostrarToast('Empresa salva com sucesso!');
+                }
+            }
+
+            editarEmpresa(id) {
+                this.abrirModal('empresa', id);
+            }
+
+            excluirEmpresa(id) {
+                if (confirm('Tem certeza que deseja excluir esta empresa? Esta ação não poderá ser desfeita.')) {
+                    // Verificar se há departamentos vinculados a esta empresa
+                    const departamentosNaEmpresa = this.dados.departamentos.filter(d => d.empresaId === id);
+                    if (departamentosNaEmpresa.length > 0) {
+                        this.mostrarToast('Não é possível excluir a empresa pois há departamentos vinculados a ela!', 'error');
+                        return;
+                    }
+                    
+                    this.dados.empresas = this.dados.empresas.filter(e => e.id !== id);
+                    const salvou = this.salvarDados();
+                    if (salvou) {
+                        this.carregarTabelas();
+                        this.carregarDashboard();
+                        this.atualizarDashboardCharts();
+                        this.atualizarSelects();
+                        this.calcularMediasTroca();
+                        this.mostrarToast('Empresa excluída com sucesso!');
                     }
                 }
             }
@@ -3560,6 +3998,8 @@
                 
                 const departamentoId = colaborador.departamentoId;
                 const departamento = this.dados.departamentos.find(d => d.id === departamentoId);
+                const empresaId = colaborador.empresaId;
+                const empresa = this.dados.empresas.find(e => e.id === empresaId);
                 
                 if (id) {
                     // Editar
@@ -3581,6 +4021,7 @@
                             colaboradorId,
                             colaboradorNome: colaborador.nome,
                             departamentoId,
+                            empresaId,
                             itens: itensSelecionados,
                             data, // Data exata fornecida pelo usuário
                             status
@@ -3601,6 +4042,7 @@
                         colaboradorId,
                         colaboradorNome: colaborador.nome,
                         departamentoId,
+                        empresaId,
                         itens: itensSelecionados,
                         data, // Data exata fornecida pelo usuário
                         status
@@ -3618,6 +4060,11 @@
                     // Atualizar contador do departamento
                     if (departamento) {
                         departamento.solicitacoes = (departamento.solicitacoes || 0) + 1;
+                    }
+                    
+                    // Atualizar contador da empresa
+                    if (empresa) {
+                        empresa.solicitacoes = (empresa.solicitacoes || 0) + 1;
                     }
                 }
                 
@@ -3671,6 +4118,12 @@
                         if (departamento && departamento.solicitacoes > 0) {
                             departamento.solicitacoes--;
                         }
+                        
+                        // Remover contagem da empresa
+                        const empresa = this.dados.empresas.find(e => e.id === solicitacao.empresaId);
+                        if (empresa && empresa.solicitacoes > 0) {
+                            empresa.solicitacoes--;
+                        }
                     }
                     
                     this.dados.solicitacoes = this.dados.solicitacoes.filter(s => s.id !== id);
@@ -3693,10 +4146,18 @@
                 const departamento = this.filtrosAtivos.dashboard.departamento;
                 const colaborador = this.filtrosAtivos.dashboard.colaborador;
                 const item = this.filtrosAtivos.dashboard.item;
+                const empresa = this.filtrosAtivos.dashboard.empresa;
                 
                 // Atualizar estatísticas com base nos filtros
                 let colaboradoresFiltrados = this.dados.colaboradores.filter(c => c.status === 'ativo');
                 let solicitacoesFiltradas = [...this.dados.solicitacoes];
+                
+                // Aplicar filtro de empresa
+                if (empresa !== 'todos') {
+                    const empresaId = parseInt(empresa);
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.empresaId === empresaId);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.empresaId === empresaId);
+                }
                 
                 // Aplicar filtro de departamento
                 if (departamento !== 'todos') {
@@ -3899,7 +4360,7 @@
                 solicitacoesFiltradas.forEach(solic => {
                     if (!solicitacoesPorColaborador[solic.colaboradorNome]) {
                         solicitacoesPorColaborador[solic.colaboradorNome] = 0;
-                        colaboradoresMap[solic.colaboradorNome] = solic.departamentoId;
+                        colaboradoresMap[solic.colaboradorNome] = { departamentoId: solic.departamentoId, empresaId: solic.empresaId };
                     }
                     solicitacoesPorColaborador[solic.colaboradorNome]++;
                 });
@@ -3908,7 +4369,8 @@
                     .map(([nome, quantidade]) => ({ 
                         nome, 
                         quantidade,
-                        departamentoId: colaboradoresMap[nome]
+                        departamentoId: colaboradoresMap[nome].departamentoId,
+                        empresaId: colaboradoresMap[nome].empresaId
                     }))
                     .sort((a, b) => b.quantidade - a.quantidade)
                     .slice(0, 5);
@@ -3917,10 +4379,11 @@
                     const li = document.createElement('li');
                     li.className = 'top-item';
                     const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
+                    const empresaNome = this.getEmpresaNome(colab.empresaId);
                     li.innerHTML = `
                         <div class="top-info">
                             <span class="top-name">${index + 1}. ${colab.nome}</span>
-                            <span class="top-details">${departamentoNome}</span>
+                            <span class="top-details">${departamentoNome} - ${empresaNome}</span>
                         </div>
                         <div class="top-count">${colab.quantidade}</div>
                     `;
@@ -4013,9 +4476,11 @@
                 ultimas.forEach(solic => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
+                    const empresaNome = this.getEmpresaNome(solic.empresaId);
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
+                        <td><span class="empresa-badge">${empresaNome}</span></td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
@@ -4051,22 +4516,27 @@
                 const busca = this.filtrosAtivos.colaboradores.busca;
                 const status = this.filtrosAtivos.colaboradores.status;
                 const departamento = this.filtrosAtivos.colaboradores.departamento;
+                const empresa = this.filtrosAtivos.colaboradores.empresa;
                 
                 const linhas = document.querySelectorAll('#colaboradores-tbody tr');
                 linhas.forEach(linha => {
                     const nome = linha.cells[0].textContent.toLowerCase();
                     const departamentoLinha = linha.cells[1].textContent.toLowerCase();
-                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
+                    const empresaLinha = linha.cells[2].textContent.toLowerCase();
+                    const statusLinha = linha.cells[6].querySelector('.badge').textContent.toLowerCase();
                     
                     const buscaMatch = busca === '' || 
                                      nome.includes(busca) || 
                                      departamentoLinha.includes(busca) || 
+                                     empresaLinha.includes(busca) ||
                                      statusLinha.includes(busca);
                     const statusMatch = status === 'todos' || statusLinha === status;
                     const departamentoMatch = departamento === 'todos' || 
                                      departamentoLinha === this.getDepartamentoNome(parseInt(departamento)).toLowerCase();
+                    const empresaMatch = empresa === 'todos' || 
+                                     empresaLinha === this.getEmpresaNome(parseInt(empresa)).toLowerCase();
                     
-                    linha.style.display = buscaMatch && statusMatch && departamentoMatch ? '' : 'none';
+                    linha.style.display = buscaMatch && statusMatch && departamentoMatch && empresaMatch ? '' : 'none';
                 });
             }
 
@@ -4092,6 +4562,7 @@
             filtrarSolicitacoes() {
                 const status = this.filtrosAtivos.solicitacoes.status;
                 const departamento = this.filtrosAtivos.solicitacoes.departamento;
+                const empresa = this.filtrosAtivos.solicitacoes.empresa;
                 const periodo = this.filtrosAtivos.solicitacoes.periodo;
                 const colaborador = this.filtrosAtivos.solicitacoes.colaborador;
                 
@@ -4099,9 +4570,10 @@
                 const hoje = new Date();
                 
                 linhas.forEach(linha => {
-                    const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
+                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
                     const departamentoLinha = linha.cells[1].textContent.toLowerCase();
-                    const dataStr = linha.cells[3].textContent;
+                    const empresaLinha = linha.cells[2].textContent.toLowerCase();
+                    const dataStr = linha.cells[4].textContent;
                     const colaboradorNome = linha.cells[0].textContent;
                     const dataSolicitacao = this.parseDataPtBr(dataStr);
                     
@@ -4124,26 +4596,45 @@
                     const statusMatch = status === 'todos' || statusLinha === this.formatarStatus(status).toLowerCase();
                     const departamentoMatch = departamento === 'todos' || 
                                      departamentoLinha === this.getDepartamentoNome(parseInt(departamento)).toLowerCase();
+                    const empresaMatch = empresa === 'todos' || 
+                                     empresaLinha === this.getEmpresaNome(parseInt(empresa)).toLowerCase();
                     const colaboradorMatch = colaborador === 'todos' || 
                                           colaboradorNome === this.getColaboradorNome(parseInt(colaborador));
                     
-                    linha.style.display = statusMatch && departamentoMatch && periodoMatch && colaboradorMatch ? '' : 'none';
+                    linha.style.display = statusMatch && departamentoMatch && empresaMatch && periodoMatch && colaboradorMatch ? '' : 'none';
                 });
             }
 
             filtrarDepartamentos() {
                 const busca = this.filtrosAtivos.departamentos.busca;
+                const empresa = this.filtrosAtivos.departamentos.empresa;
                 const status = this.filtrosAtivos.departamentos.status;
                 
                 const linhas = document.querySelectorAll('#departamentos-tbody tr');
                 linhas.forEach(linha => {
                     const nome = linha.cells[0].textContent.toLowerCase();
-                    const codigo = linha.cells[1].textContent.toLowerCase();
+                    const empresaLinha = linha.cells[1].textContent.toLowerCase();
                     const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
                     
-                    const buscaMatch = busca === '' || 
-                                     nome.includes(busca) || 
-                                     codigo.includes(busca);
+                    const buscaMatch = busca === '' || nome.includes(busca);
+                    const empresaMatch = empresa === 'todos' || 
+                                     empresaLinha === this.getEmpresaNome(parseInt(empresa)).toLowerCase();
+                    const statusMatch = status === 'todos' || statusLinha === status;
+                    
+                    linha.style.display = buscaMatch && empresaMatch && statusMatch ? '' : 'none';
+                });
+            }
+
+            filtrarEmpresas() {
+                const busca = this.filtrosAtivos.empresas.busca;
+                const status = this.filtrosAtivos.empresas.status;
+                
+                const linhas = document.querySelectorAll('#empresas-tbody tr');
+                linhas.forEach(linha => {
+                    const nome = linha.cells[0].textContent.toLowerCase();
+                    const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
+                    
+                    const buscaMatch = busca === '' || nome.includes(busca);
                     const statusMatch = status === 'todos' || statusLinha === status;
                     
                     linha.style.display = buscaMatch && statusMatch ? '' : 'none';
@@ -4160,6 +4651,12 @@
                 if (!id) return 'N/A';
                 const departamento = this.dados.departamentos.find(d => d.id === id);
                 return departamento ? departamento.nome : 'N/A';
+            }
+
+            getEmpresaNome(id) {
+                if (!id) return 'N/A';
+                const empresa = this.dados.empresas.find(e => e.id === id);
+                return empresa ? empresa.nome : 'N/A';
             }
 
             parseDataPtBr(dataStr) {
@@ -4206,6 +4703,13 @@
                                     valorExibido = depto ? depto.nome : valor;
                                 }
                                 break;
+                            case 'empresa':
+                                label = 'Empresa: ';
+                                if (valor !== 'todos') {
+                                    const empresa = this.dados.empresas.find(e => e.id === parseInt(valor));
+                                    valorExibido = empresa ? empresa.nome : valor;
+                                }
+                                break;
                             case 'status':
                                 label = 'Status: ';
                                 valorExibido = this.formatarStatus(valor);
@@ -4235,6 +4739,7 @@
                                     case 'colaboradores': valorExibido = 'Colaboradores'; break;
                                     case 'itens': valorExibido = 'Itens'; break;
                                     case 'departamentos': valorExibido = 'Departamentos'; break;
+                                    case 'empresas': valorExibido = 'Empresas'; break;
                                 }
                                 break;
                             case 'busca':
@@ -4270,6 +4775,7 @@
                     case 'colaborador':
                     case 'item':
                     case 'tipo':
+                    case 'empresa':
                         valorPadrao = 'todos';
                         break;
                     case 'busca':
@@ -4286,12 +4792,14 @@
                         if (chave === 'departamento') document.getElementById('departamento-select').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('colaborador-select').value = valorPadrao;
                         if (chave === 'item') document.getElementById('item-select').value = valorPadrao;
+                        if (chave === 'empresa') document.getElementById('empresa-select').value = valorPadrao;
                         this.aplicarFiltrosDashboard();
                         break;
                     case 'colaboradores':
                         if (chave === 'busca') document.getElementById('buscar-colaborador').value = '';
                         if (chave === 'status') document.getElementById('filtro-status-colaborador').value = valorPadrao;
                         if (chave === 'departamento') document.getElementById('filtro-departamento-colaborador').value = valorPadrao;
+                        if (chave === 'empresa') document.getElementById('filtro-empresa-colaborador').value = valorPadrao;
                         this.filtrarColaboradores();
                         break;
                     case 'itens':
@@ -4303,18 +4811,26 @@
                     case 'solicitacoes':
                         if (chave === 'status') document.getElementById('filtro-status-solicitacao').value = valorPadrao;
                         if (chave === 'departamento') document.getElementById('filtro-departamento-solicitacao').value = valorPadrao;
+                        if (chave === 'empresa') document.getElementById('filtro-empresa-solicitacao').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
                         this.filtrarSolicitacoes();
                         break;
                     case 'departamentos':
                         if (chave === 'busca') document.getElementById('buscar-departamento').value = '';
+                        if (chave === 'empresa') document.getElementById('filtro-empresa-departamento').value = valorPadrao;
                         if (chave === 'status') document.getElementById('filtro-status-departamento').value = valorPadrao;
                         this.filtrarDepartamentos();
+                        break;
+                    case 'empresas':
+                        if (chave === 'busca') document.getElementById('buscar-empresa').value = '';
+                        if (chave === 'status') document.getElementById('filtro-status-empresa').value = valorPadrao;
+                        this.filtrarEmpresas();
                         break;
                     case 'relatorios':
                         if (chave === 'tipo') document.getElementById('tipo-relatorio').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('periodo-relatorio').value = valorPadrao;
+                        if (chave === 'empresa') document.getElementById('empresa-relatorio').value = valorPadrao;
                         if (chave === 'departamento') document.getElementById('departamento-relatorio').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('colaborador-relatorio').value = valorPadrao;
                         if (chave === 'status') document.getElementById('status-relatorio').value = valorPadrao;
@@ -4329,6 +4845,7 @@
             gerarRelatorio() {
                 const tipo = this.filtrosAtivos.relatorios.tipo || document.getElementById('tipo-relatorio').value;
                 const periodo = this.filtrosAtivos.relatorios.periodo || document.getElementById('periodo-relatorio').value;
+                const empresa = this.filtrosAtivos.relatorios.empresa || document.getElementById('empresa-relatorio').value;
                 const departamento = this.filtrosAtivos.relatorios.departamento || document.getElementById('departamento-relatorio').value;
                 const colaborador = this.filtrosAtivos.relatorios.colaborador || document.getElementById('colaborador-relatorio').value;
                 const status = this.filtrosAtivos.relatorios.status || document.getElementById('status-relatorio').value;
@@ -4341,25 +4858,29 @@
                 
                 switch(tipo) {
                     case 'solicitacoes':
-                        this.gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, departamento, colaborador, status);
+                        this.gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, empresa, departamento, colaborador, status);
                         break;
                     case 'colaboradores':
-                        this.gerarRelatorioColaboradores(cabecalho, corpo, departamento);
+                        this.gerarRelatorioColaboradores(cabecalho, corpo, empresa, departamento);
                         break;
                     case 'itens':
                         this.gerarRelatorioItens(cabecalho, corpo);
                         break;
                     case 'departamentos':
-                        this.gerarRelatorioDepartamentos(cabecalho, corpo);
+                        this.gerarRelatorioDepartamentos(cabecalho, corpo, empresa);
+                        break;
+                    case 'empresas':
+                        this.gerarRelatorioEmpresas(cabecalho, corpo);
                         break;
                 }
             }
 
-            gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, departamento, colaborador, status) {
+            gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, empresa, departamento, colaborador, status) {
                 cabecalho.innerHTML = `
                     <tr>
                         <th>Colaborador</th>
                         <th>Departamento</th>
+                        <th>Empresa</th>
                         <th>Itens</th>
                         <th>Data</th>
                         <th>Status</th>
@@ -4371,6 +4892,10 @@
                 let solicitacoes = [...this.dados.solicitacoes];
                 
                 // Aplicar filtros
+                if (empresa !== 'todos') {
+                    solicitacoes = solicitacoes.filter(s => s.empresaId === parseInt(empresa));
+                }
+                
                 if (departamento !== 'todos') {
                     solicitacoes = solicitacoes.filter(s => s.departamentoId === parseInt(departamento));
                 }
@@ -4402,9 +4927,11 @@
                 solicitacoes.forEach(solic => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
+                    const empresaNome = this.getEmpresaNome(solic.empresaId);
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
+                        <td>${empresaNome}</td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
@@ -4413,11 +4940,12 @@
                 });
             }
 
-            gerarRelatorioColaboradores(cabecalho, corpo, departamento) {
+            gerarRelatorioColaboradores(cabecalho, corpo, empresa, departamento) {
                 cabecalho.innerHTML = `
                     <tr>
                         <th>Nome</th>
                         <th>Departamento</th>
+                        <th>Empresa</th>
                         <th>Admissão</th>
                         <th>Solicitações</th>
                         <th>Última Solicitação</th>
@@ -4429,6 +4957,10 @@
                 
                 let colaboradores = [...this.dados.colaboradores];
                 
+                if (empresa !== 'todos') {
+                    colaboradores = colaboradores.filter(c => c.empresaId === parseInt(empresa));
+                }
+                
                 if (departamento !== 'todos') {
                     colaboradores = colaboradores.filter(c => c.departamentoId === parseInt(departamento));
                 }
@@ -4436,9 +4968,11 @@
                 colaboradores.forEach(colab => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
+                    const empresaNome = this.getEmpresaNome(colab.empresaId);
                     tr.innerHTML = `
                         <td>${colab.nome}</td>
                         <td>${departamentoNome}</td>
+                        <td>${empresaNome}</td>
                         <td>${this.formatarData(colab.admissao)}</td>
                         <td>${colab.solicitacoes}</td>
                         <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
@@ -4478,11 +5012,11 @@
                 });
             }
 
-            gerarRelatorioDepartamentos(cabecalho, corpo) {
+            gerarRelatorioDepartamentos(cabecalho, corpo, empresa) {
                 cabecalho.innerHTML = `
                     <tr>
                         <th>Departamento</th>
-                        <th>Código</th>
+                        <th>Empresa</th>
                         <th>Colaboradores</th>
                         <th>Solicitações</th>
                         <th>Média por Colaborador</th>
@@ -4492,9 +5026,16 @@
                 
                 corpo.innerHTML = '';
                 
-                this.dados.departamentos.forEach(depto => {
+                let departamentos = [...this.dados.departamentos];
+                
+                if (empresa !== 'todos') {
+                    departamentos = departamentos.filter(d => d.empresaId === parseInt(empresa));
+                }
+                
+                departamentos.forEach(depto => {
                     const colaboradoresDepartamento = this.dados.colaboradores.filter(c => c.departamentoId === depto.id && c.status === 'ativo');
                     const solicitacoesDepartamento = this.dados.solicitacoes.filter(s => s.departamentoId === depto.id);
+                    const empresaNome = this.getEmpresaNome(depto.empresaId);
                     
                     if (colaboradoresDepartamento.length > 0) {
                         // Calcular média
@@ -4516,11 +5057,70 @@
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${depto.nome}</td>
-                            <td>${depto.codigo}</td>
+                            <td>${empresaNome}</td>
                             <td>${colaboradoresDepartamento.length}</td>
                             <td>${solicitacoesDepartamento.length}</td>
                             <td>${media}</td>
                             <td>${itemMaisSolicitado ? `${itemMaisSolicitado[0]} (${itemMaisSolicitado[1]})` : 'Nenhum'}</td>
+                        `;
+                        corpo.appendChild(tr);
+                    }
+                });
+            }
+
+            gerarRelatorioEmpresas(cabecalho, corpo) {
+                cabecalho.innerHTML = `
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Departamentos</th>
+                        <th>Colaboradores</th>
+                        <th>Solicitações</th>
+                        <th>Média por Colaborador</th>
+                        <th>Departamento com Mais Solicitações</th>
+                    </tr>
+                `;
+                
+                corpo.innerHTML = '';
+                
+                this.dados.empresas.forEach(empresa => {
+                    const departamentosEmpresa = this.dados.departamentos.filter(d => d.empresaId === empresa.id && d.status === 'ativo');
+                    
+                    if (departamentosEmpresa.length > 0) {
+                        // Contar colaboradores ativos na empresa
+                        const colaboradoresAtivos = this.dados.colaboradores.filter(c => {
+                            const depto = this.dados.departamentos.find(d => d.id === c.departamentoId);
+                            return depto && depto.empresaId === empresa.id && c.status === 'ativo';
+                        }).length;
+                        
+                        // Contar solicitações da empresa
+                        const solicitacoesEmpresa = this.dados.solicitacoes.filter(s => s.empresaId === empresa.id).length;
+                        
+                        // Calcular média
+                        const media = colaboradoresAtivos > 0 ? 
+                            (solicitacoesEmpresa / colaboradoresAtivos).toFixed(1) : '0.0';
+                        
+                        // Encontrar departamento com mais solicitações
+                        const solicitacoesPorDepartamento = {};
+                        this.dados.solicitacoes.forEach(solic => {
+                            if (solic.empresaId === empresa.id) {
+                                solicitacoesPorDepartamento[solic.departamentoId] = (solicitacoesPorDepartamento[solic.departamentoId] || 0) + 1;
+                            }
+                        });
+                        
+                        const departamentoMaisSolicitado = Object.entries(solicitacoesPorDepartamento)
+                            .sort((a, b) => b[1] - a[1])[0];
+                        
+                        const departamentoNome = departamentoMaisSolicitado ? 
+                            this.getDepartamentoNome(parseInt(departamentoMaisSolicitado[0])) : 'Nenhum';
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${empresa.nome}</td>
+                            <td>${departamentosEmpresa.length}</td>
+                            <td>${colaboradoresAtivos}</td>
+                            <td>${solicitacoesEmpresa}</td>
+                            <td>${media}</td>
+                            <td>${departamentoNome} ${departamentoMaisSolicitado ? `(${departamentoMaisSolicitado[1]})` : ''}</td>
                         `;
                         corpo.appendChild(tr);
                     }
