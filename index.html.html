@@ -58,6 +58,7 @@
             color: var(--dark);
             line-height: 1.5;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .btn {
@@ -152,6 +153,7 @@
         .container {
             display: flex;
             min-height: 100vh;
+            width: 100%;
         }
 
         .content-section {
@@ -353,6 +355,8 @@
             margin-left: 250px;
             padding: 30px;
             background-color: #f5f7fa;
+            width: calc(100% - 250px);
+            min-height: 100vh;
         }
 
         .media-troca-badge {
@@ -459,6 +463,10 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
         }
 
         .modal-body {
@@ -576,7 +584,7 @@
         }
 
         .show {
-            transform: translateX(0);
+            display: block !important;
         }
 
         .sidebar {
@@ -772,6 +780,10 @@
             border-left-color: var(--secondary);
         }
 
+        .toast.show {
+            transform: translateX(0);
+        }
+
         .tooltip {
             position: relative;
             display: inline-block;
@@ -913,6 +925,8 @@
         @media (max-width: 1024px) {
             .main-content {
                 margin-left: 70px;
+                width: calc(100% - 70px);
+                padding: 20px;
             }
 
             .sidebar {
@@ -921,6 +935,7 @@
 
             .sidebar .logo {
                 justify-content: center;
+                padding: 15px 0;
             }
 
             .sidebar .logo-text,
@@ -933,9 +948,56 @@
                 justify-content: center;
                 padding: 14px;
             }
+            
+            .sidebar .user-section {
+                justify-content: center;
+                padding: 15px 0;
+            }
+            
+            .sidebar .user-avatar {
+                width: 35px;
+                height: 35px;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 15px;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                width: 250px;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+                position: fixed;
+                top: 15px;
+                left: 15px;
+                z-index: 100;
+                background: var(--primary);
+                color: white;
+                border: none;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                font-size: 1.2rem;
+                cursor: pointer;
+                box-shadow: var(--shadow-md);
+            }
+
             .chart-card {
                 height: 300px;
             }
@@ -960,6 +1022,7 @@
                 flex-direction: column;
                 gap: 16px;
                 align-items: stretch;
+                margin-top: 20px;
             }
 
             .header-actions {
@@ -971,16 +1034,31 @@
                 justify-content: center;
             }
 
-            .main-content {
-                padding: 20px;
-            }
-
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
             .top-stats {
                 grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .table {
+                min-width: 600px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h2 {
+                font-size: 1.5rem;
             }
         }
 
@@ -1015,6 +1093,11 @@
     </style>
 </head>
 <body>
+    <!-- Botão de menu mobile -->
+    <button class="mobile-menu-toggle" style="display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <div class="container">
         <!-- Sidebar -->
         <nav class="sidebar">
@@ -1058,6 +1141,13 @@
                 </div>
                 
                 <div class="nav-item">
+                    <a href="#departamentos" class="nav-link" data-section="departamentos">
+                        <i class="fas fa-building"></i>
+                        <span>Departamentos</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
                     <a href="#relatorios" class="nav-link" data-section="relatorios">
                         <i class="fas fa-file-alt"></i>
                         <span>Relatórios</span>
@@ -1077,7 +1167,7 @@
         <!-- Conteúdo Principal -->
         <main class="main-content">
             <!-- Dashboard -->
-            <section id="dashboard" class="content-section active">
+            <section id="dashboard" class="content-section" style="display: block;">
                 <div class="header">
                     <h2>Dashboard</h2>
                     <div class="header-actions">
@@ -1107,14 +1197,10 @@
                         </div>
                         
                         <div class="filter-group">
-                            <label>Setor</label>
-                            <select id="setor-select">
-                                <option value="todos">Todos os Setores</option>
-                                <option value="vendas">Vendas</option>
-                                <option value="producao">Produção</option>
-                                <option value="administrativo">Administrativo</option>
-                                <option value="logistica">Logística</option>
-                                <option value="ti">TI</option>
+                            <label>Departamento</label>
+                            <select id="departamento-select">
+                                <option value="todos">Todos os Departamentos</option>
+                                <!-- Preenchido por JS -->
                             </select>
                         </div>
                         
@@ -1229,9 +1315,9 @@
                     </div>
                     
                     <div class="chart-card">
-                        <h4><i class="fas fa-chart-pie"></i> Solicitações por Setor</h4>
+                        <h4><i class="fas fa-chart-pie"></i> Solicitações por Departamento</h4>
                         <div class="chart-wrapper">
-                            <canvas id="chart-setores"></canvas>
+                            <canvas id="chart-departamentos"></canvas>
                         </div>
                     </div>
                     
@@ -1260,8 +1346,8 @@
                     </div>
                     
                     <div class="top-card">
-                        <h4><i class="fas fa-building"></i> Setores que Mais Trocam</h4>
-                        <ul class="top-list" id="top-setores-list">
+                        <h4><i class="fas fa-building"></i> Departamentos que Mais Trocam</h4>
+                        <ul class="top-list" id="top-departamentos-list">
                             <!-- Preenchido por JS -->
                         </ul>
                     </div>
@@ -1287,9 +1373,8 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Código</th>
                                     <th>Colaborador</th>
-                                    <th>Setor</th>
+                                    <th>Departamento</th>
                                     <th>Itens</th>
                                     <th>Data</th>
                                     <th>Status</th>
@@ -1300,6 +1385,11 @@
                                 <!-- Preenchido por JS -->
                             </tbody>
                         </table>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn btn-secondary btn-sm" id="ver-mais-solicitacoes" style="display: none;">
+                            <i class="fas fa-eye"></i> Ver Mais Solicitações
+                        </button>
                     </div>
                 </div>
             </section>
@@ -1319,7 +1409,7 @@
                 <div class="filters-row mb-4">
                     <div class="filter-group">
                         <label>Buscar</label>
-                        <input type="text" id="buscar-colaborador" placeholder="Nome, Setor ou Status...">
+                        <input type="text" id="buscar-colaborador" placeholder="Nome, Departamento ou Status...">
                     </div>
                     <div class="filter-group">
                         <label>Status</label>
@@ -1330,14 +1420,10 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label>Setor</label>
-                        <select id="filtro-setor-colaborador">
-                            <option value="todos">Todos os Setores</option>
-                            <option value="vendas">Vendas</option>
-                            <option value="producao">Produção</option>
-                            <option value="administrativo">Administrativo</option>
-                            <option value="logistica">Logística</option>
-                            <option value="ti">TI</option>
+                        <label>Departamento</label>
+                        <select id="filtro-departamento-colaborador">
+                            <option value="todos">Todos os Departamentos</option>
+                            <!-- Preenchido por JS -->
                         </select>
                     </div>
                 </div>
@@ -1347,7 +1433,7 @@
                         <thead>
                             <tr>
                                 <th>Nome</th>
-                                <th>Setor</th>
+                                <th>Departamento</th>
                                 <th>Admissão</th>
                                 <th>Solicitações</th>
                                 <th>Última Solicitação</th>
@@ -1441,14 +1527,10 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label>Setor</label>
-                        <select id="filtro-setor-solicitacao">
+                        <label>Departamento</label>
+                        <select id="filtro-departamento-solicitacao">
                             <option value="todos">Todos</option>
-                            <option value="vendas">Vendas</option>
-                            <option value="producao">Produção</option>
-                            <option value="administrativo">Administrativo</option>
-                            <option value="logistica">Logística</option>
-                            <option value="ti">TI</option>
+                            <!-- Preenchido por JS -->
                         </select>
                     </div>
                     <div class="filter-group">
@@ -1473,9 +1555,8 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Código</th>
                                 <th>Colaborador</th>
-                                <th>Setor</th>
+                                <th>Departamento</th>
                                 <th>Itens</th>
                                 <th>Data</th>
                                 <th>Status</th>
@@ -1483,6 +1564,57 @@
                             </tr>
                         </thead>
                         <tbody id="solicitacoes-tbody">
+                            <!-- Preenchido por JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <button class="btn btn-secondary" id="ver-mais-solicitacoes-tabela" style="display: none;">
+                        <i class="fas fa-eye"></i> Ver Mais Solicitações
+                    </button>
+                </div>
+            </section>
+
+            <!-- Departamentos -->
+            <section id="departamentos" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-building"></i>
+                        Departamentos
+                    </h3>
+                    <button class="btn btn-primary" id="novo-departamento-btn">
+                        <i class="fas fa-plus"></i> Novo Departamento
+                    </button>
+                </div>
+
+                <div class="filters-row mb-4">
+                    <div class="filter-group">
+                        <label>Buscar</label>
+                        <input type="text" id="buscar-departamento" placeholder="Nome do departamento...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filtro-status-departamento">
+                            <option value="todos">Todos</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Código</th>
+                                <th>Colaboradores</th>
+                                <th>Solicitações</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="departamentos-tbody">
                             <!-- Preenchido por JS -->
                         </tbody>
                     </table>
@@ -1505,7 +1637,7 @@
                             <option value="solicitacoes">Solicitações</option>
                             <option value="colaboradores">Colaboradores</option>
                             <option value="itens">Itens</option>
-                            <option value="setores">Setores</option>
+                            <option value="departamentos">Departamentos</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -1518,14 +1650,10 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <label>Setor</label>
-                        <select id="setor-relatorio">
+                        <label>Departamento</label>
+                        <select id="departamento-relatorio">
                             <option value="todos">Todos</option>
-                            <option value="vendas">Vendas</option>
-                            <option value="producao">Produção</option>
-                            <option value="administrativo">Administrativo</option>
-                            <option value="logistica">Logística</option>
-                            <option value="ti">TI</option>
+                            <!-- Preenchido por JS -->
                         </select>
                     </div>
                     <div class="filter-group">
@@ -1585,14 +1713,10 @@
                         <input type="text" class="form-control" id="colaborador-nome" required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Setor</label>
-                        <select class="form-control" id="colaborador-setor" required>
+                        <label class="form-label">Departamento</label>
+                        <select class="form-control" id="colaborador-departamento" required>
                             <option value="">Selecione...</option>
-                            <option value="vendas">Vendas</option>
-                            <option value="producao">Produção</option>
-                            <option value="administrativo">Administrativo</option>
-                            <option value="logistica">Logística</option>
-                            <option value="ti">TI</option>
+                            <!-- Preenchido por JS -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -1705,6 +1829,41 @@
         </div>
     </div>
 
+    <!-- Modal Departamento -->
+    <div id="modal-departamento" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-departamento-title">Novo Departamento</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-departamento">
+                    <input type="hidden" id="departamento-id">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Departamento</label>
+                        <input type="text" class="form-control" id="departamento-nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Código</label>
+                        <input type="text" class="form-control" id="departamento-codigo" required>
+                        <small style="color: var(--gray);">Código único para identificar o departamento</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="departamento-status" required>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="toast">
         <i class="fas fa-check-circle toast-icon"></i>
@@ -1717,11 +1876,16 @@
                 this.dados = this.carregarDados();
                 this.charts = {};
                 this.filtrosAtivos = {
-                    dashboard: { periodo: 'todos', setor: 'todos', colaborador: 'todos', item: 'todos' },
-                    colaboradores: { busca: '', status: 'todos', setor: 'todos' },
+                    dashboard: { periodo: 'todos', departamento: 'todos', colaborador: 'todos', item: 'todos' },
+                    colaboradores: { busca: '', status: 'todos', departamento: 'todos' },
                     itens: { busca: '', categoria: 'todos', status: 'todos' },
-                    solicitacoes: { status: 'todos', setor: 'todos', periodo: 'todos', colaborador: 'todos' },
-                    relatorios: { tipo: 'solicitacoes', periodo: 'todos', setor: 'todos', colaborador: 'todos', status: 'todos' }
+                    solicitacoes: { status: 'todos', departamento: 'todos', periodo: 'todos', colaborador: 'todos' },
+                    departamentos: { busca: '', status: 'todos' },
+                    relatorios: { tipo: 'solicitacoes', periodo: 'todos', departamento: 'todos', colaborador: 'todos', status: 'todos' }
+                };
+                this.visualizacaoSolicitacoes = {
+                    dashboard: { limite: 5, offset: 0 },
+                    tabela: { limite: 10, offset: 0 }
                 };
                 this.init();
             }
@@ -1729,13 +1893,66 @@
             init() {
                 this.setupNavegacao();
                 this.setupEventListeners();
-                this.carregarDashboard();
-                this.carregarTabelas();
+                this.setupResponsividade();
                 this.setupDate();
                 this.atualizarSelects();
+                this.carregarDashboard();
+                this.carregarTabelas();
                 this.atualizarDashboardCharts();
                 this.atualizarFiltrosAtivos();
                 this.calcularMediasTroca();
+            }
+
+            setupResponsividade() {
+                // Menu mobile toggle
+                const menuToggle = document.querySelector('.mobile-menu-toggle');
+                const sidebar = document.querySelector('.sidebar');
+                
+                if (window.innerWidth <= 768) {
+                    menuToggle.style.display = 'block';
+                    sidebar.classList.remove('mobile-open');
+                }
+                
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('mobile-open');
+                });
+                
+                // Fechar menu ao clicar em um link
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('mobile-open');
+                        }
+                    });
+                });
+                
+                // Redimensionamento da janela
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth <= 768) {
+                        menuToggle.style.display = 'block';
+                    } else {
+                        menuToggle.style.display = 'none';
+                        sidebar.classList.remove('mobile-open');
+                    }
+                    
+                    // Redesenhar gráficos ao redimensionar
+                    this.redesenharGraficos();
+                });
+            }
+
+            redesenharGraficos() {
+                if (this.charts.topColaboradores) {
+                    this.charts.topColaboradores.resize();
+                }
+                if (this.charts.departamentos) {
+                    this.charts.departamentos.resize();
+                }
+                if (this.charts.itens) {
+                    this.charts.itens.resize();
+                }
+                if (this.charts.mensal) {
+                    this.charts.mensal.resize();
+                }
             }
 
             carregarDados() {
@@ -1749,11 +1966,12 @@
                     const dadosSalvos = {
                         colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')),
                         itens: JSON.parse(localStorage.getItem('uniformes_itens')),
+                        departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')),
                         solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes'))
                     };
 
                     // Se não houver dados salvos, usar dados padrão
-                    if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.solicitacoes) {
+                    if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.departamentos || !dadosSalvos.solicitacoes) {
                         console.log("Nenhum dado salvo encontrado. Carregando dados padrão.");
                         return this.getDadosPadrao();
                     }
@@ -1767,14 +1985,23 @@
             }
 
             getDadosPadrao() {
+                // Primeiro criamos os departamentos
+                const departamentos = [
+                    { id: 1, nome: "Vendas", codigo: "VEND", status: "ativo", colaboradores: 2, solicitacoes: 3 },
+                    { id: 2, nome: "Produção", codigo: "PROD", status: "ativo", colaboradores: 1, solicitacoes: 4 },
+                    { id: 3, nome: "Administrativo", codigo: "ADM", status: "ativo", colaboradores: 1, solicitacoes: 2 },
+                    { id: 4, nome: "Logística", codigo: "LOG", status: "ativo", colaboradores: 1, solicitacoes: 1 },
+                    { id: 5, nome: "TI", codigo: "TI", status: "ativo", colaboradores: 1, solicitacoes: 1 }
+                ];
+
                 return {
                     colaboradores: [
-                        { id: 1, nome: "João Silva", setor: "vendas", admissao: "2023-01-15", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2023-10-15" },
-                        { id: 2, nome: "Maria Santos", setor: "administrativo", admissao: "2023-03-20", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-10" },
-                        { id: 3, nome: "Carlos Oliveira", setor: "producao", admissao: "2023-02-10", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2023-10-20" },
-                        { id: 4, nome: "Ana Costa", setor: "vendas", admissao: "2023-04-28", status: "ativo", solicitacoes: 1, ultimaSolicitacao: "2023-09-15" },
-                        { id: 5, nome: "Pedro Alves", setor: "logistica", admissao: "2023-05-10", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2023-10-18" },
-                        { id: 6, nome: "Fernanda Lima", setor: "ti", admissao: "2023-06-22", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-12" }
+                        { id: 1, nome: "João Silva", departamentoId: 1, admissao: "2023-01-15", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2023-10-15" },
+                        { id: 2, nome: "Maria Santos", departamentoId: 3, admissao: "2023-03-20", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-10" },
+                        { id: 3, nome: "Carlos Oliveira", departamentoId: 2, admissao: "2023-02-10", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2023-10-20" },
+                        { id: 4, nome: "Ana Costa", departamentoId: 1, admissao: "2023-04-28", status: "ativo", solicitacoes: 1, ultimaSolicitacao: "2023-09-15" },
+                        { id: 5, nome: "Pedro Alves", departamentoId: 4, admissao: "2023-05-10", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2023-10-18" },
+                        { id: 6, nome: "Fernanda Lima", departamentoId: 5, admissao: "2023-06-22", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-12" }
                     ],
                     itens: [
                         { id: 1, nome: "Camisa Social", categoria: "uniforme", tamanhos: "P, M, G, GG", status: "ativo", solicitacoes: 8, mediaTroca: 3.5 },
@@ -1786,17 +2013,18 @@
                         { id: 7, nome: "Papel A4", categoria: "materiais", tamanhos: "500 folhas", status: "ativo", solicitacoes: 4, mediaTroca: 2.5 },
                         { id: 8, nome: "Caneta Esferográfica", categoria: "materiais", tamanhos: "Azul, Preta, Vermelha", status: "ativo", solicitacoes: 7, mediaTroca: 1.2 }
                     ],
+                    departamentos: departamentos,
                     solicitacoes: [
-                        { id: 1, codigo: "SOL001", colaboradorId: 1, colaboradorNome: "João Silva", setor: "vendas", itens: ["Camisa Social (M)", "Calça Jeans (40)"], data: "2023-10-15", status: "realizado" },
-                        { id: 2, codigo: "SOL002", colaboradorId: 2, colaboradorNome: "Maria Santos", setor: "administrativo", itens: ["Camisa Social (P)"], data: "2023-10-10", status: "pendente" },
-                        { id: 3, codigo: "SOL003", colaboradorId: 3, colaboradorNome: "Carlos Oliveira", setor: "producao", itens: ["Tênis de Segurança (42)", "Jaleco (G)"], data: "2023-10-20", status: "realizado" },
-                        { id: 4, codigo: "SOL004", colaboradorId: 5, colaboradorNome: "Pedro Alves", setor: "logistica", itens: ["Camisa Social (M)", "Calça Jeans (38)"], data: "2023-10-18", status: "realizado" },
-                        { id: 5, codigo: "SOL005", colaboradorId: 6, colaboradorNome: "Fernanda Lima", setor: "ti", itens: ["Camisa Social (P)"], data: "2023-10-12", status: "realizado" },
-                        { id: 6, codigo: "SOL006", colaboradorId: 3, colaboradorNome: "Carlos Oliveira", setor: "producao", itens: ["Capacete (Único)"], data: "2023-09-28", status: "nao_precisa" },
-                        { id: 7, codigo: "SOL007", colaboradorId: 1, colaboradorNome: "João Silva", setor: "vendas", itens: ["Camisa Social (M)"], data: "2023-07-15", status: "realizado" },
-                        { id: 8, codigo: "SOL008", colaboradorId: 3, colaboradorNome: "Carlos Oliveira", setor: "producao", itens: ["Tênis de Segurança (42)"], data: "2023-04-20", status: "realizado" },
-                        { id: 9, codigo: "SOL009", colaboradorId: 2, colaboradorNome: "Maria Santos", setor: "administrativo", itens: ["Papel A4 (500 folhas)", "Caneta Esferográfica (Azul)"], data: "2023-10-05", status: "realizado" },
-                        { id: 10, codigo: "SOL010", colaboradorId: 4, colaboradorNome: "Ana Costa", setor: "vendas", itens: ["Caneta Esferográfica (Preta)"], data: "2023-09-20", status: "realizado" }
+                        { id: 1, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, itens: ["Camisa Social (M)", "Calça Jeans (40)"], data: "2023-10-15", status: "realizado" },
+                        { id: 2, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 3, itens: ["Camisa Social (P)"], data: "2023-10-10", status: "pendente" },
+                        { id: 3, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, itens: ["Tênis de Segurança (42)", "Jaleco (G)"], data: "2023-10-20", status: "realizado" },
+                        { id: 4, colaboradorId: 5, colaboradorNome: "Pedro Alves", departamentoId: 4, itens: ["Camisa Social (M)", "Calça Jeans (38)"], data: "2023-10-18", status: "realizado" },
+                        { id: 5, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 5, itens: ["Camisa Social (P)"], data: "2023-10-12", status: "realizado" },
+                        { id: 6, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, itens: ["Capacete (Único)"], data: "2023-09-28", status: "nao_precisa" },
+                        { id: 7, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, itens: ["Camisa Social (M)"], data: "2023-07-15", status: "realizado" },
+                        { id: 8, colaboradorId: 3, colaboradorNome: "Carlos Oliveira", departamentoId: 2, itens: ["Tênis de Segurança (42)"], data: "2023-04-20", status: "realizado" },
+                        { id: 9, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 3, itens: ["Papel A4 (500 folhas)", "Caneta Esferográfica (Azul)"], data: "2023-10-05", status: "realizado" },
+                        { id: 10, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 1, itens: ["Caneta Esferográfica (Preta)"], data: "2023-09-20", status: "realizado" }
                     ]
                 };
             }
@@ -1812,6 +2040,7 @@
                 try {
                     localStorage.setItem('uniformes_colaboradores', JSON.stringify(this.dados.colaboradores));
                     localStorage.setItem('uniformes_itens', JSON.stringify(this.dados.itens));
+                    localStorage.setItem('uniformes_departamentos', JSON.stringify(this.dados.departamentos));
                     localStorage.setItem('uniformes_solicitacoes', JSON.stringify(this.dados.solicitacoes));
                     console.log("Dados salvos com sucesso no localStorage!");
                     return true;
@@ -1844,16 +2073,25 @@
                             this.atualizarDashboardCharts();
                             this.atualizarFiltrosAtivos('dashboard');
                             this.calcularMediasTroca();
+                            this.resetarVisualizacaoSolicitacoes('dashboard');
                         } else if (sectionId === 'colaboradores') {
                             this.atualizarFiltrosAtivos('colaboradores');
                         } else if (sectionId === 'itens') {
                             this.atualizarFiltrosAtivos('itens');
                         } else if (sectionId === 'solicitacoes') {
                             this.atualizarFiltrosAtivos('solicitacoes');
+                            this.resetarVisualizacaoSolicitacoes('tabela');
+                        } else if (sectionId === 'departamentos') {
+                            this.atualizarFiltrosAtivos('departamentos');
                         } else if (sectionId === 'relatorios') {
                             this.atualizarFiltrosAtivos('relatorios');
                             this.gerarRelatorio();
                         }
+                        
+                        // Redesenhar gráficos após mudança de seção
+                        setTimeout(() => {
+                            this.redesenharGraficos();
+                        }, 100);
                     });
                 });
             }
@@ -1868,6 +2106,15 @@
                 document.getElementById('novo-item-btn').addEventListener('click', () => this.abrirModal('item'));
                 document.getElementById('nova-solicitacao-btn').addEventListener('click', () => this.abrirModal('solicitacao'));
                 document.getElementById('nova-solicitacao-btn2').addEventListener('click', () => this.abrirModal('solicitacao'));
+                document.getElementById('novo-departamento-btn').addEventListener('click', () => this.abrirModal('departamento'));
+                
+                // Ver mais solicitações
+                document.getElementById('ver-mais-solicitacoes').addEventListener('click', () => {
+                    this.verMaisSolicitacoes('dashboard');
+                });
+                document.getElementById('ver-mais-solicitacoes-tabela').addEventListener('click', () => {
+                    this.verMaisSolicitacoes('tabela');
+                });
                 
                 // Relatórios
                 document.getElementById('exportar-pdf-btn').addEventListener('click', () => this.exportarPDF());
@@ -1889,6 +2136,11 @@
                     this.salvarSolicitacao();
                 });
                 
+                document.getElementById('form-departamento').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.salvarDepartamento();
+                });
+                
                 // Adicionar item dinâmico
                 document.getElementById('adicionar-item-btn').addEventListener('click', () => {
                     this.adicionarItemSolicitacao();
@@ -1901,8 +2153,8 @@
                     this.aplicarFiltrosDashboard();
                 });
                 
-                document.getElementById('setor-select').addEventListener('change', (e) => {
-                    this.filtrosAtivos.dashboard.setor = e.target.value;
+                document.getElementById('departamento-select').addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('dashboard');
                     this.aplicarFiltrosDashboard();
                 });
@@ -1931,8 +2183,8 @@
                     this.filtrarColaboradores();
                 });
                 
-                document.getElementById('filtro-setor-colaborador').addEventListener('change', (e) => {
-                    this.filtrosAtivos.colaboradores.setor = e.target.value;
+                document.getElementById('filtro-departamento-colaborador').addEventListener('change', (e) => {
+                    this.filtrosAtivos.colaboradores.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('colaboradores');
                     this.filtrarColaboradores();
                 });
@@ -1962,8 +2214,8 @@
                     this.filtrarSolicitacoes();
                 });
                 
-                document.getElementById('filtro-setor-solicitacao').addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.setor = e.target.value;
+                document.getElementById('filtro-departamento-solicitacao').addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
                     this.filtrarSolicitacoes();
                 });
@@ -1980,6 +2232,18 @@
                     this.filtrarSolicitacoes();
                 });
                 
+                // Filtros de Departamentos (auto-aplicar)
+                document.getElementById('buscar-departamento').addEventListener('input', (e) => {
+                    this.filtrosAtivos.departamentos.busca = e.target.value.toLowerCase();
+                    this.filtrarDepartamentos();
+                });
+                
+                document.getElementById('filtro-status-departamento').addEventListener('change', (e) => {
+                    this.filtrosAtivos.departamentos.status = e.target.value;
+                    this.atualizarFiltrosAtivos('departamentos');
+                    this.filtrarDepartamentos();
+                });
+                
                 // Filtros de Relatórios (auto-aplicar)
                 document.getElementById('tipo-relatorio').addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.tipo = e.target.value;
@@ -1991,8 +2255,8 @@
                     this.gerarRelatorio();
                 });
                 
-                document.getElementById('setor-relatorio').addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.setor = e.target.value;
+                document.getElementById('departamento-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.departamento = e.target.value;
                     this.gerarRelatorio();
                 });
                 
@@ -2024,20 +2288,38 @@
             }
 
             setupDate() {
-                const hoje = new Date().toISOString().split('T')[0];
-                document.getElementById('colaborador-admissao').value = hoje;
-                document.getElementById('solicitacao-data').value = hoje;
+                // Definir data atual no formato correto para o campo date
+                const hoje = new Date();
+                const dataFormatada = hoje.toISOString().split('T')[0];
+                document.getElementById('colaborador-admissao').value = dataFormatada;
+                document.getElementById('solicitacao-data').value = dataFormatada;
             }
 
             atualizarSelects() {
+                // Atualizar select de departamentos para dashboard
+                const selectDashboardDepto = document.getElementById('departamento-select');
+                selectDashboardDepto.innerHTML = '<option value="todos">Todos os Departamentos</option>';
+                this.dados.departamentos.forEach(depto => {
+                    if (depto.status === 'ativo') {
+                        const option = document.createElement('option');
+                        option.value = depto.id;
+                        option.textContent = `${depto.nome} (${depto.codigo})`;
+                        selectDashboardDepto.appendChild(option);
+                    }
+                });
+                
                 // Atualizar select de colaboradores para dashboard
                 const selectDashboardColab = document.getElementById('colaborador-select');
                 selectDashboardColab.innerHTML = '<option value="todos">Todos os Colaboradores</option>';
                 this.dados.colaboradores.forEach(colab => {
-                    const option = document.createElement('option');
-                    option.value = colab.id;
-                    option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
-                    selectDashboardColab.appendChild(option);
+                    if (colab.status === 'ativo') {
+                        const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                        const deptoNome = depto ? depto.nome : 'N/A';
+                        const option = document.createElement('option');
+                        option.value = colab.id;
+                        option.textContent = `${colab.nome} (${deptoNome})`;
+                        selectDashboardColab.appendChild(option);
+                    }
                 });
                 
                 // Atualizar select de itens para dashboard
@@ -2052,14 +2334,54 @@
                     }
                 });
                 
+                // Atualizar select de departamentos para colaboradores
+                const selectDeptoColaborador = document.getElementById('colaborador-departamento');
+                const filtroDeptoColaborador = document.getElementById('filtro-departamento-colaborador');
+                const filtroDeptoSolicitacao = document.getElementById('filtro-departamento-solicitacao');
+                const relatorioDepto = document.getElementById('departamento-relatorio');
+                
+                selectDeptoColaborador.innerHTML = '<option value="">Selecione...</option>';
+                filtroDeptoColaborador.innerHTML = '<option value="todos">Todos os Departamentos</option>';
+                filtroDeptoSolicitacao.innerHTML = '<option value="todos">Todos</option>';
+                relatorioDepto.innerHTML = '<option value="todos">Todos</option>';
+                
+                this.dados.departamentos.forEach(depto => {
+                    if (depto.status === 'ativo') {
+                        // Para formulário de colaborador
+                        const optionForm = document.createElement('option');
+                        optionForm.value = depto.id;
+                        optionForm.textContent = `${depto.nome} (${depto.codigo})`;
+                        selectDeptoColaborador.appendChild(optionForm);
+                        
+                        // Para filtros
+                        const optionFiltro1 = document.createElement('option');
+                        optionFiltro1.value = depto.id;
+                        optionFiltro1.textContent = `${depto.nome} (${depto.codigo})`;
+                        filtroDeptoColaborador.appendChild(optionFiltro1.cloneNode(true));
+                        
+                        const optionFiltro2 = document.createElement('option');
+                        optionFiltro2.value = depto.id;
+                        optionFiltro2.textContent = `${depto.nome} (${depto.codigo})`;
+                        filtroDeptoSolicitacao.appendChild(optionFiltro2);
+                        
+                        // Para relatórios
+                        const optionRel = document.createElement('option');
+                        optionRel.value = depto.id;
+                        optionRel.textContent = `${depto.nome} (${depto.codigo})`;
+                        relatorioDepto.appendChild(optionRel);
+                    }
+                });
+                
                 // Atualizar select de colaboradores para solicitações
                 const selectColaborador = document.getElementById('solicitacao-colaborador');
                 selectColaborador.innerHTML = '<option value="">Selecione...</option>';
                 this.dados.colaboradores.forEach(colab => {
                     if (colab.status === 'ativo') {
+                        const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                        const deptoNome = depto ? depto.nome : 'N/A';
                         const option = document.createElement('option');
                         option.value = colab.id;
-                        option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                        option.textContent = `${colab.nome} (${deptoNome})`;
                         selectColaborador.appendChild(option);
                     }
                 });
@@ -2068,9 +2390,11 @@
                 const filtroColaborador = document.getElementById('filtro-colaborador-solicitacao');
                 filtroColaborador.innerHTML = '<option value="todos">Todos</option>';
                 this.dados.colaboradores.forEach(colab => {
+                    const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                    const deptoNome = depto ? depto.nome : 'N/A';
                     const option = document.createElement('option');
                     option.value = colab.id;
-                    option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                    option.textContent = `${colab.nome} (${deptoNome})`;
                     filtroColaborador.appendChild(option);
                 });
                 
@@ -2078,9 +2402,11 @@
                 const relatorioColaborador = document.getElementById('colaborador-relatorio');
                 relatorioColaborador.innerHTML = '<option value="todos">Todos</option>';
                 this.dados.colaboradores.forEach(colab => {
+                    const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                    const deptoNome = depto ? depto.nome : 'N/A';
                     const option = document.createElement('option');
                     option.value = colab.id;
-                    option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                    option.textContent = `${colab.nome} (${deptoNome})`;
                     relatorioColaborador.appendChild(option);
                 });
             }
@@ -2203,33 +2529,47 @@
 
             atualizarDashboardCharts() {
                 this.criarGraficoTopColaboradores();
-                this.criarGraficoSetores();
+                this.criarGraficoDepartamentos();
                 this.criarGraficoItens();
                 this.criarGraficoMensal();
             }
 
             criarGraficoTopColaboradores() {
-                const ctx = document.getElementById('chart-top-colaboradores').getContext('2d');
+                const ctx = document.getElementById('chart-top-colaboradores');
+                if (!ctx) return;
                 
-                const topColaboradores = [...this.dados.colaboradores]
+                const canvasCtx = ctx.getContext('2d');
+                
+                // Obter top colaboradores com base nas solicitações realizadas
+                const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
+                    const solicitacoesRealizadas = this.dados.solicitacoes.filter(
+                        s => s.colaboradorId === colab.id && s.status === 'realizado'
+                    ).length;
+                    return {
+                        ...colab,
+                        solicitacoesRealizadas: solicitacoesRealizadas
+                    };
+                });
+                
+                const topColaboradores = colaboradoresComSolicitacoes
                     .filter(c => c.status === 'ativo')
-                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
                     .slice(0, 5);
                 
                 const labels = topColaboradores.map(c => c.nome.split(' ')[0]);
-                const data = topColaboradores.map(c => c.solicitacoes);
+                const data = topColaboradores.map(c => c.solicitacoesRealizadas);
                 const cores = this.gerarCores(data.length);
                 
                 if (this.charts.topColaboradores) {
                     this.charts.topColaboradores.destroy();
                 }
                 
-                this.charts.topColaboradores = new Chart(ctx, {
+                this.charts.topColaboradores = new Chart(canvasCtx, {
                     type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Solicitações',
+                            label: 'Solicitações Realizadas',
                             data: data,
                             backgroundColor: cores,
                             borderColor: cores.map(c => c.replace('0.8', '1')),
@@ -2256,23 +2596,27 @@
                 });
             }
 
-            criarGraficoSetores() {
-                const ctx = document.getElementById('chart-setores').getContext('2d');
+            criarGraficoDepartamentos() {
+                const ctx = document.getElementById('chart-departamentos');
+                if (!ctx) return;
                 
-                const solicitacoesPorSetor = {};
+                const canvasCtx = ctx.getContext('2d');
+                
+                const solicitacoesPorDepartamento = {};
                 this.dados.solicitacoes.forEach(solic => {
-                    solicitacoesPorSetor[solic.setor] = (solicitacoesPorSetor[solic.setor] || 0) + 1;
+                    const departamento = this.getDepartamentoNome(solic.departamentoId);
+                    solicitacoesPorDepartamento[departamento] = (solicitacoesPorDepartamento[departamento] || 0) + 1;
                 });
                 
-                const labels = Object.keys(solicitacoesPorSetor).map(setor => this.formatarSetor(setor));
-                const data = Object.values(solicitacoesPorSetor);
+                const labels = Object.keys(solicitacoesPorDepartamento);
+                const data = Object.values(solicitacoesPorDepartamento);
                 const cores = this.gerarCores(data.length);
                 
-                if (this.charts.setores) {
-                    this.charts.setores.destroy();
+                if (this.charts.departamentos) {
+                    this.charts.departamentos.destroy();
                 }
                 
-                this.charts.setores = new Chart(ctx, {
+                this.charts.departamentos = new Chart(canvasCtx, {
                     type: 'doughnut',
                     data: {
                         labels: labels,
@@ -2296,7 +2640,10 @@
             }
 
             criarGraficoItens() {
-                const ctx = document.getElementById('chart-itens').getContext('2d');
+                const ctx = document.getElementById('chart-itens');
+                if (!ctx) return;
+                
+                const canvasCtx = ctx.getContext('2d');
                 
                 const topItens = [...this.dados.itens]
                     .sort((a, b) => b.solicitacoes - a.solicitacoes)
@@ -2310,7 +2657,7 @@
                     this.charts.itens.destroy();
                 }
                 
-                this.charts.itens = new Chart(ctx, {
+                this.charts.itens = new Chart(canvasCtx, {
                     type: 'polarArea',
                     data: {
                         labels: labels,
@@ -2334,7 +2681,10 @@
             }
 
             criarGraficoMensal() {
-                const ctx = document.getElementById('chart-mensal').getContext('2d');
+                const ctx = document.getElementById('chart-mensal');
+                if (!ctx) return;
+                
+                const canvasCtx = ctx.getContext('2d');
                 
                 const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
                 const solicitacoesPorMes = Array(12).fill(0);
@@ -2348,7 +2698,7 @@
                     this.charts.mensal.destroy();
                 }
                 
-                this.charts.mensal = new Chart(ctx, {
+                this.charts.mensal = new Chart(canvasCtx, {
                     type: 'line',
                     data: {
                         labels: meses,
@@ -2404,73 +2754,103 @@
                 document.getElementById('total-solicitacoes').textContent = totalSolicitacoes;
                 document.getElementById('media-trocas').textContent = mediaTrocas;
                 
-                // Carregar top colaboradores
+                // Carregar top colaboradores (atualizado automaticamente)
                 this.carregarTopColaboradores();
                 
-                // Carregar top setores
-                this.carregarTopSetores();
+                // Carregar top departamentos
+                this.carregarTopDepartamentos();
                 
-                // Carregar top itens
+                // Carregar top itens (atualizado automaticamente)
                 this.carregarTopItens();
                 
-                // Carregar últimas solicitações
+                // Carregar últimas solicitações (10 mais recentes)
                 this.carregarUltimasSolicitacoes();
             }
 
             carregarTopColaboradores() {
                 const container = document.getElementById('top-colaboradores-list');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
-                const topColaboradores = [...this.dados.colaboradores]
+                // Calcular solicitações realizadas por colaborador
+                const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
+                    const solicitacoesRealizadas = this.dados.solicitacoes.filter(
+                        s => s.colaboradorId === colab.id && s.status === 'realizado'
+                    ).length;
+                    return {
+                        ...colab,
+                        solicitacoesRealizadas: solicitacoesRealizadas
+                    };
+                });
+                
+                const topColaboradores = colaboradoresComSolicitacoes
                     .filter(c => c.status === 'ativo')
-                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
                     .slice(0, 5);
                 
                 topColaboradores.forEach((colab, index) => {
                     const li = document.createElement('li');
                     li.className = 'top-item';
+                    const departamento = this.getDepartamentoNome(colab.departamentoId);
                     li.innerHTML = `
                         <div class="top-info">
                             <span class="top-name">${index + 1}. ${colab.nome}</span>
-                            <span class="top-details">${this.formatarSetor(colab.setor)}</span>
+                            <span class="top-details">${departamento}</span>
                         </div>
-                        <div class="top-count">${colab.solicitacoes}</div>
+                        <div class="top-count">${colab.solicitacoesRealizadas}</div>
                     `;
                     container.appendChild(li);
                 });
             }
 
-            carregarTopSetores() {
-                const container = document.getElementById('top-setores-list');
+            carregarTopDepartamentos() {
+                const container = document.getElementById('top-departamentos-list');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
-                const solicitacoesPorSetor = {};
+                const solicitacoesPorDepartamento = {};
+                const colaboradoresPorDepartamento = {};
                 
                 this.dados.solicitacoes.forEach(solicitacao => {
-                    const setor = solicitacao.setor;
-                    if (!solicitacoesPorSetor[setor]) {
-                        solicitacoesPorSetor[setor] = 0;
+                    const departamentoId = solicitacao.departamentoId;
+                    if (!solicitacoesPorDepartamento[departamentoId]) {
+                        solicitacoesPorDepartamento[departamentoId] = 0;
                     }
-                    solicitacoesPorSetor[setor]++;
+                    solicitacoesPorDepartamento[departamentoId]++;
                 });
                 
-                const topSetores = Object.entries(solicitacoesPorSetor)
-                    .map(([setor, quantidade]) => ({ 
-                        setor: this.formatarSetor(setor), 
-                        quantidade 
-                    }))
+                this.dados.colaboradores.forEach(colab => {
+                    if (colab.status === 'ativo') {
+                        if (!colaboradoresPorDepartamento[colab.departamentoId]) {
+                            colaboradoresPorDepartamento[colab.departamentoId] = 0;
+                        }
+                        colaboradoresPorDepartamento[colab.departamentoId]++;
+                    }
+                });
+                
+                const topDepartamentos = Object.entries(solicitacoesPorDepartamento)
+                    .map(([departamentoId, quantidade]) => {
+                        const departamento = this.dados.departamentos.find(d => d.id === parseInt(departamentoId));
+                        return {
+                            nome: departamento ? departamento.nome : 'N/A',
+                            quantidade: quantidade,
+                            colaboradores: colaboradoresPorDepartamento[departamentoId] || 0
+                        };
+                    })
                     .sort((a, b) => b.quantidade - a.quantidade)
                     .slice(0, 5);
                 
-                topSetores.forEach((setor, index) => {
+                topDepartamentos.forEach((depto, index) => {
                     const li = document.createElement('li');
                     li.className = 'top-item';
                     li.innerHTML = `
                         <div class="top-info">
-                            <span class="top-name">${index + 1}. ${setor.setor}</span>
-                            <span class="top-details">${this.getColaboradoresPorSetor(setor.setor)} colaboradores</span>
+                            <span class="top-name">${index + 1}. ${depto.nome}</span>
+                            <span class="top-details">${depto.colaboradores} colaboradores</span>
                         </div>
-                        <div class="top-count">${setor.quantidade}</div>
+                        <div class="top-count">${depto.quantidade}</div>
                     `;
                     container.appendChild(li);
                 });
@@ -2478,6 +2858,8 @@
 
             carregarTopItens() {
                 const container = document.getElementById('top-itens-list');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
                 const topItens = [...this.dados.itens]
@@ -2498,25 +2880,27 @@
                 });
             }
 
-            getColaboradoresPorSetor(nomeSetor) {
-                const setorCode = this.getSetorCode(nomeSetor);
-                return this.dados.colaboradores.filter(c => c.setor === setorCode && c.status === 'ativo').length;
-            }
-
             carregarUltimasSolicitacoes() {
                 const tbody = document.getElementById('ultimas-solicitacoes-tbody');
+                const verMaisBtn = document.getElementById('ver-mais-solicitacoes');
+                if (!tbody) return;
+                
                 tbody.innerHTML = '';
                 
-                const ultimas = [...this.dados.solicitacoes]
-                    .sort((a, b) => new Date(b.data) - new Date(a.data))
-                    .slice(0, 5);
+                // Ordenar solicitações por data (mais recentes primeiro)
+                const todasSolicitacoes = [...this.dados.solicitacoes]
+                    .sort((a, b) => new Date(b.data) - new Date(a.data));
                 
-                ultimas.forEach(solic => {
+                const limite = this.visualizacaoSolicitacoes.dashboard.limite;
+                const offset = this.visualizacaoSolicitacoes.dashboard.offset;
+                const solicitacoesParaExibir = todasSolicitacoes.slice(offset, offset + limite);
+                
+                solicitacoesParaExibir.forEach(solic => {
                     const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     tr.innerHTML = `
-                        <td>${solic.codigo}</td>
                         <td>${solic.colaboradorNome}</td>
-                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${departamentoNome}</td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
@@ -2528,13 +2912,39 @@
                     `;
                     tbody.appendChild(tr);
                 });
+                
+                // Mostrar botão "Ver Mais" se houver mais solicitações
+                if (todasSolicitacoes.length > offset + limite) {
+                    verMaisBtn.style.display = 'block';
+                } else {
+                    verMaisBtn.style.display = 'none';
+                }
+            }
+
+            verMaisSolicitacoes(tipo) {
+                if (tipo === 'dashboard') {
+                    this.visualizacaoSolicitacoes.dashboard.offset += this.visualizacaoSolicitacoes.dashboard.limite;
+                    this.carregarUltimasSolicitacoes();
+                } else if (tipo === 'tabela') {
+                    this.visualizacaoSolicitacoes.tabela.offset += this.visualizacaoSolicitacoes.tabela.limite;
+                    this.carregarTabelaSolicitacoes();
+                }
+            }
+
+            resetarVisualizacaoSolicitacoes(tipo) {
+                if (tipo === 'dashboard') {
+                    this.visualizacaoSolicitacoes.dashboard.offset = 0;
+                } else if (tipo === 'tabela') {
+                    this.visualizacaoSolicitacoes.tabela.offset = 0;
+                }
             }
 
             visualizarSolicitacao(id) {
                 const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
                 if (solicitacao) {
+                    const departamentoNome = this.getDepartamentoNome(solicitacao.departamentoId);
                     const itensStr = solicitacao.itens.join('\n');
-                    alert(`Solicitação ${solicitacao.codigo}\n\nColaborador: ${solicitacao.colaboradorNome}\nSetor: ${this.formatarSetor(solicitacao.setor)}\nData: ${this.formatarData(solicitacao.data)}\nStatus: ${this.formatarStatus(solicitacao.status)}\n\nItens:\n${itensStr}`);
+                    alert(`Solicitação #${solicitacao.id}\n\nColaborador: ${solicitacao.colaboradorNome}\nDepartamento: ${departamentoNome}\nData: ${this.formatarData(solicitacao.data)}\nStatus: ${this.formatarStatus(solicitacao.status)}\n\nItens:\n${itensStr}`);
                 }
             }
 
@@ -2542,17 +2952,21 @@
                 this.carregarTabelaColaboradores();
                 this.carregarTabelaItens();
                 this.carregarTabelaSolicitacoes();
+                this.carregarTabelaDepartamentos();
             }
 
             carregarTabelaColaboradores() {
                 const tbody = document.getElementById('colaboradores-tbody');
+                if (!tbody) return;
+                
                 tbody.innerHTML = '';
                 
                 this.dados.colaboradores.forEach(colab => {
                     const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
                     tr.innerHTML = `
                         <td>${colab.nome}</td>
-                        <td>${this.formatarSetor(colab.setor)}</td>
+                        <td>${departamentoNome}</td>
                         <td>${this.formatarData(colab.admissao)}</td>
                         <td>${colab.solicitacoes}</td>
                         <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
@@ -2572,6 +2986,8 @@
 
             carregarTabelaItens() {
                 const tbody = document.getElementById('itens-tbody');
+                if (!tbody) return;
+                
                 tbody.innerHTML = '';
                 
                 this.dados.itens.forEach(item => {
@@ -2609,34 +3025,97 @@
 
             carregarTabelaSolicitacoes() {
                 const tbody = document.getElementById('solicitacoes-tbody');
+                const verMaisBtn = document.getElementById('ver-mais-solicitacoes-tabela');
+                if (!tbody) return;
+                
                 tbody.innerHTML = '';
                 
-                this.dados.solicitacoes.forEach(solic => {
+                // Ordenar solicitações por data (mais recentes primeiro)
+                const todasSolicitacoes = [...this.dados.solicitacoes]
+                    .sort((a, b) => new Date(b.data) - new Date(a.data));
+                
+                const limite = this.visualizacaoSolicitacoes.tabela.limite;
+                const offset = this.visualizacaoSolicitacoes.tabela.offset;
+                const solicitacoesParaExibir = todasSolicitacoes.slice(offset, offset + limite);
+                
+                solicitacoesParaExibir.forEach(solic => {
                     const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     const statusClass = this.getStatusClass(solic.status);
                     const statusFormatado = this.formatarStatus(solic.status);
                     
                     tr.innerHTML = `
-                        <td>${solic.codigo}</td>
                         <td>${solic.colaboradorNome}</td>
-                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${departamentoNome}</td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td>
                             <span class="badge ${statusClass}">${statusFormatado}</span>
                         </td>
                         <td>
-                            <div class="status-actions">
-                                <button class="status-btn pendente" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'pendente')" title="Marcar como Pendente">
-                                    P
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <div class="status-actions">
+                                    <button class="status-btn pendente" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'pendente')" title="Marcar como Pendente">
+                                        P
+                                    </button>
+                                    <button class="status-btn nao-precisa" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'nao_precisa')" title="Marcar como Não Precisa">
+                                        NP
+                                    </button>
+                                    <button class="status-btn realizado" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'realizado')" title="Marcar como Realizado">
+                                        R
+                                    </button>
+                                </div>
+                                <button class="btn btn-secondary btn-sm" onclick="sistema.editarSolicitacao(${solic.id})" title="Editar">
+                                    <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="status-btn nao-precisa" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'nao_precisa')" title="Marcar como Não Precisa">
-                                    NP
-                                </button>
-                                <button class="status-btn realizado" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'realizado')" title="Marcar como Realizado">
-                                    R
+                                <button class="btn btn-danger btn-sm" onclick="sistema.excluirSolicitacao(${solic.id})" title="Excluir">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                
+                // Mostrar botão "Ver Mais" se houver mais solicitações
+                if (todasSolicitacoes.length > offset + limite) {
+                    verMaisBtn.style.display = 'block';
+                } else {
+                    verMaisBtn.style.display = 'none';
+                }
+            }
+
+            carregarTabelaDepartamentos() {
+                const tbody = document.getElementById('departamentos-tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                this.dados.departamentos.forEach(depto => {
+                    // Contar colaboradores ativos no departamento
+                    const colaboradoresAtivos = this.dados.colaboradores.filter(
+                        c => c.departamentoId === depto.id && c.status === 'ativo'
+                    ).length;
+                    
+                    // Contar solicitações do departamento
+                    const solicitacoesDepartamento = this.dados.solicitacoes.filter(
+                        s => s.departamentoId === depto.id
+                    ).length;
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${depto.nome}</td>
+                        <td>${depto.codigo}</td>
+                        <td>${colaboradoresAtivos}</td>
+                        <td>${solicitacoesDepartamento}</td>
+                        <td><span class="badge ${depto.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${depto.status}</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="sistema.editarDepartamento(${depto.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="sistema.excluirDepartamento(${depto.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -2653,7 +3132,7 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.calcularMediasTroca();
-                        this.mostrarToast(`Status da solicitação ${solicitacao.codigo} atualizado para ${this.formatarStatus(novoStatus)}`);
+                        this.mostrarToast(`Status da solicitação #${solicitacao.id} atualizado para ${this.formatarStatus(novoStatus)}`);
                     }
                 }
             }
@@ -2669,6 +3148,8 @@
                     this.atualizarSelects();
                     this.limparItensSolicitacao();
                     this.adicionarItemSolicitacao();
+                } else if (tipo === 'colaborador') {
+                    this.atualizarSelects();
                 }
                 
                 if (id) {
@@ -2706,7 +3187,7 @@
                         if (item) {
                             document.getElementById('colaborador-id').value = item.id;
                             document.getElementById('colaborador-nome').value = item.nome;
-                            document.getElementById('colaborador-setor').value = item.setor;
+                            document.getElementById('colaborador-departamento').value = item.departamentoId;
                             document.getElementById('colaborador-admissao').value = item.admissao;
                             document.getElementById('colaborador-status').value = item.status;
                         }
@@ -2728,6 +3209,46 @@
                             document.getElementById('solicitacao-colaborador').value = item.colaboradorId;
                             document.getElementById('solicitacao-data').value = item.data;
                             document.getElementById('solicitacao-status').value = item.status;
+                            
+                            // Preencher itens da solicitação
+                            this.limparItensSolicitacao();
+                            
+                            item.itens.forEach(itemDesc => {
+                                // Extrair nome do item e tamanho
+                                const match = itemDesc.match(/^(.*?) \((.*?)\)$/);
+                                if (match) {
+                                    const [, itemNome, tamanho] = match;
+                                    const itemObj = this.dados.itens.find(i => i.nome === itemNome);
+                                    if (itemObj) {
+                                        this.adicionarItemSolicitacao();
+                                        
+                                        // Selecionar o último item adicionado
+                                        const container = document.getElementById('itens-container');
+                                        const lastItem = container.lastElementChild;
+                                        const selectItem = lastItem.querySelector('.item-select');
+                                        const selectTamanho = lastItem.querySelector('.size-select');
+                                        
+                                        selectItem.value = itemObj.id;
+                                        
+                                        // Disparar evento para carregar tamanhos
+                                        selectItem.dispatchEvent(new Event('change'));
+                                        
+                                        // Esperar um pouco para o select de tamanhos ser preenchido
+                                        setTimeout(() => {
+                                            selectTamanho.value = tamanho;
+                                        }, 100);
+                                    }
+                                }
+                            });
+                        }
+                        break;
+                    case 'departamento':
+                        item = this.dados.departamentos.find(d => d.id === id);
+                        if (item) {
+                            document.getElementById('departamento-id').value = item.id;
+                            document.getElementById('departamento-nome').value = item.nome;
+                            document.getElementById('departamento-codigo').value = item.codigo;
+                            document.getElementById('departamento-status').value = item.status;
                         }
                         break;
                 }
@@ -2736,7 +3257,7 @@
             salvarColaborador() {
                 const id = document.getElementById('colaborador-id').value;
                 const nome = document.getElementById('colaborador-nome').value;
-                const setor = document.getElementById('colaborador-setor').value;
+                const departamentoId = parseInt(document.getElementById('colaborador-departamento').value);
                 const admissao = document.getElementById('colaborador-admissao').value;
                 const status = document.getElementById('colaborador-status').value;
 
@@ -2747,7 +3268,7 @@
                         this.dados.colaboradores[index] = {
                             ...this.dados.colaboradores[index],
                             nome,
-                            setor,
+                            departamentoId,
                             admissao,
                             status
                         };
@@ -2760,7 +3281,7 @@
                     this.dados.colaboradores.push({
                         id: novoId,
                         nome,
-                        setor,
+                        departamentoId,
                         admissao,
                         status,
                         solicitacoes: 0,
@@ -2864,6 +3385,84 @@
                 }
             }
 
+            // CRUD Departamentos
+            salvarDepartamento() {
+                const id = document.getElementById('departamento-id').value;
+                const nome = document.getElementById('departamento-nome').value;
+                const codigo = document.getElementById('departamento-codigo').value.toUpperCase();
+                const status = document.getElementById('departamento-status').value;
+
+                if (id) {
+                    // Editar
+                    const index = this.dados.departamentos.findIndex(d => d.id == id);
+                    if (index !== -1) {
+                        this.dados.departamentos[index] = {
+                            ...this.dados.departamentos[index],
+                            nome,
+                            codigo,
+                            status
+                        };
+                    }
+                } else {
+                    // Verificar se o código já existe
+                    const codigoExistente = this.dados.departamentos.find(d => d.codigo === codigo);
+                    if (codigoExistente) {
+                        this.mostrarToast('Já existe um departamento com este código!', 'error');
+                        return;
+                    }
+                    
+                    // Novo
+                    const novoId = this.dados.departamentos.length > 0 ? 
+                        Math.max(...this.dados.departamentos.map(d => d.id)) + 1 : 1;
+                    
+                    this.dados.departamentos.push({
+                        id: novoId,
+                        nome,
+                        codigo,
+                        status,
+                        colaboradores: 0,
+                        solicitacoes: 0
+                    });
+                }
+
+                const salvou = this.salvarDados();
+                if (salvou) {
+                    this.fecharModais();
+                    this.carregarTabelas();
+                    this.carregarDashboard();
+                    this.atualizarDashboardCharts();
+                    this.atualizarSelects();
+                    this.calcularMediasTroca();
+                    this.mostrarToast('Departamento salvo com sucesso!');
+                }
+            }
+
+            editarDepartamento(id) {
+                this.abrirModal('departamento', id);
+            }
+
+            excluirDepartamento(id) {
+                if (confirm('Tem certeza que deseja excluir este departamento? Esta ação não poderá ser desfeita.')) {
+                    // Verificar se há colaboradores vinculados a este departamento
+                    const colaboradoresNoDepartamento = this.dados.colaboradores.filter(c => c.departamentoId === id);
+                    if (colaboradoresNoDepartamento.length > 0) {
+                        this.mostrarToast('Não é possível excluir o departamento pois há colaboradores vinculados a ele!', 'error');
+                        return;
+                    }
+                    
+                    this.dados.departamentos = this.dados.departamentos.filter(d => d.id !== id);
+                    const salvou = this.salvarDados();
+                    if (salvou) {
+                        this.carregarTabelas();
+                        this.carregarDashboard();
+                        this.atualizarDashboardCharts();
+                        this.atualizarSelects();
+                        this.calcularMediasTroca();
+                        this.mostrarToast('Departamento excluído com sucesso!');
+                    }
+                }
+            }
+
             // CRUD Solicitações
             adicionarItemSolicitacao() {
                 const container = document.getElementById('itens-container');
@@ -2931,6 +3530,8 @@
                 
                 // Coletar itens
                 const itensSelecionados = [];
+                const itensParaAtualizar = [];
+                
                 document.querySelectorAll('#itens-container .item-with-sizes').forEach(container => {
                     const select = container.querySelector('.item-select');
                     const sizeSelect = container.querySelector('.size-select');
@@ -2941,9 +3542,7 @@
                         if (item) {
                             const itemDesc = `${item.nome} (${sizeSelect.value})`;
                             itensSelecionados.push(itemDesc);
-                            
-                            // Atualizar contador de solicitações do item
-                            item.solicitacoes++;
+                            itensParaAtualizar.push(item);
                         }
                     }
                 });
@@ -2959,29 +3558,67 @@
                     return;
                 }
                 
+                const departamentoId = colaborador.departamentoId;
+                const departamento = this.dados.departamentos.find(d => d.id === departamentoId);
+                
                 if (id) {
-                    // Editar - implementar lógica de edição
-                    this.mostrarToast('Edição de solicitação ainda não implementada', 'error');
+                    // Editar
+                    const index = this.dados.solicitacoes.findIndex(s => s.id == id);
+                    if (index !== -1) {
+                        // Remover contagem anterior dos itens
+                        const solicitacaoAnterior = this.dados.solicitacoes[index];
+                        solicitacaoAnterior.itens.forEach(itemDesc => {
+                            const itemNome = itemDesc.split(' (')[0];
+                            const item = this.dados.itens.find(i => i.nome === itemNome);
+                            if (item && item.solicitacoes > 0) {
+                                item.solicitacoes--;
+                            }
+                        });
+                        
+                        // Atualizar a solicitação
+                        this.dados.solicitacoes[index] = {
+                            ...this.dados.solicitacoes[index],
+                            colaboradorId,
+                            colaboradorNome: colaborador.nome,
+                            departamentoId,
+                            itens: itensSelecionados,
+                            data, // Data exata fornecida pelo usuário
+                            status
+                        };
+                        
+                        // Adicionar nova contagem aos itens
+                        itensParaAtualizar.forEach(item => {
+                            item.solicitacoes++;
+                        });
+                    }
                 } else {
                     // Nova solicitação
                     const novoId = this.dados.solicitacoes.length > 0 ? 
                         Math.max(...this.dados.solicitacoes.map(s => s.id)) + 1 : 1;
-                    const codigo = `SOL${String(novoId).padStart(3, '0')}`;
                     
                     this.dados.solicitacoes.push({
                         id: novoId,
-                        codigo,
                         colaboradorId,
                         colaboradorNome: colaborador.nome,
-                        setor: colaborador.setor,
+                        departamentoId,
                         itens: itensSelecionados,
-                        data,
+                        data, // Data exata fornecida pelo usuário
                         status
+                    });
+                    
+                    // Atualizar contador dos itens
+                    itensParaAtualizar.forEach(item => {
+                        item.solicitacoes++;
                     });
                     
                     // Atualizar contador do colaborador
                     colaborador.solicitacoes++;
                     colaborador.ultimaSolicitacao = data;
+                    
+                    // Atualizar contador do departamento
+                    if (departamento) {
+                        departamento.solicitacoes = (departamento.solicitacoes || 0) + 1;
+                    }
                 }
                 
                 const salvou = this.salvarDados();
@@ -2992,12 +3629,50 @@
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
                     this.calcularMediasTroca();
+                    this.resetarVisualizacaoSolicitacoes('dashboard');
+                    this.resetarVisualizacaoSolicitacoes('tabela');
                     this.mostrarToast('Solicitação salva com sucesso!');
                 }
             }
 
+            editarSolicitacao(id) {
+                this.abrirModal('solicitacao', id);
+            }
+
             excluirSolicitacao(id) {
                 if (confirm('Tem certeza que deseja excluir esta solicitação?')) {
+                    const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
+                    if (solicitacao) {
+                        // Remover contagem dos itens
+                        solicitacao.itens.forEach(itemDesc => {
+                            const itemNome = itemDesc.split(' (')[0];
+                            const item = this.dados.itens.find(i => i.nome === itemNome);
+                            if (item && item.solicitacoes > 0) {
+                                item.solicitacoes--;
+                            }
+                        });
+                        
+                        // Remover contagem do colaborador
+                        const colaborador = this.dados.colaboradores.find(c => c.id === solicitacao.colaboradorId);
+                        if (colaborador && colaborador.solicitacoes > 0) {
+                            colaborador.solicitacoes--;
+                            
+                            // Atualizar última solicitação do colaborador
+                            const outrasSolicitacoes = this.dados.solicitacoes
+                                .filter(s => s.id !== id && s.colaboradorId === colaborador.id)
+                                .sort((a, b) => new Date(b.data) - new Date(a.data));
+                            
+                            colaborador.ultimaSolicitacao = outrasSolicitacoes.length > 0 ? 
+                                outrasSolicitacoes[0].data : null;
+                        }
+                        
+                        // Remover contagem do departamento
+                        const departamento = this.dados.departamentos.find(d => d.id === solicitacao.departamentoId);
+                        if (departamento && departamento.solicitacoes > 0) {
+                            departamento.solicitacoes--;
+                        }
+                    }
+                    
                     this.dados.solicitacoes = this.dados.solicitacoes.filter(s => s.id !== id);
                     const salvou = this.salvarDados();
                     if (salvou) {
@@ -3005,6 +3680,8 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.calcularMediasTroca();
+                        this.resetarVisualizacaoSolicitacoes('dashboard');
+                        this.resetarVisualizacaoSolicitacoes('tabela');
                         this.mostrarToast('Solicitação excluída com sucesso!');
                     }
                 }
@@ -3013,7 +3690,7 @@
             // Filtros Automáticos
             aplicarFiltrosDashboard() {
                 const periodo = this.filtrosAtivos.dashboard.periodo;
-                const setor = this.filtrosAtivos.dashboard.setor;
+                const departamento = this.filtrosAtivos.dashboard.departamento;
                 const colaborador = this.filtrosAtivos.dashboard.colaborador;
                 const item = this.filtrosAtivos.dashboard.item;
                 
@@ -3021,10 +3698,11 @@
                 let colaboradoresFiltrados = this.dados.colaboradores.filter(c => c.status === 'ativo');
                 let solicitacoesFiltradas = [...this.dados.solicitacoes];
                 
-                // Aplicar filtro de setor
-                if (setor !== 'todos') {
-                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.setor === setor);
-                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.setor === setor);
+                // Aplicar filtro de departamento
+                if (departamento !== 'todos') {
+                    const deptoId = parseInt(departamento);
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.departamentoId === deptoId);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.departamentoId === deptoId);
                 }
                 
                 // Aplicar filtro de colaborador
@@ -3081,7 +3759,7 @@
                 
                 // Atualizar top lists
                 this.carregarTopColaboradoresComFiltro(solicitacoesFiltradas);
-                this.carregarTopSetoresComFiltro(solicitacoesFiltradas);
+                this.carregarTopDepartamentosComFiltro(solicitacoesFiltradas);
                 this.carregarTopItensComFiltro(solicitacoesFiltradas);
                 this.carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas);
                 
@@ -3210,6 +3888,8 @@
 
             carregarTopColaboradoresComFiltro(solicitacoesFiltradas) {
                 const container = document.getElementById('top-colaboradores-list');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
                 // Calcular solicitações por colaborador com filtros
@@ -3219,7 +3899,7 @@
                 solicitacoesFiltradas.forEach(solic => {
                     if (!solicitacoesPorColaborador[solic.colaboradorNome]) {
                         solicitacoesPorColaborador[solic.colaboradorNome] = 0;
-                        colaboradoresMap[solic.colaboradorNome] = solic.setor;
+                        colaboradoresMap[solic.colaboradorNome] = solic.departamentoId;
                     }
                     solicitacoesPorColaborador[solic.colaboradorNome]++;
                 });
@@ -3228,7 +3908,7 @@
                     .map(([nome, quantidade]) => ({ 
                         nome, 
                         quantidade,
-                        setor: colaboradoresMap[nome]
+                        departamentoId: colaboradoresMap[nome]
                     }))
                     .sort((a, b) => b.quantidade - a.quantidade)
                     .slice(0, 5);
@@ -3236,10 +3916,11 @@
                 topColaboradores.forEach((colab, index) => {
                     const li = document.createElement('li');
                     li.className = 'top-item';
+                    const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
                     li.innerHTML = `
                         <div class="top-info">
                             <span class="top-name">${index + 1}. ${colab.nome}</span>
-                            <span class="top-details">${this.formatarSetor(colab.setor)}</span>
+                            <span class="top-details">${departamentoNome}</span>
                         </div>
                         <div class="top-count">${colab.quantidade}</div>
                     `;
@@ -3247,33 +3928,41 @@
                 });
             }
 
-            carregarTopSetoresComFiltro(solicitacoesFiltradas) {
-                const container = document.getElementById('top-setores-list');
+            carregarTopDepartamentosComFiltro(solicitacoesFiltradas) {
+                const container = document.getElementById('top-departamentos-list');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
-                const solicitacoesPorSetor = {};
+                const solicitacoesPorDepartamento = {};
                 
                 solicitacoesFiltradas.forEach(solicitacao => {
-                    const setor = this.formatarSetor(solicitacao.setor);
-                    if (!solicitacoesPorSetor[setor]) {
-                        solicitacoesPorSetor[setor] = 0;
+                    const departamentoId = solicitacao.departamentoId;
+                    if (!solicitacoesPorDepartamento[departamentoId]) {
+                        solicitacoesPorDepartamento[departamentoId] = 0;
                     }
-                    solicitacoesPorSetor[setor]++;
+                    solicitacoesPorDepartamento[departamentoId]++;
                 });
                 
-                const topSetores = Object.entries(solicitacoesPorSetor)
-                    .map(([setor, quantidade]) => ({ setor, quantidade }))
+                const topDepartamentos = Object.entries(solicitacoesPorDepartamento)
+                    .map(([departamentoId, quantidade]) => {
+                        const departamento = this.dados.departamentos.find(d => d.id === parseInt(departamentoId));
+                        return {
+                            nome: departamento ? departamento.nome : 'N/A',
+                            quantidade: quantidade
+                        };
+                    })
                     .sort((a, b) => b.quantidade - a.quantidade)
                     .slice(0, 5);
                 
-                topSetores.forEach((setor, index) => {
+                topDepartamentos.forEach((depto, index) => {
                     const li = document.createElement('li');
                     li.className = 'top-item';
                     li.innerHTML = `
                         <div class="top-info">
-                            <span class="top-name">${index + 1}. ${setor.setor}</span>
+                            <span class="top-name">${index + 1}. ${depto.nome}</span>
                         </div>
-                        <div class="top-count">${setor.quantidade}</div>
+                        <div class="top-count">${depto.quantidade}</div>
                     `;
                     container.appendChild(li);
                 });
@@ -3281,6 +3970,8 @@
 
             carregarTopItensComFiltro(solicitacoesFiltradas) {
                 const container = document.getElementById('top-itens-list');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
                 const itensContagem = {};
@@ -3311,18 +4002,20 @@
 
             carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas) {
                 const tbody = document.getElementById('ultimas-solicitacoes-tbody');
+                if (!tbody) return;
+                
                 tbody.innerHTML = '';
                 
                 const ultimas = [...solicitacoesFiltradas]
                     .sort((a, b) => new Date(b.data) - new Date(a.data))
-                    .slice(0, 5);
+                    .slice(0, this.visualizacaoSolicitacoes.dashboard.limite);
                 
                 ultimas.forEach(solic => {
                     const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     tr.innerHTML = `
-                        <td>${solic.codigo}</td>
                         <td>${solic.colaboradorNome}</td>
-                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${departamentoNome}</td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
@@ -3337,42 +4030,43 @@
             }
 
             atualizarGraficosComFiltros(solicitacoesFiltradas) {
-                // Atualizar gráfico de setores
-                if (this.charts.setores) {
-                    const solicitacoesPorSetor = {};
+                // Atualizar gráfico de departamentos
+                if (this.charts.departamentos) {
+                    const solicitacoesPorDepartamento = {};
                     solicitacoesFiltradas.forEach(solic => {
-                        solicitacoesPorSetor[solic.setor] = (solicitacoesPorSetor[solic.setor] || 0) + 1;
+                        const departamento = this.getDepartamentoNome(solic.departamentoId);
+                        solicitacoesPorDepartamento[departamento] = (solicitacoesPorDepartamento[departamento] || 0) + 1;
                     });
                     
-                    const labels = Object.keys(solicitacoesPorSetor).map(setor => this.formatarSetor(setor));
-                    const data = Object.values(solicitacoesPorSetor);
+                    const labels = Object.keys(solicitacoesPorDepartamento);
+                    const data = Object.values(solicitacoesPorDepartamento);
                     
-                    this.charts.setores.data.labels = labels;
-                    this.charts.setores.data.datasets[0].data = data;
-                    this.charts.setores.update();
+                    this.charts.departamentos.data.labels = labels;
+                    this.charts.departamentos.data.datasets[0].data = data;
+                    this.charts.departamentos.update();
                 }
             }
 
             filtrarColaboradores() {
                 const busca = this.filtrosAtivos.colaboradores.busca;
                 const status = this.filtrosAtivos.colaboradores.status;
-                const setor = this.filtrosAtivos.colaboradores.setor;
+                const departamento = this.filtrosAtivos.colaboradores.departamento;
                 
                 const linhas = document.querySelectorAll('#colaboradores-tbody tr');
                 linhas.forEach(linha => {
                     const nome = linha.cells[0].textContent.toLowerCase();
-                    const setorLinha = linha.cells[1].textContent.toLowerCase();
+                    const departamentoLinha = linha.cells[1].textContent.toLowerCase();
                     const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
                     
                     const buscaMatch = busca === '' || 
                                      nome.includes(busca) || 
-                                     setorLinha.includes(busca) || 
+                                     departamentoLinha.includes(busca) || 
                                      statusLinha.includes(busca);
                     const statusMatch = status === 'todos' || statusLinha === status;
-                    const setorMatch = setor === 'todos' || 
-                                     setorLinha === this.formatarSetor(setor).toLowerCase();
+                    const departamentoMatch = departamento === 'todos' || 
+                                     departamentoLinha === this.getDepartamentoNome(parseInt(departamento)).toLowerCase();
                     
-                    linha.style.display = buscaMatch && statusMatch && setorMatch ? '' : 'none';
+                    linha.style.display = buscaMatch && statusMatch && departamentoMatch ? '' : 'none';
                 });
             }
 
@@ -3397,7 +4091,7 @@
 
             filtrarSolicitacoes() {
                 const status = this.filtrosAtivos.solicitacoes.status;
-                const setor = this.filtrosAtivos.solicitacoes.setor;
+                const departamento = this.filtrosAtivos.solicitacoes.departamento;
                 const periodo = this.filtrosAtivos.solicitacoes.periodo;
                 const colaborador = this.filtrosAtivos.solicitacoes.colaborador;
                 
@@ -3405,10 +4099,10 @@
                 const hoje = new Date();
                 
                 linhas.forEach(linha => {
-                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
-                    const setorLinha = linha.cells[2].textContent.toLowerCase();
-                    const dataStr = linha.cells[4].textContent;
-                    const colaboradorId = this.getColaboradorIdFromRow(linha);
+                    const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
+                    const departamentoLinha = linha.cells[1].textContent.toLowerCase();
+                    const dataStr = linha.cells[3].textContent;
+                    const colaboradorNome = linha.cells[0].textContent;
                     const dataSolicitacao = this.parseDataPtBr(dataStr);
                     
                     let periodoMatch = true;
@@ -3428,20 +4122,44 @@
                     }
                     
                     const statusMatch = status === 'todos' || statusLinha === this.formatarStatus(status).toLowerCase();
-                    const setorMatch = setor === 'todos' || 
-                                     setorLinha === this.formatarSetor(setor).toLowerCase();
+                    const departamentoMatch = departamento === 'todos' || 
+                                     departamentoLinha === this.getDepartamentoNome(parseInt(departamento)).toLowerCase();
                     const colaboradorMatch = colaborador === 'todos' || 
-                                          colaboradorId === parseInt(colaborador);
+                                          colaboradorNome === this.getColaboradorNome(parseInt(colaborador));
                     
-                    linha.style.display = statusMatch && setorMatch && periodoMatch && colaboradorMatch ? '' : 'none';
+                    linha.style.display = statusMatch && departamentoMatch && periodoMatch && colaboradorMatch ? '' : 'none';
                 });
             }
 
-            getColaboradorIdFromRow(linha) {
-                // Encontrar o ID do colaborador a partir do nome
-                const nomeColaborador = linha.cells[1].textContent;
-                const colaborador = this.dados.colaboradores.find(c => c.nome === nomeColaborador);
-                return colaborador ? colaborador.id : null;
+            filtrarDepartamentos() {
+                const busca = this.filtrosAtivos.departamentos.busca;
+                const status = this.filtrosAtivos.departamentos.status;
+                
+                const linhas = document.querySelectorAll('#departamentos-tbody tr');
+                linhas.forEach(linha => {
+                    const nome = linha.cells[0].textContent.toLowerCase();
+                    const codigo = linha.cells[1].textContent.toLowerCase();
+                    const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
+                    
+                    const buscaMatch = busca === '' || 
+                                     nome.includes(busca) || 
+                                     codigo.includes(busca);
+                    const statusMatch = status === 'todos' || statusLinha === status;
+                    
+                    linha.style.display = buscaMatch && statusMatch ? '' : 'none';
+                });
+            }
+
+            getColaboradorNome(id) {
+                if (id === 'todos') return 'todos';
+                const colaborador = this.dados.colaboradores.find(c => c.id === parseInt(id));
+                return colaborador ? colaborador.nome : '';
+            }
+
+            getDepartamentoNome(id) {
+                if (!id) return 'N/A';
+                const departamento = this.dados.departamentos.find(d => d.id === id);
+                return departamento ? departamento.nome : 'N/A';
             }
 
             parseDataPtBr(dataStr) {
@@ -3453,6 +4171,8 @@
 
             atualizarFiltrosAtivos(secao = 'dashboard') {
                 const container = document.getElementById('filtros-ativos');
+                if (!container) return;
+                
                 container.innerHTML = '';
                 
                 let temFiltros = false;
@@ -3479,9 +4199,12 @@
                                     case '1ano': valorExibido = 'Último ano'; break;
                                 }
                                 break;
-                            case 'setor':
-                                label = 'Setor: ';
-                                valorExibido = this.formatarSetor(valor);
+                            case 'departamento':
+                                label = 'Departamento: ';
+                                if (valor !== 'todos') {
+                                    const depto = this.dados.departamentos.find(d => d.id === parseInt(valor));
+                                    valorExibido = depto ? depto.nome : valor;
+                                }
                                 break;
                             case 'status':
                                 label = 'Status: ';
@@ -3511,7 +4234,7 @@
                                     case 'solicitacoes': valorExibido = 'Solicitações'; break;
                                     case 'colaboradores': valorExibido = 'Colaboradores'; break;
                                     case 'itens': valorExibido = 'Itens'; break;
-                                    case 'setores': valorExibido = 'Setores'; break;
+                                    case 'departamentos': valorExibido = 'Departamentos'; break;
                                 }
                                 break;
                             case 'busca':
@@ -3541,7 +4264,7 @@
                 
                 switch(chave) {
                     case 'periodo':
-                    case 'setor':
+                    case 'departamento':
                     case 'status':
                     case 'categoria':
                     case 'colaborador':
@@ -3560,7 +4283,7 @@
                 switch(secao) {
                     case 'dashboard':
                         if (chave === 'periodo') document.getElementById('periodo-select').value = valorPadrao;
-                        if (chave === 'setor') document.getElementById('setor-select').value = valorPadrao;
+                        if (chave === 'departamento') document.getElementById('departamento-select').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('colaborador-select').value = valorPadrao;
                         if (chave === 'item') document.getElementById('item-select').value = valorPadrao;
                         this.aplicarFiltrosDashboard();
@@ -3568,7 +4291,7 @@
                     case 'colaboradores':
                         if (chave === 'busca') document.getElementById('buscar-colaborador').value = '';
                         if (chave === 'status') document.getElementById('filtro-status-colaborador').value = valorPadrao;
-                        if (chave === 'setor') document.getElementById('filtro-setor-colaborador').value = valorPadrao;
+                        if (chave === 'departamento') document.getElementById('filtro-departamento-colaborador').value = valorPadrao;
                         this.filtrarColaboradores();
                         break;
                     case 'itens':
@@ -3579,15 +4302,20 @@
                         break;
                     case 'solicitacoes':
                         if (chave === 'status') document.getElementById('filtro-status-solicitacao').value = valorPadrao;
-                        if (chave === 'setor') document.getElementById('filtro-setor-solicitacao').value = valorPadrao;
+                        if (chave === 'departamento') document.getElementById('filtro-departamento-solicitacao').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
                         this.filtrarSolicitacoes();
                         break;
+                    case 'departamentos':
+                        if (chave === 'busca') document.getElementById('buscar-departamento').value = '';
+                        if (chave === 'status') document.getElementById('filtro-status-departamento').value = valorPadrao;
+                        this.filtrarDepartamentos();
+                        break;
                     case 'relatorios':
                         if (chave === 'tipo') document.getElementById('tipo-relatorio').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('periodo-relatorio').value = valorPadrao;
-                        if (chave === 'setor') document.getElementById('setor-relatorio').value = valorPadrao;
+                        if (chave === 'departamento') document.getElementById('departamento-relatorio').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('colaborador-relatorio').value = valorPadrao;
                         if (chave === 'status') document.getElementById('status-relatorio').value = valorPadrao;
                         this.gerarRelatorio();
@@ -3601,7 +4329,7 @@
             gerarRelatorio() {
                 const tipo = this.filtrosAtivos.relatorios.tipo || document.getElementById('tipo-relatorio').value;
                 const periodo = this.filtrosAtivos.relatorios.periodo || document.getElementById('periodo-relatorio').value;
-                const setor = this.filtrosAtivos.relatorios.setor || document.getElementById('setor-relatorio').value;
+                const departamento = this.filtrosAtivos.relatorios.departamento || document.getElementById('departamento-relatorio').value;
                 const colaborador = this.filtrosAtivos.relatorios.colaborador || document.getElementById('colaborador-relatorio').value;
                 const status = this.filtrosAtivos.relatorios.status || document.getElementById('status-relatorio').value;
                 
@@ -3613,26 +4341,25 @@
                 
                 switch(tipo) {
                     case 'solicitacoes':
-                        this.gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, setor, colaborador, status);
+                        this.gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, departamento, colaborador, status);
                         break;
                     case 'colaboradores':
-                        this.gerarRelatorioColaboradores(cabecalho, corpo, setor);
+                        this.gerarRelatorioColaboradores(cabecalho, corpo, departamento);
                         break;
                     case 'itens':
                         this.gerarRelatorioItens(cabecalho, corpo);
                         break;
-                    case 'setores':
-                        this.gerarRelatorioSetores(cabecalho, corpo);
+                    case 'departamentos':
+                        this.gerarRelatorioDepartamentos(cabecalho, corpo);
                         break;
                 }
             }
 
-            gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, setor, colaborador, status) {
+            gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, departamento, colaborador, status) {
                 cabecalho.innerHTML = `
                     <tr>
-                        <th>Código</th>
                         <th>Colaborador</th>
-                        <th>Setor</th>
+                        <th>Departamento</th>
                         <th>Itens</th>
                         <th>Data</th>
                         <th>Status</th>
@@ -3644,8 +4371,8 @@
                 let solicitacoes = [...this.dados.solicitacoes];
                 
                 // Aplicar filtros
-                if (setor !== 'todos') {
-                    solicitacoes = solicitacoes.filter(s => s.setor === setor);
+                if (departamento !== 'todos') {
+                    solicitacoes = solicitacoes.filter(s => s.departamentoId === parseInt(departamento));
                 }
                 
                 if (colaborador !== 'todos') {
@@ -3674,10 +4401,10 @@
                 
                 solicitacoes.forEach(solic => {
                     const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     tr.innerHTML = `
-                        <td>${solic.codigo}</td>
                         <td>${solic.colaboradorNome}</td>
-                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${departamentoNome}</td>
                         <td>${solic.itens.join(', ')}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
@@ -3686,11 +4413,11 @@
                 });
             }
 
-            gerarRelatorioColaboradores(cabecalho, corpo, setor) {
+            gerarRelatorioColaboradores(cabecalho, corpo, departamento) {
                 cabecalho.innerHTML = `
                     <tr>
                         <th>Nome</th>
-                        <th>Setor</th>
+                        <th>Departamento</th>
                         <th>Admissão</th>
                         <th>Solicitações</th>
                         <th>Última Solicitação</th>
@@ -3702,15 +4429,16 @@
                 
                 let colaboradores = [...this.dados.colaboradores];
                 
-                if (setor !== 'todos') {
-                    colaboradores = colaboradores.filter(c => c.setor === setor);
+                if (departamento !== 'todos') {
+                    colaboradores = colaboradores.filter(c => c.departamentoId === parseInt(departamento));
                 }
                 
                 colaboradores.forEach(colab => {
                     const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
                     tr.innerHTML = `
                         <td>${colab.nome}</td>
-                        <td>${this.formatarSetor(colab.setor)}</td>
+                        <td>${departamentoNome}</td>
                         <td>${this.formatarData(colab.admissao)}</td>
                         <td>${colab.solicitacoes}</td>
                         <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
@@ -3750,10 +4478,11 @@
                 });
             }
 
-            gerarRelatorioSetores(cabecalho, corpo) {
+            gerarRelatorioDepartamentos(cabecalho, corpo) {
                 cabecalho.innerHTML = `
                     <tr>
-                        <th>Setor</th>
+                        <th>Departamento</th>
+                        <th>Código</th>
                         <th>Colaboradores</th>
                         <th>Solicitações</th>
                         <th>Média por Colaborador</th>
@@ -3763,20 +4492,18 @@
                 
                 corpo.innerHTML = '';
                 
-                const setores = ['vendas', 'producao', 'administrativo', 'logistica', 'ti'];
-                
-                setores.forEach(setorCode => {
-                    const colaboradoresSetor = this.dados.colaboradores.filter(c => c.setor === setorCode && c.status === 'ativo');
-                    const solicitacoesSetor = this.dados.solicitacoes.filter(s => s.setor === setorCode);
+                this.dados.departamentos.forEach(depto => {
+                    const colaboradoresDepartamento = this.dados.colaboradores.filter(c => c.departamentoId === depto.id && c.status === 'ativo');
+                    const solicitacoesDepartamento = this.dados.solicitacoes.filter(s => s.departamentoId === depto.id);
                     
-                    if (colaboradoresSetor.length > 0) {
+                    if (colaboradoresDepartamento.length > 0) {
                         // Calcular média
-                        const media = colaboradoresSetor.length > 0 ? 
-                            (solicitacoesSetor.length / colaboradoresSetor.length).toFixed(1) : '0.0';
+                        const media = colaboradoresDepartamento.length > 0 ? 
+                            (solicitacoesDepartamento.length / colaboradoresDepartamento.length).toFixed(1) : '0.0';
                         
-                        // Encontrar item mais solicitado no setor
+                        // Encontrar item mais solicitado no departamento
                         const itensContagem = {};
-                        solicitacoesSetor.forEach(solic => {
+                        solicitacoesDepartamento.forEach(solic => {
                             solic.itens.forEach(item => {
                                 const itemNome = item.split(' (')[0];
                                 itensContagem[itemNome] = (itensContagem[itemNome] || 0) + 1;
@@ -3788,9 +4515,10 @@
                         
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td>${this.formatarSetor(setorCode)}</td>
-                            <td>${colaboradoresSetor.length}</td>
-                            <td>${solicitacoesSetor.length}</td>
+                            <td>${depto.nome}</td>
+                            <td>${depto.codigo}</td>
+                            <td>${colaboradoresDepartamento.length}</td>
+                            <td>${solicitacoesDepartamento.length}</td>
                             <td>${media}</td>
                             <td>${itemMaisSolicitado ? `${itemMaisSolicitado[0]} (${itemMaisSolicitado[1]})` : 'Nenhum'}</td>
                         `;
@@ -3902,29 +4630,9 @@
                 this.atualizarSelects();
                 this.calcularMediasTroca();
                 this.atualizarFiltrosAtivos();
+                this.resetarVisualizacaoSolicitacoes('dashboard');
+                this.resetarVisualizacaoSolicitacoes('tabela');
                 this.mostrarToast('Dados atualizados!', 'info');
-            }
-
-            formatarSetor(setor) {
-                const setores = {
-                    'vendas': 'Vendas',
-                    'producao': 'Produção',
-                    'administrativo': 'Administrativo',
-                    'logistica': 'Logística',
-                    'ti': 'TI'
-                };
-                return setores[setor] || setor;
-            }
-
-            getSetorCode(nomeSetor) {
-                const setores = {
-                    'Vendas': 'vendas',
-                    'Produção': 'producao',
-                    'Administrativo': 'administrativo',
-                    'Logística': 'logistica',
-                    'TI': 'ti'
-                };
-                return setores[nomeSetor];
             }
 
             formatarCategoria(categoria) {
@@ -3954,15 +4662,13 @@
                 return classes[status] || 'badge-secondary';
             }
 
-            formatarPrimeiraMaiuscula(texto) {
-                return texto.charAt(0).toUpperCase() + texto.slice(1);
-            }
-
             formatarData(dataString) {
                 if (!dataString) return 'N/A';
                 try {
                     const data = new Date(dataString);
-                    return data.toLocaleDateString('pt-BR');
+                    // Corrigir problema de fuso horário adicionando um dia
+                    const dataCorrigida = new Date(data.getTime() + data.getTimezoneOffset() * 60000);
+                    return dataCorrigida.toLocaleDateString('pt-BR');
                 } catch {
                     return dataString;
                 }
@@ -3974,6 +4680,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             sistema = new SistemaUniformes();
             window.sistema = sistema;
+            
+            // Inicializar gráficos após um pequeno delay para garantir que o DOM esteja pronto
+            setTimeout(() => {
+                sistema.redesenharGraficos();
+            }, 500);
         });
     </script>
 </body>
