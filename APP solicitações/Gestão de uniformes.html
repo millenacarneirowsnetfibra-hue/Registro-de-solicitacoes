@@ -1,0 +1,3980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniManager - Sistema de Gestão</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* A */
+        .active {
+            display: flex;
+        }
+        
+        .align-center {
+            align-items: center;
+        }
+
+        /* B */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: var(--info);
+        }
+
+        .badge-secondary {
+            background-color: #e5e7eb;
+            color: var(--gray-dark);
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: var(--secondary);
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: var(--warning);
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* C */
+        .chart-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            height: 350px;
+        }
+
+        .chart-card h4 {
+            margin-bottom: 16px;
+            color: var(--dark);
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-wrapper {
+            height: 250px;
+            position: relative;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        /* D */
+        .dashboard-filters {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        /* F */
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .filter-group select, .filter-group input {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            background: white;
+        }
+
+        .filter-group select:focus, .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .filter-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+
+        .filter-indicator .clear-filter {
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filter-indicator .clear-filter:hover {
+            color: var(--danger);
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        /* G */
+        .gap-1 { gap: 4px; }
+        .gap-2 { gap: 8px; }
+        .gap-3 { gap: 12px; }
+
+        /* H */
+        .header {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        /* I */
+        .item-name {
+            flex: 1;
+        }
+
+        .item-with-sizes {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* J */
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        /* L */
+        .logo {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .logo-text h1 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .logo-text p {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* M */
+        .mb-1 { margin-bottom: 4px; }
+        .mb-2 { margin-bottom: 8px; }
+        .mb-3 { margin-bottom: 12px; }
+        .mb-4 { margin-bottom: 16px; }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+            background-color: #f5f7fa;
+        }
+
+        .media-troca-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            background: #f0f9ff;
+            color: #0369a1;
+        }
+
+        .media-troca-badge.alta {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .media-troca-badge.baixa {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .media-troca-badge.media {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .media-troca-card {
+            background: white;
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .media-troca-categoria {
+            font-size: 0.75rem;
+            color: var(--gray);
+            background: var(--gray-light);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .media-troca-descricao {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .media-troca-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--gray);
+        }
+
+        .media-troca-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .media-troca-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .media-troca-nome {
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        .media-troca-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .media-troca-valor {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background-color: var(--gray-light);
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .mt-1 { margin-top: 4px; }
+        .mt-2 { margin-top: 8px; }
+        .mt-3 { margin-top: 12px; }
+        .mt-4 { margin-top: 16px; }
+
+        /* N */
+        .nav-item {
+            margin: 4px 16px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: var(--gray-dark);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            font-weight: 500;
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+
+        .nav-link.active {
+            background-color: var(--primary-light);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .nav-link i {
+            width: 20px;
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        /* R */
+        .remover-item {
+            cursor: pointer;
+        }
+
+        /* S */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .show {
+            transform: translateX(0);
+        }
+
+        .sidebar {
+            width: 250px;
+            background: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 10;
+            box-shadow: var(--shadow);
+        }
+
+        .size-select {
+            width: 100px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .stat-icon.blue {
+            background-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .stat-icon.green {
+            background-color: #d1fae5;
+            color: var(--secondary);
+        }
+
+        .stat-icon.orange {
+            background-color: #fef3c7;
+            color: var(--warning);
+        }
+
+        .stat-icon.purple {
+            background-color: #ede9fe;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+
+        .status-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .status-btn {
+            padding: 4px 8px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .status-btn:hover {
+            background: var(--gray-light);
+        }
+
+        .status-btn.nao-precisa {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+
+        .status-btn.pendente {
+            color: var(--warning);
+            border-color: var(--warning);
+        }
+
+        .status-btn.realizado {
+            color: var(--secondary);
+            border-color: var(--secondary);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        /* T */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table th {
+            background-color: var(--gray-light);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--gray-dark);
+            font-size: 0.9rem;
+        }
+
+        .table tr:hover {
+            background-color: var(--gray-light);
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--gray);
+        }
+
+        .toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            background: white;
+            box-shadow: var(--shadow-md);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1001;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .toast-error {
+            border-left-color: var(--danger);
+        }
+
+        .toast-success {
+            border-left-color: var(--secondary);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--dark) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .top-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .top-card h4 {
+            margin-bottom: 16px;
+            color: var(--dark);
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-count {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .top-details {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .top-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .top-list {
+            list-style: none;
+        }
+
+        .top-name {
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .top-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* U */
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .user-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .user-info p {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .user-section {
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 1024px) {
+            .main-content {
+                margin-left: 70px;
+            }
+
+            .sidebar {
+                width: 70px;
+            }
+
+            .sidebar .logo {
+                justify-content: center;
+            }
+
+            .sidebar .logo-text,
+            .sidebar .nav-link span,
+            .sidebar .user-info {
+                display: none;
+            }
+
+            .sidebar .nav-link {
+                justify-content: center;
+                padding: 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .chart-card {
+                height: 300px;
+            }
+
+            .chart-wrapper {
+                height: 200px;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+
+            .filters-row {
+                flex-direction: column;
+            }
+
+            .filter-group {
+                min-width: 100%;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: stretch;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .top-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Reset e Configurações Gerais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --accent: #8b5cf6;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --gray: #9ca3af;
+            --gray-dark: #6b7280;
+            --gray-light: #f3f4f6;
+            --info: #3b82f6;
+            --light: #f9fafb;
+            --primary: #2563eb;
+            --primary-light: #dbeafe;
+            --radius: 8px;
+            --radius-sm: 4px;
+            --secondary: #10b981;
+            --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s ease;
+            --warning: #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>UniManager</h1>
+                    <p>Sistema de Gestão</p>
+                </div>
+            </div>
+
+            <div class="nav-menu">
+                <div class="nav-item">
+                    <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#colaboradores" class="nav-link" data-section="colaboradores">
+                        <i class="fas fa-users"></i>
+                        <span>Colaboradores</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#itens" class="nav-link" data-section="itens">
+                        <i class="fas fa-tshirt"></i>
+                        <span>Itens</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#solicitacoes" class="nav-link" data-section="solicitacoes">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Solicitações</span>
+                    </a>
+                </div>
+                
+                <div class="nav-item">
+                    <a href="#relatorios" class="nav-link" data-section="relatorios">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Relatórios</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="user-section">
+                <div class="user-avatar">AD</div>
+                <div class="user-info">
+                    <h4>Administrador</h4>
+                    <p>admin@empresa.com</p>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Conteúdo Principal -->
+        <main class="main-content">
+            <!-- Dashboard -->
+            <section id="dashboard" class="content-section active">
+                <div class="header">
+                    <h2>Dashboard</h2>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="refresh-btn">
+                            <i class="fas fa-sync-alt"></i> Atualizar
+                        </button>
+                        <button class="btn btn-primary" id="export-dashboard-btn">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="dashboard-filters">
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <label>Período</label>
+                            <select id="periodo-select">
+                                <option value="todos">Todos</option>
+                                <option value="7dias">Últimos 7 dias</option>
+                                <option value="30dias">Últimos 30 dias</option>
+                                <option value="mes_atual">Mês atual</option>
+                                <option value="3meses">Últimos 3 meses</option>
+                                <option value="6meses">Últimos 6 meses</option>
+                                <option value="1ano">Último ano</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Setor</label>
+                            <select id="setor-select">
+                                <option value="todos">Todos os Setores</option>
+                                <option value="vendas">Vendas</option>
+                                <option value="producao">Produção</option>
+                                <option value="administrativo">Administrativo</option>
+                                <option value="logistica">Logística</option>
+                                <option value="ti">TI</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Colaborador</label>
+                            <select id="colaborador-select">
+                                <option value="todos">Todos os Colaboradores</option>
+                                <!-- Preenchido por JS -->
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label>Item</label>
+                            <select id="item-select">
+                                <option value="todos">Todos os Itens</option>
+                                <!-- Preenchido por JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div id="filtros-ativos" class="mt-2" style="display: none;">
+                        <!-- Filtros ativos serão exibidos aqui -->
+                    </div>
+                </div>
+
+                <!-- Visão Geral -->
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-chart-line"></i>
+                        Visão Geral
+                    </h3>
+                </div>
+
+                <!-- Cards de Estatísticas -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="total-colaboradores">6</div>
+                                <div class="stat-label">Colaboradores Ativos</div>
+                            </div>
+                            <div class="stat-icon blue">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="solicitacoes-pendentes">1</div>
+                                <div class="stat-label">Solicitações Pendentes</div>
+                            </div>
+                            <div class="stat-icon orange">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="total-solicitacoes">6</div>
+                                <div class="stat-label">Total de Solicitações</div>
+                            </div>
+                            <div class="stat-icon purple">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value" id="media-trocas">1.0</div>
+                                <div class="stat-label">Média por Colaborador</div>
+                            </div>
+                            <div class="stat-icon green">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Média de Troca por Item -->
+                <div class="content-section media-troca-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <i class="fas fa-calendar-alt"></i>
+                            Média de Tempo entre Trocas por Item
+                        </h3>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-muted"></i>
+                            <span class="tooltip-text">
+                                Tempo médio entre as solicitações de cada item.
+                                Calculado com base no histórico de solicitações "realizadas".
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="media-troca-grid" id="media-troca-container">
+                        <!-- Preenchido por JS -->
+                    </div>
+                </div>
+
+                <!-- Gráficos -->
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <h4><i class="fas fa-chart-bar"></i> Top 5 Colaboradores que Mais Trocam</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-top-colaboradores"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h4><i class="fas fa-chart-pie"></i> Solicitações por Setor</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-setores"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h4><i class="fas fa-chart-line"></i> Itens Mais Solicitados</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-itens"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h4><i class="fas fa-calendar-alt"></i> Solicitações por Mês</h4>
+                        <div class="chart-wrapper">
+                            <canvas id="chart-mensal"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Lists -->
+                <div class="top-stats">
+                    <div class="top-card">
+                        <h4><i class="fas fa-user-crown"></i> Top Colaboradores que Mais Trocam</h4>
+                        <ul class="top-list" id="top-colaboradores-list">
+                            <!-- Preenchido por JS -->
+                        </ul>
+                    </div>
+                    
+                    <div class="top-card">
+                        <h4><i class="fas fa-building"></i> Setores que Mais Trocam</h4>
+                        <ul class="top-list" id="top-setores-list">
+                            <!-- Preenchido por JS -->
+                        </ul>
+                    </div>
+                    
+                    <div class="top-card">
+                        <h4><i class="fas fa-tshirt"></i> Itens Mais Trocados</h4>
+                        <ul class="top-list" id="top-itens-list">
+                            <!-- Preenchido por JS -->
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tabela de Últimas Solicitações -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h4 class="section-title">Últimas Solicitações</h4>
+                        <button class="btn btn-primary btn-sm" id="nova-solicitacao-btn">
+                            <i class="fas fa-plus"></i> Nova Solicitação
+                        </button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Colaborador</th>
+                                    <th>Setor</th>
+                                    <th>Itens</th>
+                                    <th>Data</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ultimas-solicitacoes-tbody">
+                                <!-- Preenchido por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Colaboradores -->
+            <section id="colaboradores" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-users"></i>
+                        Colaboradores
+                    </h3>
+                    <button class="btn btn-primary" id="novo-colaborador-btn">
+                        <i class="fas fa-plus"></i> Novo Colaborador
+                    </button>
+                </div>
+
+                <div class="filters-row mb-4">
+                    <div class="filter-group">
+                        <label>Buscar</label>
+                        <input type="text" id="buscar-colaborador" placeholder="Nome, Setor ou Status...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filtro-status-colaborador">
+                            <option value="todos">Todos</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Setor</label>
+                        <select id="filtro-setor-colaborador">
+                            <option value="todos">Todos os Setores</option>
+                            <option value="vendas">Vendas</option>
+                            <option value="producao">Produção</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="logistica">Logística</option>
+                            <option value="ti">TI</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Setor</th>
+                                <th>Admissão</th>
+                                <th>Solicitações</th>
+                                <th>Última Solicitação</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="colaboradores-tbody">
+                            <!-- Preenchido por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Itens -->
+            <section id="itens" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-tshirt"></i>
+                        Itens
+                    </h3>
+                    <button class="btn btn-primary" id="novo-item-btn">
+                        <i class="fas fa-plus"></i> Novo Item
+                    </button>
+                </div>
+
+                <div class="filters-row mb-4">
+                    <div class="filter-group">
+                        <label>Buscar</label>
+                        <input type="text" id="buscar-item" placeholder="Nome do item...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Categoria</label>
+                        <select id="filtro-categoria-item">
+                            <option value="todos">Todas</option>
+                            <option value="uniforme">Uniforme</option>
+                            <option value="epi">EPI</option>
+                            <option value="materiais">Materiais</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filtro-status-item">
+                            <option value="todos">Todos</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Categoria</th>
+                                <th>Tamanhos</th>
+                                <th>Solicitações</th>
+                                <th>Média de Troca</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itens-tbody">
+                            <!-- Preenchido por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Solicitações -->
+            <section id="solicitacoes" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        Solicitações
+                    </h3>
+                    <button class="btn btn-primary" id="nova-solicitacao-btn2">
+                        <i class="fas fa-plus"></i> Nova Solicitação
+                    </button>
+                </div>
+
+                <div class="filters-row mb-4">
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="filtro-status-solicitacao">
+                            <option value="todos">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="nao_precisa">Não precisa</option>
+                            <option value="realizado">Realizado</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Setor</label>
+                        <select id="filtro-setor-solicitacao">
+                            <option value="todos">Todos</option>
+                            <option value="vendas">Vendas</option>
+                            <option value="producao">Produção</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="logistica">Logística</option>
+                            <option value="ti">TI</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Período</label>
+                        <select id="filtro-periodo-solicitacao">
+                            <option value="todos">Todos</option>
+                            <option value="7dias">Últimos 7 dias</option>
+                            <option value="30dias">Últimos 30 dias</option>
+                            <option value="mes_atual">Mês atual</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Colaborador</label>
+                        <select id="filtro-colaborador-solicitacao">
+                            <option value="todos">Todos</option>
+                            <!-- Preenchido por JS -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Colaborador</th>
+                                <th>Setor</th>
+                                <th>Itens</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="solicitacoes-tbody">
+                            <!-- Preenchido por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Relatórios -->
+            <section id="relatorios" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h3 class="section-title">
+                        <i class="fas fa-file-alt"></i>
+                        Relatórios
+                    </h3>
+                </div>
+
+                <div class="filters-row mb-4">
+                    <div class="filter-group">
+                        <label>Tipo de Relatório</label>
+                        <select id="tipo-relatorio">
+                            <option value="solicitacoes">Solicitações</option>
+                            <option value="colaboradores">Colaboradores</option>
+                            <option value="itens">Itens</option>
+                            <option value="setores">Setores</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Período</label>
+                        <select id="periodo-relatorio">
+                            <option value="todos">Todos</option>
+                            <option value="7dias">Últimos 7 dias</option>
+                            <option value="30dias">Últimos 30 dias</option>
+                            <option value="mes_atual">Mês atual</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Setor</label>
+                        <select id="setor-relatorio">
+                            <option value="todos">Todos</option>
+                            <option value="vendas">Vendas</option>
+                            <option value="producao">Produção</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="logistica">Logística</option>
+                            <option value="ti">TI</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Colaborador</label>
+                        <select id="colaborador-relatorio">
+                            <option value="todos">Todos</option>
+                            <!-- Preenchido por JS -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="status-relatorio">
+                            <option value="todos">Todos</option>
+                            <option value="pendente">Pendente</option>
+                            <option value="nao_precisa">Não precisa</option>
+                            <option value="realizado">Realizado</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <div style="display: flex; gap: 10px; margin-top: 25px;">
+                            <button class="btn btn-success btn-sm" id="exportar-pdf-btn">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </button>
+                            <button class="btn btn-success btn-sm" id="exportar-excel-btn">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container" id="relatorio-container" style="display: none;">
+                    <table class="table" id="relatorio-tabela">
+                        <thead id="relatorio-cabecalho">
+                            <!-- Preenchido dinamicamente -->
+                        </thead>
+                        <tbody id="relatorio-corpo">
+                            <!-- Preenchido dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Colaborador -->
+    <div id="modal-colaborador" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-colaborador-title">Novo Colaborador</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-colaborador">
+                    <input type="hidden" id="colaborador-id">
+                    <div class="form-group">
+                        <label class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="colaborador-nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Setor</label>
+                        <select class="form-control" id="colaborador-setor" required>
+                            <option value="">Selecione...</option>
+                            <option value="vendas">Vendas</option>
+                            <option value="producao">Produção</option>
+                            <option value="administrativo">Administrativo</option>
+                            <option value="logistica">Logística</option>
+                            <option value="ti">TI</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data de Admissão</label>
+                        <input type="date" class="form-control" id="colaborador-admissao" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="colaborador-status" required>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Item -->
+    <div id="modal-item" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-item-title">Novo Item</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-item">
+                    <input type="hidden" id="item-id">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Item</label>
+                        <input type="text" class="form-control" id="item-nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoria</label>
+                        <select class="form-control" id="item-categoria" required>
+                            <option value="">Selecione...</option>
+                            <option value="uniforme">Uniforme</option>
+                            <option value="epi">EPI</option>
+                            <option value="materiais">Materiais</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tamanhos Disponíveis</label>
+                        <input type="text" class="form-control" id="item-tamanhos" placeholder="Ex: P, M, G, GG" required>
+                        <small style="color: var(--gray);">Separe os tamanhos com vírgula</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="item-status" required>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Solicitação -->
+    <div id="modal-solicitacao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-solicitacao-title">Nova Solicitação</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="form-solicitacao">
+                    <input type="hidden" id="solicitacao-id">
+                    <div class="form-group">
+                        <label class="form-label">Colaborador</label>
+                        <select class="form-control" id="solicitacao-colaborador" required>
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Itens</label>
+                        <div id="itens-container">
+                            <!-- Itens serão adicionados dinamicamente -->
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm mt-2" id="adicionar-item-btn">
+                            <i class="fas fa-plus"></i> Adicionar Item
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Data da Solicitação</label>
+                        <input type="date" class="form-control" id="solicitacao-data" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select class="form-control" id="solicitacao-status" required>
+                            <option value="pendente">Pendente</option>
+                            <option value="nao_precisa">Não precisa</option>
+                            <option value="realizado">Realizado</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary modal-close">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <span class="toast-message">Operação realizada com sucesso!</span>
+    </div>
+
+    <script>
+        class SistemaUniformes {
+            constructor() {
+                this.dados = this.carregarDados();
+                this.charts = {};
+                this.filtrosAtivos = {
+                    dashboard: { periodo: 'todos', setor: 'todos', colaborador: 'todos', item: 'todos' },
+                    colaboradores: { busca: '', status: 'todos', setor: 'todos' },
+                    itens: { busca: '', categoria: 'todos', status: 'todos' },
+                    solicitacoes: { status: 'todos', setor: 'todos', periodo: 'todos', colaborador: 'todos' },
+                    relatorios: { tipo: 'solicitacoes', periodo: 'todos', setor: 'todos', colaborador: 'todos', status: 'todos' }
+                };
+                this.init();
+            }
+
+            init() {
+                this.setupNavegacao();
+                this.setupEventListeners();
+                this.carregarDashboard();
+                this.carregarTabelas();
+                this.setupDate();
+                this.atualizarSelects();
+                this.atualizarDashboardCharts();
+                this.atualizarFiltrosAtivos();
+                this.calcularMediasTroca();
+            }
+
+            carregarDados() {
+                // Verificar se o localStorage está disponível
+                if (typeof(Storage) === "undefined") {
+                    console.error("LocalStorage não suportado. Usando dados padrão.");
+                    return this.getDadosPadrao();
+                }
+
+                try {
+                    const dadosSalvos = {
+                        colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')),
+                        itens: JSON.parse(localStorage.getItem('uniformes_itens')),
+                        solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes'))
+                    };
+
+                    // Se não houver dados salvos, usar dados padrão
+                    if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.solicitacoes) {
+                        console.log("Nenhum dado salvo encontrado. Carregando dados padrão.");
+                        return this.getDadosPadrao();
+                    }
+
+                    console.log("Dados carregados do localStorage com sucesso!");
+                    return dadosSalvos;
+                } catch (error) {
+                    console.error("Erro ao carregar dados do localStorage:", error);
+                    return this.getDadosPadrao();
+                }
+            }
+
+            getDadosPadrao() {
+                return {
+                    colaboradores: [
+                        { id: 1, nome: "João Silva", setor: "vendas", admissao: "2023-01-15", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2023-10-15" },
+                        { id: 2, nome: "Maria Santos", setor: "administrativo", admissao: "2023-03-20", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-10" },
+                        { id: 3, nome: "Carlos Oliveira", setor: "producao", admissao: "2023-02-10", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2023-10-20" },
+                        { id: 4, nome: "Ana Costa", setor: "vendas", admissao: "2023-04-28", status: "ativo", solicitacoes: 1, ultimaSolicitacao: "2023-09-15" },
+                        { id: 5, nome: "Pedro Alves", setor: "logistica", admissao: "2023-05-10", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2023-10-18" },
+                        { id: 6, nome: "Fernanda Lima", setor: "ti", admissao: "2023-06-22", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-10-12" }
+                    ],
+                    itens: [
+                        { id: 1, nome: "Camisa Social", categoria: "uniforme", tamanhos: "P, M, G, GG", status: "ativo", solicitacoes: 8, mediaTroca: 3.5 },
+                        { id: 2, nome: "Calça Jeans", categoria: "uniforme", tamanhos: "36, 38, 40, 42", status: "ativo", solicitacoes: 6, mediaTroca: 4.2 },
+                        { id: 3, nome: "Tênis de Segurança", categoria: "epi", tamanhos: "36, 37, 38, 39, 40, 41, 42, 43, 44, 45", status: "ativo", solicitacoes: 5, mediaTroca: 6.0 },
+                        { id: 4, nome: "Jaleco", categoria: "epi", tamanhos: "P, M, G", status: "ativo", solicitacoes: 3, mediaTroca: 5.5 },
+                        { id: 5, nome: "Capacete", categoria: "epi", tamanhos: "Único", status: "ativo", solicitacoes: 2, mediaTroca: 12.0 },
+                        { id: 6, nome: "Luva de Proteção", categoria: "epi", tamanhos: "P, M, G", status: "ativo", solicitacoes: 1, mediaTroca: null },
+                        { id: 7, nome: "Papel A4", categoria: "materiais", tamanhos: "500 folhas", status: "ativo", solicitacoes: 4, mediaTroca: 2.5 },
+                        { id: 8, nome: "Caneta Esferográfica", categoria: "materiais", tamanhos: "Azul, Preta, Vermelha", status: "ativo", solicitacoes: 7, mediaTroca: 1.2 }
+                    ],
+                    solicitacoes: [
+                        { id: 1, codigo: "SOL001", colaboradorId: 1, colaboradorNome: "João Silva", setor: "vendas", itens: ["Camisa Social (M)", "Calça Jeans (40)"], data: "2023-10-15", status: "realizado" },
+                        { id: 2, codigo: "SOL002", colaboradorId: 2, colaboradorNome: "Maria Santos", setor: "administrativo", itens: ["Camisa Social (P)"], data: "2023-10-10", status: "pendente" },
+                        { id: 3, codigo: "SOL003", colaboradorId: 3, colaboradorNome: "Carlos Oliveira", setor: "producao", itens: ["Tênis de Segurança (42)", "Jaleco (G)"], data: "2023-10-20", status: "realizado" },
+                        { id: 4, codigo: "SOL004", colaboradorId: 5, colaboradorNome: "Pedro Alves", setor: "logistica", itens: ["Camisa Social (M)", "Calça Jeans (38)"], data: "2023-10-18", status: "realizado" },
+                        { id: 5, codigo: "SOL005", colaboradorId: 6, colaboradorNome: "Fernanda Lima", setor: "ti", itens: ["Camisa Social (P)"], data: "2023-10-12", status: "realizado" },
+                        { id: 6, codigo: "SOL006", colaboradorId: 3, colaboradorNome: "Carlos Oliveira", setor: "producao", itens: ["Capacete (Único)"], data: "2023-09-28", status: "nao_precisa" },
+                        { id: 7, codigo: "SOL007", colaboradorId: 1, colaboradorNome: "João Silva", setor: "vendas", itens: ["Camisa Social (M)"], data: "2023-07-15", status: "realizado" },
+                        { id: 8, codigo: "SOL008", colaboradorId: 3, colaboradorNome: "Carlos Oliveira", setor: "producao", itens: ["Tênis de Segurança (42)"], data: "2023-04-20", status: "realizado" },
+                        { id: 9, codigo: "SOL009", colaboradorId: 2, colaboradorNome: "Maria Santos", setor: "administrativo", itens: ["Papel A4 (500 folhas)", "Caneta Esferográfica (Azul)"], data: "2023-10-05", status: "realizado" },
+                        { id: 10, codigo: "SOL010", colaboradorId: 4, colaboradorNome: "Ana Costa", setor: "vendas", itens: ["Caneta Esferográfica (Preta)"], data: "2023-09-20", status: "realizado" }
+                    ]
+                };
+            }
+
+            salvarDados() {
+                // Verificar se o localStorage está disponível
+                if (typeof(Storage) === "undefined") {
+                    console.error("LocalStorage não suportado. Não foi possível salvar os dados.");
+                    this.mostrarToast("Seu navegador não suporta armazenamento local. Os dados não serão salvos.", "error");
+                    return false;
+                }
+
+                try {
+                    localStorage.setItem('uniformes_colaboradores', JSON.stringify(this.dados.colaboradores));
+                    localStorage.setItem('uniformes_itens', JSON.stringify(this.dados.itens));
+                    localStorage.setItem('uniformes_solicitacoes', JSON.stringify(this.dados.solicitacoes));
+                    console.log("Dados salvos com sucesso no localStorage!");
+                    return true;
+                } catch (error) {
+                    console.error("Erro ao salvar dados no localStorage:", error);
+                    this.mostrarToast("Erro ao salvar dados!", "error");
+                    return false;
+                }
+            }
+
+            setupNavegacao() {
+                const navLinks = document.querySelectorAll('.nav-link');
+                const sections = document.querySelectorAll('.content-section');
+
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        
+                        const sectionId = link.getAttribute('data-section');
+                        sections.forEach(section => {
+                            section.style.display = section.id === sectionId ? 'block' : 'none';
+                        });
+                        
+                        document.querySelector('h2').textContent = link.querySelector('span').textContent;
+                        
+                        if (sectionId === 'dashboard') {
+                            this.atualizarDashboardCharts();
+                            this.atualizarFiltrosAtivos('dashboard');
+                            this.calcularMediasTroca();
+                        } else if (sectionId === 'colaboradores') {
+                            this.atualizarFiltrosAtivos('colaboradores');
+                        } else if (sectionId === 'itens') {
+                            this.atualizarFiltrosAtivos('itens');
+                        } else if (sectionId === 'solicitacoes') {
+                            this.atualizarFiltrosAtivos('solicitacoes');
+                        } else if (sectionId === 'relatorios') {
+                            this.atualizarFiltrosAtivos('relatorios');
+                            this.gerarRelatorio();
+                        }
+                    });
+                });
+            }
+
+            setupEventListeners() {
+                // Botões principais
+                document.getElementById('refresh-btn').addEventListener('click', () => this.recarregarDados());
+                document.getElementById('export-dashboard-btn').addEventListener('click', () => this.exportarDashboard());
+                
+                // Botões de adição
+                document.getElementById('novo-colaborador-btn').addEventListener('click', () => this.abrirModal('colaborador'));
+                document.getElementById('novo-item-btn').addEventListener('click', () => this.abrirModal('item'));
+                document.getElementById('nova-solicitacao-btn').addEventListener('click', () => this.abrirModal('solicitacao'));
+                document.getElementById('nova-solicitacao-btn2').addEventListener('click', () => this.abrirModal('solicitacao'));
+                
+                // Relatórios
+                document.getElementById('exportar-pdf-btn').addEventListener('click', () => this.exportarPDF());
+                document.getElementById('exportar-excel-btn').addEventListener('click', () => this.exportarExcel());
+                
+                // Formulários
+                document.getElementById('form-colaborador').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.salvarColaborador();
+                });
+                
+                document.getElementById('form-item').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.salvarItem();
+                });
+                
+                document.getElementById('form-solicitacao').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.salvarSolicitacao();
+                });
+                
+                // Adicionar item dinâmico
+                document.getElementById('adicionar-item-btn').addEventListener('click', () => {
+                    this.adicionarItemSolicitacao();
+                });
+                
+                // Filtros do Dashboard (auto-aplicar)
+                document.getElementById('periodo-select').addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.periodo = e.target.value;
+                    this.atualizarFiltrosAtivos('dashboard');
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('setor-select').addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.setor = e.target.value;
+                    this.atualizarFiltrosAtivos('dashboard');
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('colaborador-select').addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.colaborador = e.target.value;
+                    this.atualizarFiltrosAtivos('dashboard');
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('item-select').addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.item = e.target.value;
+                    this.atualizarFiltrosAtivos('dashboard');
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                // Filtros de Colaboradores (auto-aplicar)
+                document.getElementById('buscar-colaborador').addEventListener('input', (e) => {
+                    this.filtrosAtivos.colaboradores.busca = e.target.value.toLowerCase();
+                    this.filtrarColaboradores();
+                });
+                
+                document.getElementById('filtro-status-colaborador').addEventListener('change', (e) => {
+                    this.filtrosAtivos.colaboradores.status = e.target.value;
+                    this.atualizarFiltrosAtivos('colaboradores');
+                    this.filtrarColaboradores();
+                });
+                
+                document.getElementById('filtro-setor-colaborador').addEventListener('change', (e) => {
+                    this.filtrosAtivos.colaboradores.setor = e.target.value;
+                    this.atualizarFiltrosAtivos('colaboradores');
+                    this.filtrarColaboradores();
+                });
+                
+                // Filtros de Itens (auto-aplicar)
+                document.getElementById('buscar-item').addEventListener('input', (e) => {
+                    this.filtrosAtivos.itens.busca = e.target.value.toLowerCase();
+                    this.filtrarItens();
+                });
+                
+                document.getElementById('filtro-categoria-item').addEventListener('change', (e) => {
+                    this.filtrosAtivos.itens.categoria = e.target.value;
+                    this.atualizarFiltrosAtivos('itens');
+                    this.filtrarItens();
+                });
+                
+                document.getElementById('filtro-status-item').addEventListener('change', (e) => {
+                    this.filtrosAtivos.itens.status = e.target.value;
+                    this.atualizarFiltrosAtivos('itens');
+                    this.filtrarItens();
+                });
+                
+                // Filtros de Solicitações (auto-aplicar)
+                document.getElementById('filtro-status-solicitacao').addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.status = e.target.value;
+                    this.atualizarFiltrosAtivos('solicitacoes');
+                    this.filtrarSolicitacoes();
+                });
+                
+                document.getElementById('filtro-setor-solicitacao').addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.setor = e.target.value;
+                    this.atualizarFiltrosAtivos('solicitacoes');
+                    this.filtrarSolicitacoes();
+                });
+                
+                document.getElementById('filtro-periodo-solicitacao').addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.periodo = e.target.value;
+                    this.atualizarFiltrosAtivos('solicitacoes');
+                    this.filtrarSolicitacoes();
+                });
+                
+                document.getElementById('filtro-colaborador-solicitacao').addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.colaborador = e.target.value;
+                    this.atualizarFiltrosAtivos('solicitacoes');
+                    this.filtrarSolicitacoes();
+                });
+                
+                // Filtros de Relatórios (auto-aplicar)
+                document.getElementById('tipo-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.tipo = e.target.value;
+                    this.gerarRelatorio();
+                });
+                
+                document.getElementById('periodo-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.periodo = e.target.value;
+                    this.gerarRelatorio();
+                });
+                
+                document.getElementById('setor-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.setor = e.target.value;
+                    this.gerarRelatorio();
+                });
+                
+                document.getElementById('colaborador-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.colaborador = e.target.value;
+                    this.gerarRelatorio();
+                });
+                
+                document.getElementById('status-relatorio').addEventListener('change', (e) => {
+                    this.filtrosAtivos.relatorios.status = e.target.value;
+                    this.gerarRelatorio();
+                });
+                
+                // Fechar modais
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.fecharModais();
+                    });
+                });
+                
+                // Clicar fora para fechar modal
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.classList.remove('active');
+                        }
+                    });
+                });
+            }
+
+            setupDate() {
+                const hoje = new Date().toISOString().split('T')[0];
+                document.getElementById('colaborador-admissao').value = hoje;
+                document.getElementById('solicitacao-data').value = hoje;
+            }
+
+            atualizarSelects() {
+                // Atualizar select de colaboradores para dashboard
+                const selectDashboardColab = document.getElementById('colaborador-select');
+                selectDashboardColab.innerHTML = '<option value="todos">Todos os Colaboradores</option>';
+                this.dados.colaboradores.forEach(colab => {
+                    const option = document.createElement('option');
+                    option.value = colab.id;
+                    option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                    selectDashboardColab.appendChild(option);
+                });
+                
+                // Atualizar select de itens para dashboard
+                const selectItem = document.getElementById('item-select');
+                selectItem.innerHTML = '<option value="todos">Todos os Itens</option>';
+                this.dados.itens.forEach(item => {
+                    if (item.status === 'ativo') {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
+                        selectItem.appendChild(option);
+                    }
+                });
+                
+                // Atualizar select de colaboradores para solicitações
+                const selectColaborador = document.getElementById('solicitacao-colaborador');
+                selectColaborador.innerHTML = '<option value="">Selecione...</option>';
+                this.dados.colaboradores.forEach(colab => {
+                    if (colab.status === 'ativo') {
+                        const option = document.createElement('option');
+                        option.value = colab.id;
+                        option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                        selectColaborador.appendChild(option);
+                    }
+                });
+                
+                // Atualizar select de colaboradores para filtro de solicitações
+                const filtroColaborador = document.getElementById('filtro-colaborador-solicitacao');
+                filtroColaborador.innerHTML = '<option value="todos">Todos</option>';
+                this.dados.colaboradores.forEach(colab => {
+                    const option = document.createElement('option');
+                    option.value = colab.id;
+                    option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                    filtroColaborador.appendChild(option);
+                });
+                
+                // Atualizar select de colaboradores para relatórios
+                const relatorioColaborador = document.getElementById('colaborador-relatorio');
+                relatorioColaborador.innerHTML = '<option value="todos">Todos</option>';
+                this.dados.colaboradores.forEach(colab => {
+                    const option = document.createElement('option');
+                    option.value = colab.id;
+                    option.textContent = `${colab.nome} (${this.formatarSetor(colab.setor)})`;
+                    relatorioColaborador.appendChild(option);
+                });
+            }
+
+            calcularMediasTroca() {
+                // Para cada item, calcular a média de tempo entre trocas
+                this.dados.itens.forEach(item => {
+                    // Encontrar todas as solicitações que contêm este item
+                    const solicItem = [];
+                    
+                    this.dados.solicitacoes.forEach(solic => {
+                        if (solic.status === 'realizado') {
+                            solic.itens.forEach(itemSolic => {
+                                const itemNome = itemSolic.split(' (')[0];
+                                if (itemNome === item.nome) {
+                                    solicItem.push({
+                                        data: new Date(solic.data),
+                                        colaboradorId: solic.colaboradorId,
+                                        colaboradorNome: solic.colaboradorNome
+                                    });
+                                }
+                            });
+                        }
+                    });
+                    
+                    // Ordenar por data
+                    solicItem.sort((a, b) => a.data - b.data);
+                    
+                    if (solicItem.length <= 1) {
+                        item.mediaTroca = null;
+                        item.ultimaTroca = solicItem.length > 0 ? solicItem[solicItem.length - 1].data : null;
+                    } else {
+                        // Calcular diferenças entre datas consecutivas (em meses)
+                        let totalDias = 0;
+                        let totalPeriodos = 0;
+                        
+                        for (let i = 1; i < solicItem.length; i++) {
+                            const diffMs = solicItem[i].data - solicItem[i-1].data;
+                            const diffDias = diffMs / (1000 * 60 * 60 * 24);
+                            totalDias += diffDias;
+                            totalPeriodos++;
+                        }
+                        
+                        const mediaDias = totalDias / totalPeriodos;
+                        const mediaMeses = mediaDias / 30.44; // Média aproximada de dias por mês
+                        
+                        item.mediaTroca = parseFloat(mediaMeses.toFixed(1));
+                        item.ultimaTroca = solicItem[solicItem.length - 1].data;
+                        item.totalTrocas = solicItem.length;
+                    }
+                });
+                
+                // Atualizar visualização das médias
+                this.atualizarMediasTrocaVisualizacao();
+            }
+
+            atualizarMediasTrocaVisualizacao() {
+                const container = document.getElementById('media-troca-container');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                const itensComMedia = this.dados.itens
+                    .filter(item => item.status === 'ativo' && item.mediaTroca !== null)
+                    .sort((a, b) => a.mediaTroca - b.mediaTroca);
+                
+                if (itensComMedia.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px;">
+                            <i class="fas fa-chart-line fa-2x mb-3"></i>
+                            <p>Nenhuma média de troca disponível</p>
+                            <p class="text-sm">Os itens precisam ter pelo menos 2 solicitações realizadas</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                itensComMedia.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'media-troca-card';
+                    
+                    let classeCor = 'media';
+                    let descricao = 'Troca média';
+                    
+                    if (item.mediaTroca < 3) {
+                        classeCor = 'alta';
+                        descricao = 'Alta rotatividade';
+                    } else if (item.mediaTroca > 8) {
+                        classeCor = 'baixa';
+                        descricao = 'Baixa rotatividade';
+                    }
+                    
+                    const ultimaTrocaStr = item.ultimaTroca ? 
+                        this.formatarData(item.ultimaTroca.toISOString().split('T')[0]) : 'Nunca';
+                    
+                    card.innerHTML = `
+                        <div class="media-troca-header">
+                            <div>
+                                <div class="media-troca-nome">${item.nome}</div>
+                                <div class="media-troca-categoria">${this.formatarCategoria(item.categoria)}</div>
+                            </div>
+                            <span class="media-troca-badge ${classeCor}">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${item.mediaTroca} meses
+                            </span>
+                        </div>
+                        
+                        <div class="media-troca-valor">${item.mediaTroca} meses</div>
+                        <div class="media-troca-descricao">${descricao}</div>
+                        
+                        <div class="media-troca-footer">
+                            <span>${item.totalTrocas || 0} trocas</span>
+                            <span>Última: ${ultimaTrocaStr}</span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+            }
+
+            atualizarDashboardCharts() {
+                this.criarGraficoTopColaboradores();
+                this.criarGraficoSetores();
+                this.criarGraficoItens();
+                this.criarGraficoMensal();
+            }
+
+            criarGraficoTopColaboradores() {
+                const ctx = document.getElementById('chart-top-colaboradores').getContext('2d');
+                
+                const topColaboradores = [...this.dados.colaboradores]
+                    .filter(c => c.status === 'ativo')
+                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .slice(0, 5);
+                
+                const labels = topColaboradores.map(c => c.nome.split(' ')[0]);
+                const data = topColaboradores.map(c => c.solicitacoes);
+                const cores = this.gerarCores(data.length);
+                
+                if (this.charts.topColaboradores) {
+                    this.charts.topColaboradores.destroy();
+                }
+                
+                this.charts.topColaboradores = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Solicitações',
+                            data: data,
+                            backgroundColor: cores,
+                            borderColor: cores.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            criarGraficoSetores() {
+                const ctx = document.getElementById('chart-setores').getContext('2d');
+                
+                const solicitacoesPorSetor = {};
+                this.dados.solicitacoes.forEach(solic => {
+                    solicitacoesPorSetor[solic.setor] = (solicitacoesPorSetor[solic.setor] || 0) + 1;
+                });
+                
+                const labels = Object.keys(solicitacoesPorSetor).map(setor => this.formatarSetor(setor));
+                const data = Object.values(solicitacoesPorSetor);
+                const cores = this.gerarCores(data.length);
+                
+                if (this.charts.setores) {
+                    this.charts.setores.destroy();
+                }
+                
+                this.charts.setores = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: cores,
+                            borderColor: cores.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            criarGraficoItens() {
+                const ctx = document.getElementById('chart-itens').getContext('2d');
+                
+                const topItens = [...this.dados.itens]
+                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .slice(0, 5);
+                
+                const labels = topItens.map(item => item.nome);
+                const data = topItens.map(item => item.solicitacoes);
+                const cores = this.gerarCores(data.length);
+                
+                if (this.charts.itens) {
+                    this.charts.itens.destroy();
+                }
+                
+                this.charts.itens = new Chart(ctx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: cores,
+                            borderColor: cores.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+
+            criarGraficoMensal() {
+                const ctx = document.getElementById('chart-mensal').getContext('2d');
+                
+                const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                const solicitacoesPorMes = Array(12).fill(0);
+                
+                this.dados.solicitacoes.forEach(solic => {
+                    const mes = new Date(solic.data).getMonth();
+                    solicitacoesPorMes[mes]++;
+                });
+                
+                if (this.charts.mensal) {
+                    this.charts.mensal.destroy();
+                }
+                
+                this.charts.mensal = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: meses,
+                        datasets: [{
+                            label: 'Solicitações',
+                            data: solicitacoesPorMes,
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                            borderColor: 'rgba(37, 99, 235, 1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            gerarCores(num) {
+                const cores = [
+                    'rgba(37, 99, 235, 0.8)',
+                    'rgba(16, 185, 129, 0.8)',
+                    'rgba(139, 92, 246, 0.8)',
+                    'rgba(245, 158, 11, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(168, 85, 247, 0.8)'
+                ];
+                
+                return cores.slice(0, num);
+            }
+
+            carregarDashboard() {
+                // Atualizar estatísticas
+                const colaboradoresAtivos = this.dados.colaboradores.filter(c => c.status === 'ativo').length;
+                const solicitacoesPendentes = this.dados.solicitacoes.filter(s => s.status === 'pendente').length;
+                const totalSolicitacoes = this.dados.solicitacoes.length;
+                const mediaTrocas = totalSolicitacoes > 0 ? (totalSolicitacoes / colaboradoresAtivos).toFixed(1) : '0.0';
+                
+                document.getElementById('total-colaboradores').textContent = colaboradoresAtivos;
+                document.getElementById('solicitacoes-pendentes').textContent = solicitacoesPendentes;
+                document.getElementById('total-solicitacoes').textContent = totalSolicitacoes;
+                document.getElementById('media-trocas').textContent = mediaTrocas;
+                
+                // Carregar top colaboradores
+                this.carregarTopColaboradores();
+                
+                // Carregar top setores
+                this.carregarTopSetores();
+                
+                // Carregar top itens
+                this.carregarTopItens();
+                
+                // Carregar últimas solicitações
+                this.carregarUltimasSolicitacoes();
+            }
+
+            carregarTopColaboradores() {
+                const container = document.getElementById('top-colaboradores-list');
+                container.innerHTML = '';
+                
+                const topColaboradores = [...this.dados.colaboradores]
+                    .filter(c => c.status === 'ativo')
+                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .slice(0, 5);
+                
+                topColaboradores.forEach((colab, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'top-item';
+                    li.innerHTML = `
+                        <div class="top-info">
+                            <span class="top-name">${index + 1}. ${colab.nome}</span>
+                            <span class="top-details">${this.formatarSetor(colab.setor)}</span>
+                        </div>
+                        <div class="top-count">${colab.solicitacoes}</div>
+                    `;
+                    container.appendChild(li);
+                });
+            }
+
+            carregarTopSetores() {
+                const container = document.getElementById('top-setores-list');
+                container.innerHTML = '';
+                
+                const solicitacoesPorSetor = {};
+                
+                this.dados.solicitacoes.forEach(solicitacao => {
+                    const setor = solicitacao.setor;
+                    if (!solicitacoesPorSetor[setor]) {
+                        solicitacoesPorSetor[setor] = 0;
+                    }
+                    solicitacoesPorSetor[setor]++;
+                });
+                
+                const topSetores = Object.entries(solicitacoesPorSetor)
+                    .map(([setor, quantidade]) => ({ 
+                        setor: this.formatarSetor(setor), 
+                        quantidade 
+                    }))
+                    .sort((a, b) => b.quantidade - a.quantidade)
+                    .slice(0, 5);
+                
+                topSetores.forEach((setor, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'top-item';
+                    li.innerHTML = `
+                        <div class="top-info">
+                            <span class="top-name">${index + 1}. ${setor.setor}</span>
+                            <span class="top-details">${this.getColaboradoresPorSetor(setor.setor)} colaboradores</span>
+                        </div>
+                        <div class="top-count">${setor.quantidade}</div>
+                    `;
+                    container.appendChild(li);
+                });
+            }
+
+            carregarTopItens() {
+                const container = document.getElementById('top-itens-list');
+                container.innerHTML = '';
+                
+                const topItens = [...this.dados.itens]
+                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .slice(0, 5);
+                
+                topItens.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'top-item';
+                    li.innerHTML = `
+                        <div class="top-info">
+                            <span class="top-name">${index + 1}. ${item.nome}</span>
+                            <span class="top-details">${this.formatarCategoria(item.categoria)}</span>
+                        </div>
+                        <div class="top-count">${item.solicitacoes}</div>
+                    `;
+                    container.appendChild(li);
+                });
+            }
+
+            getColaboradoresPorSetor(nomeSetor) {
+                const setorCode = this.getSetorCode(nomeSetor);
+                return this.dados.colaboradores.filter(c => c.setor === setorCode && c.status === 'ativo').length;
+            }
+
+            carregarUltimasSolicitacoes() {
+                const tbody = document.getElementById('ultimas-solicitacoes-tbody');
+                tbody.innerHTML = '';
+                
+                const ultimas = [...this.dados.solicitacoes]
+                    .sort((a, b) => new Date(b.data) - new Date(a.data))
+                    .slice(0, 5);
+                
+                ultimas.forEach(solic => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${solic.codigo}</td>
+                        <td>${solic.colaboradorNome}</td>
+                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${solic.itens.join(', ')}</td>
+                        <td>${this.formatarData(solic.data)}</td>
+                        <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="sistema.visualizarSolicitacao(${solic.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            visualizarSolicitacao(id) {
+                const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
+                if (solicitacao) {
+                    const itensStr = solicitacao.itens.join('\n');
+                    alert(`Solicitação ${solicitacao.codigo}\n\nColaborador: ${solicitacao.colaboradorNome}\nSetor: ${this.formatarSetor(solicitacao.setor)}\nData: ${this.formatarData(solicitacao.data)}\nStatus: ${this.formatarStatus(solicitacao.status)}\n\nItens:\n${itensStr}`);
+                }
+            }
+
+            carregarTabelas() {
+                this.carregarTabelaColaboradores();
+                this.carregarTabelaItens();
+                this.carregarTabelaSolicitacoes();
+            }
+
+            carregarTabelaColaboradores() {
+                const tbody = document.getElementById('colaboradores-tbody');
+                tbody.innerHTML = '';
+                
+                this.dados.colaboradores.forEach(colab => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${colab.nome}</td>
+                        <td>${this.formatarSetor(colab.setor)}</td>
+                        <td>${this.formatarData(colab.admissao)}</td>
+                        <td>${colab.solicitacoes}</td>
+                        <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
+                        <td><span class="badge ${colab.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${colab.status}</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="sistema.editarColaborador(${colab.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="sistema.excluirColaborador(${colab.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            carregarTabelaItens() {
+                const tbody = document.getElementById('itens-tbody');
+                tbody.innerHTML = '';
+                
+                this.dados.itens.forEach(item => {
+                    const tr = document.createElement('tr');
+                    
+                    // Determinar badge de média de troca
+                    let mediaTrocaHTML = '<span class="badge badge-secondary">Sem dados</span>';
+                    if (item.mediaTroca !== null) {
+                        let badgeClass = 'badge-info';
+                        if (item.mediaTroca < 3) badgeClass = 'badge-danger';
+                        else if (item.mediaTroca > 8) badgeClass = 'badge-success';
+                        
+                        mediaTrocaHTML = `<span class="badge ${badgeClass}">${item.mediaTroca} meses</span>`;
+                    }
+                    
+                    tr.innerHTML = `
+                        <td>${item.nome}</td>
+                        <td>${this.formatarCategoria(item.categoria)}</td>
+                        <td>${item.tamanhos}</td>
+                        <td>${item.solicitacoes}</td>
+                        <td>${mediaTrocaHTML}</td>
+                        <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="sistema.editarItem(${item.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="sistema.excluirItem(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            carregarTabelaSolicitacoes() {
+                const tbody = document.getElementById('solicitacoes-tbody');
+                tbody.innerHTML = '';
+                
+                this.dados.solicitacoes.forEach(solic => {
+                    const tr = document.createElement('tr');
+                    const statusClass = this.getStatusClass(solic.status);
+                    const statusFormatado = this.formatarStatus(solic.status);
+                    
+                    tr.innerHTML = `
+                        <td>${solic.codigo}</td>
+                        <td>${solic.colaboradorNome}</td>
+                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${solic.itens.join(', ')}</td>
+                        <td>${this.formatarData(solic.data)}</td>
+                        <td>
+                            <span class="badge ${statusClass}">${statusFormatado}</span>
+                        </td>
+                        <td>
+                            <div class="status-actions">
+                                <button class="status-btn pendente" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'pendente')" title="Marcar como Pendente">
+                                    P
+                                </button>
+                                <button class="status-btn nao-precisa" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'nao_precisa')" title="Marcar como Não Precisa">
+                                    NP
+                                </button>
+                                <button class="status-btn realizado" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'realizado')" title="Marcar como Realizado">
+                                    R
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            atualizarStatusSolicitacao(id, novoStatus) {
+                const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
+                if (solicitacao) {
+                    solicitacao.status = novoStatus;
+                    const salvou = this.salvarDados();
+                    if (salvou) {
+                        this.carregarTabelaSolicitacoes();
+                        this.carregarDashboard();
+                        this.atualizarDashboardCharts();
+                        this.calcularMediasTroca();
+                        this.mostrarToast(`Status da solicitação ${solicitacao.codigo} atualizado para ${this.formatarStatus(novoStatus)}`);
+                    }
+                }
+            }
+
+            // CRUD Colaboradores
+            abrirModal(tipo, id = null) {
+                this.fecharModais();
+                
+                const modal = document.getElementById(`modal-${tipo}`);
+                const title = modal.querySelector(`#modal-${tipo}-title`);
+                
+                if (tipo === 'solicitacao') {
+                    this.atualizarSelects();
+                    this.limparItensSolicitacao();
+                    this.adicionarItemSolicitacao();
+                }
+                
+                if (id) {
+                    title.textContent = `Editar ${tipo}`;
+                    this.carregarDadosEdicao(tipo, id);
+                } else {
+                    title.textContent = `Novo ${tipo}`;
+                    this.limparFormulario(tipo);
+                }
+                
+                modal.classList.add('active');
+            }
+
+            limparFormulario(tipo) {
+                const form = document.getElementById(`form-${tipo}`);
+                if (form) {
+                    form.reset();
+                    const hiddenId = form.querySelector('input[type="hidden"]');
+                    if (hiddenId) {
+                        hiddenId.value = '';
+                    }
+                }
+            }
+
+            limparItensSolicitacao() {
+                const container = document.getElementById('itens-container');
+                container.innerHTML = '';
+            }
+
+            carregarDadosEdicao(tipo, id) {
+                let item;
+                switch(tipo) {
+                    case 'colaborador':
+                        item = this.dados.colaboradores.find(c => c.id === id);
+                        if (item) {
+                            document.getElementById('colaborador-id').value = item.id;
+                            document.getElementById('colaborador-nome').value = item.nome;
+                            document.getElementById('colaborador-setor').value = item.setor;
+                            document.getElementById('colaborador-admissao').value = item.admissao;
+                            document.getElementById('colaborador-status').value = item.status;
+                        }
+                        break;
+                    case 'item':
+                        item = this.dados.itens.find(i => i.id === id);
+                        if (item) {
+                            document.getElementById('item-id').value = item.id;
+                            document.getElementById('item-nome').value = item.nome;
+                            document.getElementById('item-categoria').value = item.categoria;
+                            document.getElementById('item-tamanhos').value = item.tamanhos;
+                            document.getElementById('item-status').value = item.status;
+                        }
+                        break;
+                    case 'solicitacao':
+                        item = this.dados.solicitacoes.find(s => s.id === id);
+                        if (item) {
+                            document.getElementById('solicitacao-id').value = item.id;
+                            document.getElementById('solicitacao-colaborador').value = item.colaboradorId;
+                            document.getElementById('solicitacao-data').value = item.data;
+                            document.getElementById('solicitacao-status').value = item.status;
+                        }
+                        break;
+                }
+            }
+
+            salvarColaborador() {
+                const id = document.getElementById('colaborador-id').value;
+                const nome = document.getElementById('colaborador-nome').value;
+                const setor = document.getElementById('colaborador-setor').value;
+                const admissao = document.getElementById('colaborador-admissao').value;
+                const status = document.getElementById('colaborador-status').value;
+
+                if (id) {
+                    // Editar
+                    const index = this.dados.colaboradores.findIndex(c => c.id == id);
+                    if (index !== -1) {
+                        this.dados.colaboradores[index] = {
+                            ...this.dados.colaboradores[index],
+                            nome,
+                            setor,
+                            admissao,
+                            status
+                        };
+                    }
+                } else {
+                    // Novo
+                    const novoId = this.dados.colaboradores.length > 0 ? 
+                        Math.max(...this.dados.colaboradores.map(c => c.id)) + 1 : 1;
+                    
+                    this.dados.colaboradores.push({
+                        id: novoId,
+                        nome,
+                        setor,
+                        admissao,
+                        status,
+                        solicitacoes: 0,
+                        ultimaSolicitacao: null
+                    });
+                }
+
+                const salvou = this.salvarDados();
+                if (salvou) {
+                    this.fecharModais();
+                    this.carregarTabelas();
+                    this.carregarDashboard();
+                    this.atualizarDashboardCharts();
+                    this.atualizarSelects();
+                    this.calcularMediasTroca();
+                    this.mostrarToast('Colaborador salvo com sucesso!');
+                }
+            }
+
+            editarColaborador(id) {
+                this.abrirModal('colaborador', id);
+            }
+
+            excluirColaborador(id) {
+                if (confirm('Tem certeza que deseja excluir este colaborador?')) {
+                    this.dados.colaboradores = this.dados.colaboradores.filter(c => c.id !== id);
+                    const salvou = this.salvarDados();
+                    if (salvou) {
+                        this.carregarTabelas();
+                        this.carregarDashboard();
+                        this.atualizarDashboardCharts();
+                        this.atualizarSelects();
+                        this.calcularMediasTroca();
+                        this.mostrarToast('Colaborador excluído com sucesso!');
+                    }
+                }
+            }
+
+            // CRUD Itens
+            salvarItem() {
+                const id = document.getElementById('item-id').value;
+                const nome = document.getElementById('item-nome').value;
+                const categoria = document.getElementById('item-categoria').value;
+                const tamanhos = document.getElementById('item-tamanhos').value;
+                const status = document.getElementById('item-status').value;
+
+                if (id) {
+                    // Editar
+                    const index = this.dados.itens.findIndex(i => i.id == id);
+                    if (index !== -1) {
+                        this.dados.itens[index] = {
+                            ...this.dados.itens[index],
+                            nome,
+                            categoria,
+                            tamanhos,
+                            status
+                        };
+                    }
+                } else {
+                    // Novo
+                    const novoId = this.dados.itens.length > 0 ? 
+                        Math.max(...this.dados.itens.map(i => i.id)) + 1 : 1;
+                    
+                    this.dados.itens.push({
+                        id: novoId,
+                        nome,
+                        categoria,
+                        tamanhos,
+                        status,
+                        solicitacoes: 0,
+                        mediaTroca: null
+                    });
+                }
+
+                const salvou = this.salvarDados();
+                if (salvou) {
+                    this.fecharModais();
+                    this.carregarTabelas();
+                    this.atualizarDashboardCharts();
+                    this.atualizarSelects();
+                    this.calcularMediasTroca();
+                    this.mostrarToast('Item salvo com sucesso!');
+                }
+            }
+
+            editarItem(id) {
+                this.abrirModal('item', id);
+            }
+
+            excluirItem(id) {
+                if (confirm('Tem certeza que deseja excluir este item?')) {
+                    this.dados.itens = this.dados.itens.filter(i => i.id !== id);
+                    const salvou = this.salvarDados();
+                    if (salvou) {
+                        this.carregarTabelas();
+                        this.atualizarDashboardCharts();
+                        this.atualizarSelects();
+                        this.calcularMediasTroca();
+                        this.mostrarToast('Item excluído com sucesso!');
+                    }
+                }
+            }
+
+            // CRUD Solicitações
+            adicionarItemSolicitacao() {
+                const container = document.getElementById('itens-container');
+                const div = document.createElement('div');
+                div.className = 'item-with-sizes mb-2';
+                
+                // Criar select de itens
+                const select = document.createElement('select');
+                select.className = 'form-control item-select';
+                select.required = true;
+                select.innerHTML = '<option value="">Selecione um item...</option>';
+                
+                // Adicionar opções de itens
+                this.dados.itens.forEach(item => {
+                    if (item.status === 'ativo') {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
+                        select.appendChild(option);
+                    }
+                });
+                
+                // Criar select de tamanhos
+                const sizeSelect = document.createElement('select');
+                sizeSelect.className = 'form-control size-select';
+                sizeSelect.innerHTML = '<option value="">Tamanho...</option>';
+                
+                // Adicionar evento para atualizar tamanhos quando item for selecionado
+                select.addEventListener('change', (e) => {
+                    const itemId = parseInt(e.target.value);
+                    const item = this.dados.itens.find(i => i.id === itemId);
+                    sizeSelect.innerHTML = '<option value="">Tamanho...</option>';
+                    
+                    if (item && item.tamanhos) {
+                        const tamanhos = item.tamanhos.split(',').map(t => t.trim());
+                        tamanhos.forEach(tamanho => {
+                            const option = document.createElement('option');
+                            option.value = tamanho;
+                            option.textContent = tamanho;
+                            sizeSelect.appendChild(option);
+                        });
+                    }
+                });
+                
+                // Botão para remover item
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-danger btn-icon remover-item';
+                removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                removeBtn.addEventListener('click', function() {
+                    div.remove();
+                });
+                
+                div.appendChild(select);
+                div.appendChild(sizeSelect);
+                div.appendChild(removeBtn);
+                container.appendChild(div);
+            }
+
+            salvarSolicitacao() {
+                const id = document.getElementById('solicitacao-id').value;
+                const colaboradorId = parseInt(document.getElementById('solicitacao-colaborador').value);
+                const data = document.getElementById('solicitacao-data').value;
+                const status = document.getElementById('solicitacao-status').value;
+                
+                // Coletar itens
+                const itensSelecionados = [];
+                document.querySelectorAll('#itens-container .item-with-sizes').forEach(container => {
+                    const select = container.querySelector('.item-select');
+                    const sizeSelect = container.querySelector('.size-select');
+                    const itemId = parseInt(select.value);
+                    
+                    if (itemId && sizeSelect.value) {
+                        const item = this.dados.itens.find(i => i.id === itemId);
+                        if (item) {
+                            const itemDesc = `${item.nome} (${sizeSelect.value})`;
+                            itensSelecionados.push(itemDesc);
+                            
+                            // Atualizar contador de solicitações do item
+                            item.solicitacoes++;
+                        }
+                    }
+                });
+                
+                if (itensSelecionados.length === 0) {
+                    this.mostrarToast('Selecione pelo menos um item com tamanho!', 'error');
+                    return;
+                }
+                
+                const colaborador = this.dados.colaboradores.find(c => c.id === colaboradorId);
+                if (!colaborador) {
+                    this.mostrarToast('Colaborador não encontrado!', 'error');
+                    return;
+                }
+                
+                if (id) {
+                    // Editar - implementar lógica de edição
+                    this.mostrarToast('Edição de solicitação ainda não implementada', 'error');
+                } else {
+                    // Nova solicitação
+                    const novoId = this.dados.solicitacoes.length > 0 ? 
+                        Math.max(...this.dados.solicitacoes.map(s => s.id)) + 1 : 1;
+                    const codigo = `SOL${String(novoId).padStart(3, '0')}`;
+                    
+                    this.dados.solicitacoes.push({
+                        id: novoId,
+                        codigo,
+                        colaboradorId,
+                        colaboradorNome: colaborador.nome,
+                        setor: colaborador.setor,
+                        itens: itensSelecionados,
+                        data,
+                        status
+                    });
+                    
+                    // Atualizar contador do colaborador
+                    colaborador.solicitacoes++;
+                    colaborador.ultimaSolicitacao = data;
+                }
+                
+                const salvou = this.salvarDados();
+                if (salvou) {
+                    this.fecharModais();
+                    this.carregarTabelas();
+                    this.carregarDashboard();
+                    this.atualizarDashboardCharts();
+                    this.atualizarSelects();
+                    this.calcularMediasTroca();
+                    this.mostrarToast('Solicitação salva com sucesso!');
+                }
+            }
+
+            excluirSolicitacao(id) {
+                if (confirm('Tem certeza que deseja excluir esta solicitação?')) {
+                    this.dados.solicitacoes = this.dados.solicitacoes.filter(s => s.id !== id);
+                    const salvou = this.salvarDados();
+                    if (salvou) {
+                        this.carregarTabelas();
+                        this.carregarDashboard();
+                        this.atualizarDashboardCharts();
+                        this.calcularMediasTroca();
+                        this.mostrarToast('Solicitação excluída com sucesso!');
+                    }
+                }
+            }
+
+            // Filtros Automáticos
+            aplicarFiltrosDashboard() {
+                const periodo = this.filtrosAtivos.dashboard.periodo;
+                const setor = this.filtrosAtivos.dashboard.setor;
+                const colaborador = this.filtrosAtivos.dashboard.colaborador;
+                const item = this.filtrosAtivos.dashboard.item;
+                
+                // Atualizar estatísticas com base nos filtros
+                let colaboradoresFiltrados = this.dados.colaboradores.filter(c => c.status === 'ativo');
+                let solicitacoesFiltradas = [...this.dados.solicitacoes];
+                
+                // Aplicar filtro de setor
+                if (setor !== 'todos') {
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.setor === setor);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.setor === setor);
+                }
+                
+                // Aplicar filtro de colaborador
+                if (colaborador !== 'todos') {
+                    const colaboradorId = parseInt(colaborador);
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.id === colaboradorId);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.colaboradorId === colaboradorId);
+                }
+                
+                // Aplicar filtro de item
+                if (item !== 'todos') {
+                    const itemId = parseInt(item);
+                    const itemSelecionado = this.dados.itens.find(i => i.id === itemId);
+                    if (itemSelecionado) {
+                        solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
+                            return solic.itens.some(itemSolic => {
+                                const itemNome = itemSolic.split(' (')[0];
+                                return itemNome === itemSelecionado.nome;
+                            });
+                        });
+                    }
+                }
+                
+                // Aplicar filtro de período
+                if (periodo !== 'todos') {
+                    const hoje = new Date();
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
+                        const dataSolicitacao = new Date(solic.data);
+                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
+                        
+                        if (periodo === '7dias') return diffDias <= 7;
+                        if (periodo === '30dias') return diffDias <= 30;
+                        if (periodo === 'mes_atual') {
+                            return dataSolicitacao.getMonth() === hoje.getMonth() && 
+                                   dataSolicitacao.getFullYear() === hoje.getFullYear();
+                        }
+                        if (periodo === '3meses') return diffDias <= 90;
+                        if (periodo === '6meses') return diffDias <= 180;
+                        if (periodo === '1ano') return diffDias <= 365;
+                        return true;
+                    });
+                }
+                
+                // Atualizar estatísticas
+                const colaboradoresAtivos = colaboradoresFiltrados.length;
+                const solicitacoesPendentes = solicitacoesFiltradas.filter(s => s.status === 'pendente').length;
+                const totalSolicitacoes = solicitacoesFiltradas.length;
+                const mediaTrocas = totalSolicitacoes > 0 ? (totalSolicitacoes / colaboradoresAtivos).toFixed(1) : '0.0';
+                
+                document.getElementById('total-colaboradores').textContent = colaboradoresAtivos;
+                document.getElementById('solicitacoes-pendentes').textContent = solicitacoesPendentes;
+                document.getElementById('total-solicitacoes').textContent = totalSolicitacoes;
+                document.getElementById('media-trocas').textContent = mediaTrocas;
+                
+                // Atualizar top lists
+                this.carregarTopColaboradoresComFiltro(solicitacoesFiltradas);
+                this.carregarTopSetoresComFiltro(solicitacoesFiltradas);
+                this.carregarTopItensComFiltro(solicitacoesFiltradas);
+                this.carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas);
+                
+                // Atualizar médias de troca com filtros
+                this.calcularMediasTrocaComFiltros(solicitacoesFiltradas);
+                
+                // Atualizar gráficos
+                this.atualizarGraficosComFiltros(solicitacoesFiltradas);
+            }
+
+            calcularMediasTrocaComFiltros(solicitacoesFiltradas) {
+                const container = document.getElementById('media-troca-container');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                // Calcular médias apenas com as solicitações filtradas
+                const itensComMedia = [];
+                
+                this.dados.itens.forEach(item => {
+                    if (item.status === 'ativo') {
+                        // Encontrar todas as solicitações filtradas que contêm este item
+                        const solicItem = [];
+                        
+                        solicitacoesFiltradas.forEach(solic => {
+                            if (solic.status === 'realizado') {
+                                solic.itens.forEach(itemSolic => {
+                                    const itemNome = itemSolic.split(' (')[0];
+                                    if (itemNome === item.nome) {
+                                        solicItem.push({
+                                            data: new Date(solic.data),
+                                            colaboradorId: solic.colaboradorId,
+                                            colaboradorNome: solic.colaboradorNome
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                        
+                        // Ordenar por data
+                        solicItem.sort((a, b) => a.data - b.data);
+                        
+                        if (solicItem.length <= 1) {
+                            return; // Não mostrar itens com menos de 2 solicitações
+                        }
+                        
+                        // Calcular média
+                        let totalDias = 0;
+                        let totalPeriodos = 0;
+                        
+                        for (let i = 1; i < solicItem.length; i++) {
+                            const diffMs = solicItem[i].data - solicItem[i-1].data;
+                            const diffDias = diffMs / (1000 * 60 * 60 * 24);
+                            totalDias += diffDias;
+                            totalPeriodos++;
+                        }
+                        
+                        const mediaDias = totalDias / totalPeriodos;
+                        const mediaMeses = parseFloat((mediaDias / 30.44).toFixed(1));
+                        
+                        itensComMedia.push({
+                            ...item,
+                            mediaTroca: mediaMeses,
+                            ultimaTroca: solicItem[solicItem.length - 1].data,
+                            totalTrocas: solicItem.length
+                        });
+                    }
+                });
+                
+                // Ordenar por média
+                itensComMedia.sort((a, b) => a.mediaTroca - b.mediaTroca);
+                
+                if (itensComMedia.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px;">
+                            <i class="fas fa-filter fa-2x mb-3"></i>
+                            <p>Nenhum item encontrado com os filtros atuais</p>
+                            <p class="text-sm">Tente ajustar os filtros para ver as médias de troca</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                itensComMedia.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'media-troca-card';
+                    
+                    let classeCor = 'media';
+                    let descricao = 'Troca média';
+                    
+                    if (item.mediaTroca < 3) {
+                        classeCor = 'alta';
+                        descricao = 'Alta rotatividade';
+                    } else if (item.mediaTroca > 8) {
+                        classeCor = 'baixa';
+                        descricao = 'Baixa rotatividade';
+                    }
+                    
+                    const ultimaTrocaStr = item.ultimaTroca ? 
+                        this.formatarData(item.ultimaTroca.toISOString().split('T')[0]) : 'Nunca';
+                    
+                    card.innerHTML = `
+                        <div class="media-troca-header">
+                            <div>
+                                <div class="media-troca-nome">${item.nome}</div>
+                                <div class="media-troca-categoria">${this.formatarCategoria(item.categoria)}</div>
+                            </div>
+                            <span class="media-troca-badge ${classeCor}">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${item.mediaTroca} meses
+                            </span>
+                        </div>
+                        
+                        <div class="media-troca-valor">${item.mediaTroca} meses</div>
+                        <div class="media-troca-descricao">${descricao}</div>
+                        
+                        <div class="media-troca-footer">
+                            <span>${item.totalTrocas || 0} trocas (filtradas)</span>
+                            <span>Última: ${ultimaTrocaStr}</span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+            }
+
+            carregarTopColaboradoresComFiltro(solicitacoesFiltradas) {
+                const container = document.getElementById('top-colaboradores-list');
+                container.innerHTML = '';
+                
+                // Calcular solicitações por colaborador com filtros
+                const solicitacoesPorColaborador = {};
+                const colaboradoresMap = {};
+                
+                solicitacoesFiltradas.forEach(solic => {
+                    if (!solicitacoesPorColaborador[solic.colaboradorNome]) {
+                        solicitacoesPorColaborador[solic.colaboradorNome] = 0;
+                        colaboradoresMap[solic.colaboradorNome] = solic.setor;
+                    }
+                    solicitacoesPorColaborador[solic.colaboradorNome]++;
+                });
+                
+                const topColaboradores = Object.entries(solicitacoesPorColaborador)
+                    .map(([nome, quantidade]) => ({ 
+                        nome, 
+                        quantidade,
+                        setor: colaboradoresMap[nome]
+                    }))
+                    .sort((a, b) => b.quantidade - a.quantidade)
+                    .slice(0, 5);
+                
+                topColaboradores.forEach((colab, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'top-item';
+                    li.innerHTML = `
+                        <div class="top-info">
+                            <span class="top-name">${index + 1}. ${colab.nome}</span>
+                            <span class="top-details">${this.formatarSetor(colab.setor)}</span>
+                        </div>
+                        <div class="top-count">${colab.quantidade}</div>
+                    `;
+                    container.appendChild(li);
+                });
+            }
+
+            carregarTopSetoresComFiltro(solicitacoesFiltradas) {
+                const container = document.getElementById('top-setores-list');
+                container.innerHTML = '';
+                
+                const solicitacoesPorSetor = {};
+                
+                solicitacoesFiltradas.forEach(solicitacao => {
+                    const setor = this.formatarSetor(solicitacao.setor);
+                    if (!solicitacoesPorSetor[setor]) {
+                        solicitacoesPorSetor[setor] = 0;
+                    }
+                    solicitacoesPorSetor[setor]++;
+                });
+                
+                const topSetores = Object.entries(solicitacoesPorSetor)
+                    .map(([setor, quantidade]) => ({ setor, quantidade }))
+                    .sort((a, b) => b.quantidade - a.quantidade)
+                    .slice(0, 5);
+                
+                topSetores.forEach((setor, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'top-item';
+                    li.innerHTML = `
+                        <div class="top-info">
+                            <span class="top-name">${index + 1}. ${setor.setor}</span>
+                        </div>
+                        <div class="top-count">${setor.quantidade}</div>
+                    `;
+                    container.appendChild(li);
+                });
+            }
+
+            carregarTopItensComFiltro(solicitacoesFiltradas) {
+                const container = document.getElementById('top-itens-list');
+                container.innerHTML = '';
+                
+                const itensContagem = {};
+                solicitacoesFiltradas.forEach(solic => {
+                    solic.itens.forEach(item => {
+                        const itemNome = item.split(' (')[0];
+                        itensContagem[itemNome] = (itensContagem[itemNome] || 0) + 1;
+                    });
+                });
+                
+                const topItens = Object.entries(itensContagem)
+                    .map(([nome, quantidade]) => ({ nome, quantidade }))
+                    .sort((a, b) => b.quantidade - a.quantidade)
+                    .slice(0, 5);
+                
+                topItens.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'top-item';
+                    li.innerHTML = `
+                        <div class="top-info">
+                            <span class="top-name">${index + 1}. ${item.nome}</span>
+                        </div>
+                        <div class="top-count">${item.quantidade}</div>
+                    `;
+                    container.appendChild(li);
+                });
+            }
+
+            carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas) {
+                const tbody = document.getElementById('ultimas-solicitacoes-tbody');
+                tbody.innerHTML = '';
+                
+                const ultimas = [...solicitacoesFiltradas]
+                    .sort((a, b) => new Date(b.data) - new Date(a.data))
+                    .slice(0, 5);
+                
+                ultimas.forEach(solic => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${solic.codigo}</td>
+                        <td>${solic.colaboradorNome}</td>
+                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${solic.itens.join(', ')}</td>
+                        <td>${this.formatarData(solic.data)}</td>
+                        <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="sistema.visualizarSolicitacao(${solic.id})">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            atualizarGraficosComFiltros(solicitacoesFiltradas) {
+                // Atualizar gráfico de setores
+                if (this.charts.setores) {
+                    const solicitacoesPorSetor = {};
+                    solicitacoesFiltradas.forEach(solic => {
+                        solicitacoesPorSetor[solic.setor] = (solicitacoesPorSetor[solic.setor] || 0) + 1;
+                    });
+                    
+                    const labels = Object.keys(solicitacoesPorSetor).map(setor => this.formatarSetor(setor));
+                    const data = Object.values(solicitacoesPorSetor);
+                    
+                    this.charts.setores.data.labels = labels;
+                    this.charts.setores.data.datasets[0].data = data;
+                    this.charts.setores.update();
+                }
+            }
+
+            filtrarColaboradores() {
+                const busca = this.filtrosAtivos.colaboradores.busca;
+                const status = this.filtrosAtivos.colaboradores.status;
+                const setor = this.filtrosAtivos.colaboradores.setor;
+                
+                const linhas = document.querySelectorAll('#colaboradores-tbody tr');
+                linhas.forEach(linha => {
+                    const nome = linha.cells[0].textContent.toLowerCase();
+                    const setorLinha = linha.cells[1].textContent.toLowerCase();
+                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
+                    
+                    const buscaMatch = busca === '' || 
+                                     nome.includes(busca) || 
+                                     setorLinha.includes(busca) || 
+                                     statusLinha.includes(busca);
+                    const statusMatch = status === 'todos' || statusLinha === status;
+                    const setorMatch = setor === 'todos' || 
+                                     setorLinha === this.formatarSetor(setor).toLowerCase();
+                    
+                    linha.style.display = buscaMatch && statusMatch && setorMatch ? '' : 'none';
+                });
+            }
+
+            filtrarItens() {
+                const busca = this.filtrosAtivos.itens.busca;
+                const categoria = this.filtrosAtivos.itens.categoria;
+                const status = this.filtrosAtivos.itens.status;
+                
+                const linhas = document.querySelectorAll('#itens-tbody tr');
+                linhas.forEach(linha => {
+                    const nome = linha.cells[0].textContent.toLowerCase();
+                    const categoriaLinha = linha.cells[1].textContent.toLowerCase();
+                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
+                    
+                    const buscaMatch = busca === '' || nome.includes(busca);
+                    const categoriaMatch = categoria === 'todos' || categoriaLinha === categoria;
+                    const statusMatch = status === 'todos' || statusLinha === status;
+                    
+                    linha.style.display = buscaMatch && categoriaMatch && statusMatch ? '' : 'none';
+                });
+            }
+
+            filtrarSolicitacoes() {
+                const status = this.filtrosAtivos.solicitacoes.status;
+                const setor = this.filtrosAtivos.solicitacoes.setor;
+                const periodo = this.filtrosAtivos.solicitacoes.periodo;
+                const colaborador = this.filtrosAtivos.solicitacoes.colaborador;
+                
+                const linhas = document.querySelectorAll('#solicitacoes-tbody tr');
+                const hoje = new Date();
+                
+                linhas.forEach(linha => {
+                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
+                    const setorLinha = linha.cells[2].textContent.toLowerCase();
+                    const dataStr = linha.cells[4].textContent;
+                    const colaboradorId = this.getColaboradorIdFromRow(linha);
+                    const dataSolicitacao = this.parseDataPtBr(dataStr);
+                    
+                    let periodoMatch = true;
+                    if (periodo !== 'todos' && dataSolicitacao) {
+                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
+                        
+                        if (periodo === '7dias' && diffDias > 7) periodoMatch = false;
+                        else if (periodo === '30dias' && diffDias > 30) periodoMatch = false;
+                        else if (periodo === 'mes_atual') {
+                            const mesAtual = hoje.getMonth();
+                            const anoAtual = hoje.getFullYear();
+                            if (dataSolicitacao.getMonth() !== mesAtual || 
+                                dataSolicitacao.getFullYear() !== anoAtual) {
+                                periodoMatch = false;
+                            }
+                        }
+                    }
+                    
+                    const statusMatch = status === 'todos' || statusLinha === this.formatarStatus(status).toLowerCase();
+                    const setorMatch = setor === 'todos' || 
+                                     setorLinha === this.formatarSetor(setor).toLowerCase();
+                    const colaboradorMatch = colaborador === 'todos' || 
+                                          colaboradorId === parseInt(colaborador);
+                    
+                    linha.style.display = statusMatch && setorMatch && periodoMatch && colaboradorMatch ? '' : 'none';
+                });
+            }
+
+            getColaboradorIdFromRow(linha) {
+                // Encontrar o ID do colaborador a partir do nome
+                const nomeColaborador = linha.cells[1].textContent;
+                const colaborador = this.dados.colaboradores.find(c => c.nome === nomeColaborador);
+                return colaborador ? colaborador.id : null;
+            }
+
+            parseDataPtBr(dataStr) {
+                if (!dataStr || dataStr === 'N/A') return null;
+                const partes = dataStr.split('/');
+                if (partes.length !== 3) return null;
+                return new Date(partes[2], partes[1] - 1, partes[0]);
+            }
+
+            atualizarFiltrosAtivos(secao = 'dashboard') {
+                const container = document.getElementById('filtros-ativos');
+                container.innerHTML = '';
+                
+                let temFiltros = false;
+                const filtros = this.filtrosAtivos[secao];
+                
+                Object.entries(filtros).forEach(([chave, valor]) => {
+                    if (valor !== 'todos' && valor !== '' && valor !== 'solicitacoes') {
+                        temFiltros = true;
+                        const div = document.createElement('div');
+                        div.className = 'filter-indicator';
+                        
+                        let label = '';
+                        let valorExibido = valor;
+                        
+                        switch(chave) {
+                            case 'periodo':
+                                label = 'Período: ';
+                                switch(valor) {
+                                    case '7dias': valorExibido = 'Últimos 7 dias'; break;
+                                    case '30dias': valorExibido = 'Últimos 30 dias'; break;
+                                    case 'mes_atual': valorExibido = 'Mês atual'; break;
+                                    case '3meses': valorExibido = 'Últimos 3 meses'; break;
+                                    case '6meses': valorExibido = 'Últimos 6 meses'; break;
+                                    case '1ano': valorExibido = 'Último ano'; break;
+                                }
+                                break;
+                            case 'setor':
+                                label = 'Setor: ';
+                                valorExibido = this.formatarSetor(valor);
+                                break;
+                            case 'status':
+                                label = 'Status: ';
+                                valorExibido = this.formatarStatus(valor);
+                                break;
+                            case 'categoria':
+                                label = 'Categoria: ';
+                                valorExibido = this.formatarCategoria(valor);
+                                break;
+                            case 'colaborador':
+                                if (valor !== 'todos') {
+                                    const colab = this.dados.colaboradores.find(c => c.id === parseInt(valor));
+                                    label = 'Colaborador: ';
+                                    valorExibido = colab ? colab.nome : valor;
+                                }
+                                break;
+                            case 'item':
+                                if (valor !== 'todos') {
+                                    const item = this.dados.itens.find(i => i.id === parseInt(valor));
+                                    label = 'Item: ';
+                                    valorExibido = item ? item.nome : valor;
+                                }
+                                break;
+                            case 'tipo':
+                                label = 'Tipo: ';
+                                switch(valor) {
+                                    case 'solicitacoes': valorExibido = 'Solicitações'; break;
+                                    case 'colaboradores': valorExibido = 'Colaboradores'; break;
+                                    case 'itens': valorExibido = 'Itens'; break;
+                                    case 'setores': valorExibido = 'Setores'; break;
+                                }
+                                break;
+                            case 'busca':
+                                label = 'Busca: ';
+                                break;
+                        }
+                        
+                        if (valorExibido && valor !== 'todos') {
+                            div.innerHTML = `
+                                ${label}${valorExibido}
+                                <span class="clear-filter" onclick="sistema.limparFiltro('${secao}', '${chave}')">
+                                    &times;
+                                </span>
+                            `;
+                            container.appendChild(div);
+                        }
+                    }
+                });
+                
+                container.style.display = temFiltros ? 'flex' : 'none';
+                container.style.flexWrap = 'wrap';
+                container.style.gap = '8px';
+            }
+
+            limparFiltro(secao, chave) {
+                let valorPadrao = '';
+                
+                switch(chave) {
+                    case 'periodo':
+                    case 'setor':
+                    case 'status':
+                    case 'categoria':
+                    case 'colaborador':
+                    case 'item':
+                    case 'tipo':
+                        valorPadrao = 'todos';
+                        break;
+                    case 'busca':
+                        valorPadrao = '';
+                        break;
+                }
+                
+                this.filtrosAtivos[secao][chave] = valorPadrao;
+                
+                // Atualizar o campo de entrada
+                switch(secao) {
+                    case 'dashboard':
+                        if (chave === 'periodo') document.getElementById('periodo-select').value = valorPadrao;
+                        if (chave === 'setor') document.getElementById('setor-select').value = valorPadrao;
+                        if (chave === 'colaborador') document.getElementById('colaborador-select').value = valorPadrao;
+                        if (chave === 'item') document.getElementById('item-select').value = valorPadrao;
+                        this.aplicarFiltrosDashboard();
+                        break;
+                    case 'colaboradores':
+                        if (chave === 'busca') document.getElementById('buscar-colaborador').value = '';
+                        if (chave === 'status') document.getElementById('filtro-status-colaborador').value = valorPadrao;
+                        if (chave === 'setor') document.getElementById('filtro-setor-colaborador').value = valorPadrao;
+                        this.filtrarColaboradores();
+                        break;
+                    case 'itens':
+                        if (chave === 'busca') document.getElementById('buscar-item').value = '';
+                        if (chave === 'categoria') document.getElementById('filtro-categoria-item').value = valorPadrao;
+                        if (chave === 'status') document.getElementById('filtro-status-item').value = valorPadrao;
+                        this.filtrarItens();
+                        break;
+                    case 'solicitacoes':
+                        if (chave === 'status') document.getElementById('filtro-status-solicitacao').value = valorPadrao;
+                        if (chave === 'setor') document.getElementById('filtro-setor-solicitacao').value = valorPadrao;
+                        if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
+                        if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
+                        this.filtrarSolicitacoes();
+                        break;
+                    case 'relatorios':
+                        if (chave === 'tipo') document.getElementById('tipo-relatorio').value = valorPadrao;
+                        if (chave === 'periodo') document.getElementById('periodo-relatorio').value = valorPadrao;
+                        if (chave === 'setor') document.getElementById('setor-relatorio').value = valorPadrao;
+                        if (chave === 'colaborador') document.getElementById('colaborador-relatorio').value = valorPadrao;
+                        if (chave === 'status') document.getElementById('status-relatorio').value = valorPadrao;
+                        this.gerarRelatorio();
+                        break;
+                }
+                
+                this.atualizarFiltrosAtivos(secao);
+            }
+
+            // Relatórios
+            gerarRelatorio() {
+                const tipo = this.filtrosAtivos.relatorios.tipo || document.getElementById('tipo-relatorio').value;
+                const periodo = this.filtrosAtivos.relatorios.periodo || document.getElementById('periodo-relatorio').value;
+                const setor = this.filtrosAtivos.relatorios.setor || document.getElementById('setor-relatorio').value;
+                const colaborador = this.filtrosAtivos.relatorios.colaborador || document.getElementById('colaborador-relatorio').value;
+                const status = this.filtrosAtivos.relatorios.status || document.getElementById('status-relatorio').value;
+                
+                const container = document.getElementById('relatorio-container');
+                const cabecalho = document.getElementById('relatorio-cabecalho');
+                const corpo = document.getElementById('relatorio-corpo');
+                
+                container.style.display = 'block';
+                
+                switch(tipo) {
+                    case 'solicitacoes':
+                        this.gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, setor, colaborador, status);
+                        break;
+                    case 'colaboradores':
+                        this.gerarRelatorioColaboradores(cabecalho, corpo, setor);
+                        break;
+                    case 'itens':
+                        this.gerarRelatorioItens(cabecalho, corpo);
+                        break;
+                    case 'setores':
+                        this.gerarRelatorioSetores(cabecalho, corpo);
+                        break;
+                }
+            }
+
+            gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, setor, colaborador, status) {
+                cabecalho.innerHTML = `
+                    <tr>
+                        <th>Código</th>
+                        <th>Colaborador</th>
+                        <th>Setor</th>
+                        <th>Itens</th>
+                        <th>Data</th>
+                        <th>Status</th>
+                    </tr>
+                `;
+                
+                corpo.innerHTML = '';
+                
+                let solicitacoes = [...this.dados.solicitacoes];
+                
+                // Aplicar filtros
+                if (setor !== 'todos') {
+                    solicitacoes = solicitacoes.filter(s => s.setor === setor);
+                }
+                
+                if (colaborador !== 'todos') {
+                    solicitacoes = solicitacoes.filter(s => s.colaboradorId === parseInt(colaborador));
+                }
+                
+                if (status !== 'todos') {
+                    solicitacoes = solicitacoes.filter(s => s.status === status);
+                }
+                
+                if (periodo !== 'todos') {
+                    const hoje = new Date();
+                    solicitacoes = solicitacoes.filter(solic => {
+                        const dataSolicitacao = new Date(solic.data);
+                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
+                        
+                        if (periodo === '7dias') return diffDias <= 7;
+                        if (periodo === '30dias') return diffDias <= 30;
+                        if (periodo === 'mes_atual') {
+                            return dataSolicitacao.getMonth() === hoje.getMonth() && 
+                                   dataSolicitacao.getFullYear() === hoje.getFullYear();
+                        }
+                        return true;
+                    });
+                }
+                
+                solicitacoes.forEach(solic => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${solic.codigo}</td>
+                        <td>${solic.colaboradorNome}</td>
+                        <td>${this.formatarSetor(solic.setor)}</td>
+                        <td>${solic.itens.join(', ')}</td>
+                        <td>${this.formatarData(solic.data)}</td>
+                        <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
+                    `;
+                    corpo.appendChild(tr);
+                });
+            }
+
+            gerarRelatorioColaboradores(cabecalho, corpo, setor) {
+                cabecalho.innerHTML = `
+                    <tr>
+                        <th>Nome</th>
+                        <th>Setor</th>
+                        <th>Admissão</th>
+                        <th>Solicitações</th>
+                        <th>Última Solicitação</th>
+                        <th>Status</th>
+                    </tr>
+                `;
+                
+                corpo.innerHTML = '';
+                
+                let colaboradores = [...this.dados.colaboradores];
+                
+                if (setor !== 'todos') {
+                    colaboradores = colaboradores.filter(c => c.setor === setor);
+                }
+                
+                colaboradores.forEach(colab => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${colab.nome}</td>
+                        <td>${this.formatarSetor(colab.setor)}</td>
+                        <td>${this.formatarData(colab.admissao)}</td>
+                        <td>${colab.solicitacoes}</td>
+                        <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
+                        <td><span class="badge ${colab.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${colab.status}</span></td>
+                    `;
+                    corpo.appendChild(tr);
+                });
+            }
+
+            gerarRelatorioItens(cabecalho, corpo) {
+                cabecalho.innerHTML = `
+                    <tr>
+                        <th>Item</th>
+                        <th>Categoria</th>
+                        <th>Tamanhos</th>
+                        <th>Solicitações</th>
+                        <th>Média de Troca</th>
+                        <th>Status</th>
+                    </tr>
+                `;
+                
+                corpo.innerHTML = '';
+                
+                this.dados.itens.forEach(item => {
+                    const mediaTrocaStr = item.mediaTroca !== null ? `${item.mediaTroca} meses` : 'Sem dados';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.nome}</td>
+                        <td>${this.formatarCategoria(item.categoria)}</td>
+                        <td>${item.tamanhos}</td>
+                        <td>${item.solicitacoes}</td>
+                        <td>${mediaTrocaStr}</td>
+                        <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
+                    `;
+                    corpo.appendChild(tr);
+                });
+            }
+
+            gerarRelatorioSetores(cabecalho, corpo) {
+                cabecalho.innerHTML = `
+                    <tr>
+                        <th>Setor</th>
+                        <th>Colaboradores</th>
+                        <th>Solicitações</th>
+                        <th>Média por Colaborador</th>
+                        <th>Item Mais Solicitado</th>
+                    </tr>
+                `;
+                
+                corpo.innerHTML = '';
+                
+                const setores = ['vendas', 'producao', 'administrativo', 'logistica', 'ti'];
+                
+                setores.forEach(setorCode => {
+                    const colaboradoresSetor = this.dados.colaboradores.filter(c => c.setor === setorCode && c.status === 'ativo');
+                    const solicitacoesSetor = this.dados.solicitacoes.filter(s => s.setor === setorCode);
+                    
+                    if (colaboradoresSetor.length > 0) {
+                        // Calcular média
+                        const media = colaboradoresSetor.length > 0 ? 
+                            (solicitacoesSetor.length / colaboradoresSetor.length).toFixed(1) : '0.0';
+                        
+                        // Encontrar item mais solicitado no setor
+                        const itensContagem = {};
+                        solicitacoesSetor.forEach(solic => {
+                            solic.itens.forEach(item => {
+                                const itemNome = item.split(' (')[0];
+                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + 1;
+                            });
+                        });
+                        
+                        const itemMaisSolicitado = Object.entries(itensContagem)
+                            .sort((a, b) => b[1] - a[1])[0];
+                        
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${this.formatarSetor(setorCode)}</td>
+                            <td>${colaboradoresSetor.length}</td>
+                            <td>${solicitacoesSetor.length}</td>
+                            <td>${media}</td>
+                            <td>${itemMaisSolicitado ? `${itemMaisSolicitado[0]} (${itemMaisSolicitado[1]})` : 'Nenhum'}</td>
+                        `;
+                        corpo.appendChild(tr);
+                    }
+                });
+            }
+
+            // Exportação
+            exportarDashboard() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                doc.setFontSize(18);
+                doc.text('Relatório do Dashboard', 20, 20);
+                
+                doc.setFontSize(12);
+                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+                
+                // Adicionar estatísticas
+                const statsY = 50;
+                doc.setFontSize(14);
+                doc.text('Estatísticas Gerais:', 20, statsY);
+                
+                doc.setFontSize(12);
+                const stats = [
+                    `Colaboradores Ativos: ${document.getElementById('total-colaboradores').textContent}`,
+                    `Solicitações Pendentes: ${document.getElementById('solicitacoes-pendentes').textContent}`,
+                    `Total de Solicitações: ${document.getElementById('total-solicitacoes').textContent}`,
+                    `Média por Colaborador: ${document.getElementById('media-trocas').textContent}`
+                ];
+                
+                stats.forEach((stat, index) => {
+                    doc.text(stat, 30, statsY + 15 + (index * 10));
+                });
+                
+                // Adicionar médias de troca
+                const mediaTrocaY = statsY + 70;
+                doc.setFontSize(14);
+                doc.text('Médias de Troca por Item:', 20, mediaTrocaY);
+                
+                doc.setFontSize(10);
+                const itensComMedia = this.dados.itens
+                    .filter(item => item.status === 'ativo' && item.mediaTroca !== null)
+                    .sort((a, b) => a.mediaTroca - b.mediaTroca)
+                    .slice(0, 8);
+                
+                itensComMedia.forEach((item, index) => {
+                    const yPos = mediaTrocaY + 15 + (index * 8);
+                    doc.text(`${item.nome}: ${item.mediaTroca} meses`, 30, yPos);
+                });
+                
+                doc.save(`dashboard_uniformes_${new Date().getTime()}.pdf`);
+                this.mostrarToast('Dashboard exportado para PDF!');
+            }
+
+            exportarPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const tabela = document.getElementById('relatorio-tabela');
+                
+                doc.autoTable({
+                    html: tabela,
+                    startY: 20,
+                    theme: 'grid',
+                    headStyles: { fillColor: [37, 99, 235] }
+                });
+                
+                doc.save(`relatorio_uniformes_${new Date().getTime()}.pdf`);
+                this.mostrarToast('Relatório exportado para PDF!');
+            }
+
+            exportarExcel() {
+                const tabela = document.getElementById('relatorio-tabela');
+                const ws = XLSX.utils.table_to_sheet(tabela);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+                XLSX.writeFile(wb, `relatorio_uniformes_${new Date().getTime()}.xlsx`);
+                this.mostrarToast('Relatório exportado para Excel!');
+            }
+
+            // Utilitários
+            fecharModais() {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+
+            mostrarToast(mensagem, tipo = 'success') {
+                const toast = document.getElementById('toast');
+                const icon = toast.querySelector('.toast-icon');
+                
+                toast.className = `toast ${tipo === 'error' ? 'toast-error' : 'toast-success'}`;
+                icon.className = `fas ${tipo === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'} toast-icon`;
+                toast.querySelector('.toast-message').textContent = mensagem;
+                
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+
+            recarregarDados() {
+                this.dados = this.carregarDados();
+                this.carregarDashboard();
+                this.carregarTabelas();
+                this.atualizarDashboardCharts();
+                this.atualizarSelects();
+                this.calcularMediasTroca();
+                this.atualizarFiltrosAtivos();
+                this.mostrarToast('Dados atualizados!', 'info');
+            }
+
+            formatarSetor(setor) {
+                const setores = {
+                    'vendas': 'Vendas',
+                    'producao': 'Produção',
+                    'administrativo': 'Administrativo',
+                    'logistica': 'Logística',
+                    'ti': 'TI'
+                };
+                return setores[setor] || setor;
+            }
+
+            getSetorCode(nomeSetor) {
+                const setores = {
+                    'Vendas': 'vendas',
+                    'Produção': 'producao',
+                    'Administrativo': 'administrativo',
+                    'Logística': 'logistica',
+                    'TI': 'ti'
+                };
+                return setores[nomeSetor];
+            }
+
+            formatarCategoria(categoria) {
+                const categorias = {
+                    'uniforme': 'Uniforme',
+                    'epi': 'EPI',
+                    'materiais': 'Materiais'
+                };
+                return categorias[categoria] || categoria;
+            }
+
+            formatarStatus(status) {
+                const statusMap = {
+                    'pendente': 'Pendente',
+                    'nao_precisa': 'Não precisa',
+                    'realizado': 'Realizado'
+                };
+                return statusMap[status] || status;
+            }
+
+            getStatusClass(status) {
+                const classes = {
+                    'pendente': 'badge-warning',
+                    'nao_precisa': 'badge-danger',
+                    'realizado': 'badge-success'
+                };
+                return classes[status] || 'badge-secondary';
+            }
+
+            formatarPrimeiraMaiuscula(texto) {
+                return texto.charAt(0).toUpperCase() + texto.slice(1);
+            }
+
+            formatarData(dataString) {
+                if (!dataString) return 'N/A';
+                try {
+                    const data = new Date(dataString);
+                    return data.toLocaleDateString('pt-BR');
+                } catch {
+                    return dataString;
+                }
+            }
+        }
+
+        // Inicializar o sistema
+        let sistema;
+        document.addEventListener('DOMContentLoaded', () => {
+            sistema = new SistemaUniformes();
+            window.sistema = sistema;
+        });
+    </script>
+</body>
+</html>
