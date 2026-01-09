@@ -317,6 +317,25 @@
             gap: 10px;
             align-items: center;
         }
+        
+        .item-with-quantity {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .item-list-row {
+            display: flex;
+            flex-direction: column;
+            padding: 4px 0;
+        }
 
         /* J */
         .justify-between {
@@ -506,7 +525,7 @@
             background: white;
             border-radius: var(--radius);
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -568,6 +587,11 @@
         .nav-menu {
             flex: 1;
             padding: 20px 0;
+        }
+
+        /* Q */
+        .quantity-input {
+            width: 80px;
         }
 
         /* R */
@@ -1576,6 +1600,13 @@
                         </select>
                     </div>
                     <div class="filter-group">
+                        <label>Item</label>
+                        <select id="filtro-item-solicitacao">
+                            <option value="todos">Todos</option>
+                            <!-- Preenchido por JS -->
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>Período</label>
                         <select id="filtro-periodo-solicitacao">
                             <option value="todos">Todos</option>
@@ -2007,7 +2038,7 @@
                     dashboard: { periodo: 'todos', departamento: 'todos', colaborador: 'todos', item: 'todos', empresa: 'todos' },
                     colaboradores: { busca: '', status: 'todos', departamento: 'todos', empresa: 'todos' },
                     itens: { busca: '', categoria: 'todos', status: 'todos' },
-                    solicitacoes: { status: 'todos', departamento: 'todos', empresa: 'todos', periodo: 'todos', colaborador: 'todos' },
+                    solicitacoes: { status: 'todos', departamento: 'todos', empresa: 'todos', periodo: 'todos', colaborador: 'todos', item: 'todos' },
                     departamentos: { busca: '', status: 'todos' },
                     empresas: { busca: '', status: 'todos' },
                     relatorios: { tipo: 'solicitacoes', periodo: 'todos', empresa: 'todos', departamento: 'todos', colaborador: 'todos', status: 'todos' }
@@ -2348,6 +2379,12 @@
                     this.filtrarSolicitacoes();
                 });
                 
+                document.getElementById('filtro-item-solicitacao')?.addEventListener('change', (e) => {
+                    this.filtrosAtivos.solicitacoes.item = e.target.value;
+                    this.atualizarFiltrosAtivos('solicitacoes');
+                    this.filtrarSolicitacoes();
+                });
+                
                 document.getElementById('filtro-periodo-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.periodo = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
@@ -2448,6 +2485,9 @@
             }
 
             atualizarSelects() {
+                // Ordenar dados alfabeticamente
+                this.ordenarDadosAlfabeticamente();
+                
                 // Atualizar select de empresas para dashboard
                 const selectEmpresaDashboard = document.getElementById('empresa-select');
                 if (selectEmpresaDashboard) {
@@ -2665,6 +2705,58 @@
                         relatorioColaborador.appendChild(option);
                     });
                 }
+                
+                // Atualizar select de itens para filtro de solicitações
+                const filtroItemSolicitacao = document.getElementById('filtro-item-solicitacao');
+                if (filtroItemSolicitacao) {
+                    filtroItemSolicitacao.innerHTML = '<option value="todos">Todos</option>';
+                    this.dados.itens.forEach(item => {
+                        if (item.status === 'ativo') {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
+                            filtroItemSolicitacao.appendChild(option);
+                        }
+                    });
+                }
+            }
+
+            ordenarDadosAlfabeticamente() {
+                // Ordenar colaboradores alfabeticamente
+                this.dados.colaboradores.sort((a, b) => {
+                    const nomeA = a.nome.toUpperCase();
+                    const nomeB = b.nome.toUpperCase();
+                    if (nomeA < nomeB) return -1;
+                    if (nomeA > nomeB) return 1;
+                    return 0;
+                });
+                
+                // Ordenar itens alfabeticamente
+                this.dados.itens.sort((a, b) => {
+                    const nomeA = a.nome.toUpperCase();
+                    const nomeB = b.nome.toUpperCase();
+                    if (nomeA < nomeB) return -1;
+                    if (nomeA > nomeB) return 1;
+                    return 0;
+                });
+                
+                // Ordenar departamentos alfabeticamente
+                this.dados.departamentos.sort((a, b) => {
+                    const nomeA = a.nome.toUpperCase();
+                    const nomeB = b.nome.toUpperCase();
+                    if (nomeA < nomeB) return -1;
+                    if (nomeA > nomeB) return 1;
+                    return 0;
+                });
+                
+                // Ordenar empresas alfabeticamente
+                this.dados.empresas.sort((a, b) => {
+                    const nomeA = a.nome.toUpperCase();
+                    const nomeB = b.nome.toUpperCase();
+                    if (nomeA < nomeB) return -1;
+                    if (nomeA > nomeB) return 1;
+                    return 0;
+                });
             }
 
             calcularMediasTroca() {
@@ -3206,11 +3298,19 @@
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     const empresaNome = this.getEmpresaNome(solic.empresaId);
+                    
+                    // Formatar itens em lista vertical
+                    const itensHTML = solic.itens.map(item => {
+                        const [nomeItem, tamanho] = item.split(' (');
+                        const tamanhoFormatado = tamanho ? tamanho.replace(')', '') : '';
+                        return `<div class="item-list-row">${nomeItem} ${tamanhoFormatado ? `(${tamanhoFormatado})` : ''}</div>`;
+                    }).join('');
+                    
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
                         <td><span class="empresa-badge">${empresaNome}</span></td>
-                        <td>${solic.itens.join(', ')}</td>
+                        <td><div class="item-list">${itensHTML}</div></td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
                         <td>
@@ -3447,11 +3547,18 @@
                     const statusClass = this.getStatusClass(solic.status);
                     const statusFormatado = this.formatarStatus(solic.status);
                     
+                    // Formatar itens em lista vertical
+                    const itensHTML = solic.itens.map(item => {
+                        const [nomeItem, tamanho] = item.split(' (');
+                        const tamanhoFormatado = tamanho ? tamanho.replace(')', '') : '';
+                        return `<div class="item-list-row">${nomeItem} ${tamanhoFormatado ? `(${tamanhoFormatado})` : ''}</div>`;
+                    }).join('');
+                    
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
                         <td><span class="empresa-badge">${empresaNome}</span></td>
-                        <td>${solic.itens.join(', ')}</td>
+                        <td><div class="item-list">${itensHTML}</div></td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td>
                             <span class="badge ${statusClass}">${statusFormatado}</span>
@@ -3633,10 +3740,10 @@
                             this.limparItensSolicitacao();
                             
                             item.itens.forEach(itemDesc => {
-                                // Extrair nome do item e tamanho
-                                const match = itemDesc.match(/^(.*?) \((.*?)\)$/);
+                                // Extrair nome do item, tamanho e quantidade
+                                const match = itemDesc.match(/^(.*?) \((.*?)\) - (\d+)/);
                                 if (match) {
-                                    const [, itemNome, tamanho] = match;
+                                    const [, itemNome, tamanho, quantidade] = match;
                                     const itemObj = this.dados.itens.find(i => i.nome === itemNome);
                                     if (itemObj) {
                                         this.adicionarItemSolicitacao();
@@ -3646,6 +3753,7 @@
                                         const lastItem = container.lastElementChild;
                                         const selectItem = lastItem.querySelector('.item-select');
                                         const selectTamanho = lastItem.querySelector('.size-select');
+                                        const inputQuantidade = lastItem.querySelector('.quantity-input');
                                         
                                         selectItem.value = itemObj.id;
                                         
@@ -3655,6 +3763,7 @@
                                         // Esperar um pouco para o select de tamanhos ser preenchido
                                         setTimeout(() => {
                                             selectTamanho.value = tamanho;
+                                            inputQuantidade.value = quantidade;
                                         }, 100);
                                     }
                                 }
@@ -3964,7 +4073,7 @@
                 if (!container) return;
                 
                 const div = document.createElement('div');
-                div.className = 'item-with-sizes mb-2';
+                div.className = 'item-with-quantity';
                 
                 // Criar select de itens
                 const select = document.createElement('select');
@@ -3986,6 +4095,15 @@
                 const sizeSelect = document.createElement('select');
                 sizeSelect.className = 'form-control size-select';
                 sizeSelect.innerHTML = '<option value="">Tamanho...</option>';
+                
+                // Criar input de quantidade
+                const quantityInput = document.createElement('input');
+                quantityInput.type = 'number';
+                quantityInput.min = '1';
+                quantityInput.value = '1';
+                quantityInput.className = 'form-control quantity-input';
+                quantityInput.placeholder = 'Qtd';
+                quantityInput.required = true;
                 
                 // Adicionar evento para atualizar tamanhos quando item for selecionado
                 select.addEventListener('change', (e) => {
@@ -4015,6 +4133,7 @@
                 
                 div.appendChild(select);
                 div.appendChild(sizeSelect);
+                div.appendChild(quantityInput);
                 div.appendChild(removeBtn);
                 container.appendChild(div);
             }
@@ -4029,23 +4148,29 @@
                 const itensSelecionados = [];
                 const itensParaAtualizar = [];
                 
-                document.querySelectorAll('#itens-container .item-with-sizes').forEach(container => {
+                document.querySelectorAll('#itens-container .item-with-quantity').forEach(container => {
                     const select = container.querySelector('.item-select');
                     const sizeSelect = container.querySelector('.size-select');
+                    const quantityInput = container.querySelector('.quantity-input');
                     const itemId = parseInt(select.value);
                     
-                    if (itemId && sizeSelect.value) {
+                    if (itemId && sizeSelect.value && quantityInput.value) {
                         const item = this.dados.itens.find(i => i.id === itemId);
                         if (item) {
-                            const itemDesc = `${item.nome} (${sizeSelect.value})`;
+                            const quantidade = parseInt(quantityInput.value);
+                            // Formato: "Item (Tamanho) - Quantidade"
+                            const itemDesc = `${item.nome} (${sizeSelect.value}) - ${quantidade}`;
                             itensSelecionados.push(itemDesc);
-                            itensParaAtualizar.push(item);
+                            // Adicionar contagem de solicitações para cada unidade do item
+                            for (let i = 0; i < quantidade; i++) {
+                                itensParaAtualizar.push(item);
+                            }
                         }
                     }
                 });
                 
                 if (itensSelecionados.length === 0) {
-                    this.mostrarToast('Selecione pelo menos um item com tamanho!', 'error');
+                    this.mostrarToast('Selecione pelo menos um item com tamanho e quantidade!', 'error');
                     return;
                 }
                 
@@ -4067,10 +4192,15 @@
                         // Remover contagem anterior dos itens
                         const solicitacaoAnterior = this.dados.solicitacoes[index];
                         solicitacaoAnterior.itens.forEach(itemDesc => {
-                            const itemNome = itemDesc.split(' (')[0];
-                            const item = this.dados.itens.find(i => i.nome === itemNome);
-                            if (item && item.solicitacoes > 0) {
-                                item.solicitacoes--;
+                            // Extrair nome do item e quantidade
+                            const match = itemDesc.match(/^(.*?) \(.*?\) - (\d+)$/);
+                            if (match) {
+                                const [, itemNome, quantidadeStr] = match;
+                                const quantidade = parseInt(quantidadeStr);
+                                const item = this.dados.itens.find(i => i.nome === itemNome);
+                                if (item && item.solicitacoes >= quantidade) {
+                                    item.solicitacoes -= quantidade;
+                                }
                             }
                         });
                         
@@ -4151,10 +4281,15 @@
                     if (solicitacao) {
                         // Remover contagem dos itens
                         solicitacao.itens.forEach(itemDesc => {
-                            const itemNome = itemDesc.split(' (')[0];
-                            const item = this.dados.itens.find(i => i.nome === itemNome);
-                            if (item && item.solicitacoes > 0) {
-                                item.solicitacoes--;
+                            // Extrair nome do item e quantidade
+                            const match = itemDesc.match(/^(.*?) \(.*?\) - (\d+)$/);
+                            if (match) {
+                                const [, itemNome, quantidadeStr] = match;
+                                const quantidade = parseInt(quantidadeStr);
+                                const item = this.dados.itens.find(i => i.nome === itemNome);
+                                if (item && item.solicitacoes >= quantidade) {
+                                    item.solicitacoes -= quantidade;
+                                }
                             }
                         });
                         
@@ -4526,7 +4661,10 @@
                 solicitacoesFiltradas.forEach(solic => {
                     solic.itens.forEach(item => {
                         const itemNome = item.split(' (')[0];
-                        itensContagem[itemNome] = (itensContagem[itemNome] || 0) + 1;
+                        // Extrair quantidade do item
+                        const match = item.match(/- (\d+)$/);
+                        const quantidade = match ? parseInt(match[1]) : 1;
+                        itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
                     });
                 });
                 
@@ -4586,11 +4724,19 @@
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     const empresaNome = this.getEmpresaNome(solic.empresaId);
+                    
+                    // Formatar itens em lista vertical
+                    const itensHTML = solic.itens.map(item => {
+                        const [nomeItem, restante] = item.split(' (');
+                        const tamanhoComQuantidade = restante ? restante.replace(')', '') : '';
+                        return `<div class="item-list-row">${nomeItem} (${tamanhoComQuantidade})</div>`;
+                    }).join('');
+                    
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
                         <td><span class="empresa-badge">${empresaNome}</span></td>
-                        <td>${solic.itens.join(', ')}</td>
+                        <td><div class="item-list">${itensHTML}</div></td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
                         <td>
@@ -4674,6 +4820,7 @@
                 const empresa = this.filtrosAtivos.solicitacoes.empresa;
                 const periodo = this.filtrosAtivos.solicitacoes.periodo;
                 const colaborador = this.filtrosAtivos.solicitacoes.colaborador;
+                const item = this.filtrosAtivos.solicitacoes.item;
                 
                 const linhas = document.querySelectorAll('#solicitacoes-tbody tr');
                 const hoje = new Date();
@@ -4684,6 +4831,7 @@
                     const empresaLinha = linha.cells[2].textContent.toLowerCase();
                     const dataStr = linha.cells[4].textContent;
                     const colaboradorNome = linha.cells[0].textContent;
+                    const itensLinha = linha.cells[3].textContent.toLowerCase();
                     const dataSolicitacao = this.parseDataPtBr(dataStr);
                     
                     let periodoMatch = true;
@@ -4702,6 +4850,14 @@
                         }
                     }
                     
+                    let itemMatch = true;
+                    if (item !== 'todos') {
+                        const itemSelecionado = this.dados.itens.find(i => i.id === parseInt(item));
+                        if (itemSelecionado) {
+                            itemMatch = itensLinha.includes(itemSelecionado.nome.toLowerCase());
+                        }
+                    }
+                    
                     const statusMatch = status === 'todos' || statusLinha === this.formatarStatus(status).toLowerCase();
                     const departamentoMatch = departamento === 'todos' || 
                                      departamentoLinha === this.getDepartamentoNome(parseInt(departamento)).toLowerCase();
@@ -4710,7 +4866,7 @@
                     const colaboradorMatch = colaborador === 'todos' || 
                                           colaboradorNome === this.getColaboradorNome(parseInt(colaborador));
                     
-                    linha.style.display = statusMatch && departamentoMatch && empresaMatch && periodoMatch && colaboradorMatch ? '' : 'none';
+                    linha.style.display = statusMatch && departamentoMatch && empresaMatch && periodoMatch && colaboradorMatch && itemMatch ? '' : 'none';
                 });
             }
 
@@ -4917,6 +5073,7 @@
                         if (chave === 'status') document.getElementById('filtro-status-solicitacao').value = valorPadrao;
                         if (chave === 'departamento') document.getElementById('filtro-departamento-solicitacao').value = valorPadrao;
                         if (chave === 'empresa') document.getElementById('filtro-empresa-solicitacao').value = valorPadrao;
+                        if (chave === 'item') document.getElementById('filtro-item-solicitacao').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
                         this.filtrarSolicitacoes();
@@ -5045,11 +5202,17 @@
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     const empresaNome = this.getEmpresaNome(solic.empresaId);
+                    
+                    // Formatar itens em lista vertical
+                    const itensHTML = solic.itens.map(item => {
+                        return `<div class="item-list-row">${item}</div>`;
+                    }).join('<br>');
+                    
                     tr.innerHTML = `
                         <td>${solic.colaboradorNome}</td>
                         <td>${departamentoNome}</td>
                         <td>${empresaNome}</td>
-                        <td>${solic.itens.join(', ')}</td>
+                        <td>${itensHTML}</td>
                         <td>${this.formatarData(solic.data)}</td>
                         <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
                     `;
@@ -5189,7 +5352,10 @@
                         solicitacoesDepartamento.forEach(solic => {
                             solic.itens.forEach(item => {
                                 const itemNome = item.split(' (')[0];
-                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + 1;
+                                // Extrair quantidade do item
+                                const match = item.match(/- (\d+)$/);
+                                const quantidade = match ? parseInt(match[1]) : 1;
+                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
                             });
                         });
                         
