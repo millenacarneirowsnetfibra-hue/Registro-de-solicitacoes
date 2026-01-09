@@ -2163,8 +2163,13 @@
                             section.style.display = section.id === sectionId ? 'block' : 'none';
                         });
                         
-                        document.querySelector('h2').textContent = link.querySelector('span').textContent;
+                        // Atualizar título da página
+                        const titleElement = document.querySelector('.main-content .header h2');
+                        if (titleElement) {
+                            titleElement.textContent = link.querySelector('span').textContent;
+                        }
                         
+                        // Executar ações específicas para cada seção
                         if (sectionId === 'dashboard') {
                             this.atualizarDashboardCharts();
                             this.atualizarFiltrosAtivos('dashboard');
@@ -2197,215 +2202,215 @@
 
             setupEventListeners() {
                 // Botões principais
-                document.getElementById('refresh-btn').addEventListener('click', () => this.recarregarDados());
-                document.getElementById('export-dashboard-btn').addEventListener('click', () => this.exportarDashboard());
+                document.getElementById('refresh-btn')?.addEventListener('click', () => this.recarregarDados());
+                document.getElementById('export-dashboard-btn')?.addEventListener('click', () => this.exportarDashboard());
                 
                 // Botões de adição
-                document.getElementById('novo-colaborador-btn').addEventListener('click', () => this.abrirModal('colaborador'));
-                document.getElementById('novo-item-btn').addEventListener('click', () => this.abrirModal('item'));
-                document.getElementById('nova-solicitacao-btn').addEventListener('click', () => this.abrirModal('solicitacao'));
-                document.getElementById('nova-solicitacao-btn2').addEventListener('click', () => this.abrirModal('solicitacao'));
-                document.getElementById('novo-departamento-btn').addEventListener('click', () => this.abrirModal('departamento'));
-                document.getElementById('nova-empresa-btn').addEventListener('click', () => this.abrirModal('empresa'));
+                document.getElementById('novo-colaborador-btn')?.addEventListener('click', () => this.abrirModal('colaborador'));
+                document.getElementById('novo-item-btn')?.addEventListener('click', () => this.abrirModal('item'));
+                document.getElementById('nova-solicitacao-btn')?.addEventListener('click', () => this.abrirModal('solicitacao'));
+                document.getElementById('nova-solicitacao-btn2')?.addEventListener('click', () => this.abrirModal('solicitacao'));
+                document.getElementById('novo-departamento-btn')?.addEventListener('click', () => this.abrirModal('departamento'));
+                document.getElementById('nova-empresa-btn')?.addEventListener('click', () => this.abrirModal('empresa'));
                 
                 // Ver mais solicitações
-                document.getElementById('ver-mais-solicitacoes').addEventListener('click', () => {
+                document.getElementById('ver-mais-solicitacoes')?.addEventListener('click', () => {
                     this.verMaisSolicitacoes('dashboard');
                 });
-                document.getElementById('ver-mais-solicitacoes-tabela').addEventListener('click', () => {
+                document.getElementById('ver-mais-solicitacoes-tabela')?.addEventListener('click', () => {
                     this.verMaisSolicitacoes('tabela');
                 });
                 
                 // Relatórios
-                document.getElementById('exportar-pdf-btn').addEventListener('click', () => this.exportarPDF());
-                document.getElementById('exportar-excel-btn').addEventListener('click', () => this.exportarExcel());
+                document.getElementById('exportar-pdf-btn')?.addEventListener('click', () => this.exportarPDF());
+                document.getElementById('exportar-excel-btn')?.addEventListener('click', () => this.exportarExcel());
                 
                 // Formulários
-                document.getElementById('form-colaborador').addEventListener('submit', (e) => {
+                document.getElementById('form-colaborador')?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.salvarColaborador();
                 });
                 
-                document.getElementById('form-item').addEventListener('submit', (e) => {
+                document.getElementById('form-item')?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.salvarItem();
                 });
                 
-                document.getElementById('form-solicitacao').addEventListener('submit', (e) => {
+                document.getElementById('form-solicitacao')?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.salvarSolicitacao();
                 });
                 
-                document.getElementById('form-departamento').addEventListener('submit', (e) => {
+                document.getElementById('form-departamento')?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.salvarDepartamento();
                 });
                 
-                document.getElementById('form-empresa').addEventListener('submit', (e) => {
+                document.getElementById('form-empresa')?.addEventListener('submit', (e) => {
                     e.preventDefault();
                     this.salvarEmpresa();
                 });
                 
                 // Adicionar item dinâmico
-                document.getElementById('adicionar-item-btn').addEventListener('click', () => {
+                document.getElementById('adicionar-item-btn')?.addEventListener('click', () => {
                     this.adicionarItemSolicitacao();
                 });
                 
                 // Filtros do Dashboard (auto-aplicar)
-                document.getElementById('periodo-select').addEventListener('change', (e) => {
+                document.getElementById('periodo-select')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.dashboard.periodo = e.target.value;
                     this.atualizarFiltrosAtivos('dashboard');
                     this.aplicarFiltrosDashboard();
                 });
                 
-                document.getElementById('departamento-select').addEventListener('change', (e) => {
+                document.getElementById('departamento-select')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.dashboard.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('dashboard');
                     this.aplicarFiltrosDashboard();
                 });
                 
-                document.getElementById('colaborador-select').addEventListener('change', (e) => {
+                document.getElementById('colaborador-select')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.dashboard.colaborador = e.target.value;
                     this.atualizarFiltrosAtivos('dashboard');
                     this.aplicarFiltrosDashboard();
                 });
                 
-                document.getElementById('item-select').addEventListener('change', (e) => {
+                document.getElementById('item-select')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.dashboard.item = e.target.value;
                     this.atualizarFiltrosAtivos('dashboard');
                     this.aplicarFiltrosDashboard();
                 });
                 
-                document.getElementById('empresa-select').addEventListener('change', (e) => {
+                document.getElementById('empresa-select')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.dashboard.empresa = e.target.value;
                     this.atualizarFiltrosAtivos('dashboard');
                     this.aplicarFiltrosDashboard();
                 });
                 
                 // Filtros de Colaboradores (auto-aplicar)
-                document.getElementById('buscar-colaborador').addEventListener('input', (e) => {
+                document.getElementById('buscar-colaborador')?.addEventListener('input', (e) => {
                     this.filtrosAtivos.colaboradores.busca = e.target.value.toLowerCase();
                     this.filtrarColaboradores();
                 });
                 
-                document.getElementById('filtro-status-colaborador').addEventListener('change', (e) => {
+                document.getElementById('filtro-status-colaborador')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.colaboradores.status = e.target.value;
                     this.atualizarFiltrosAtivos('colaboradores');
                     this.filtrarColaboradores();
                 });
                 
-                document.getElementById('filtro-departamento-colaborador').addEventListener('change', (e) => {
+                document.getElementById('filtro-departamento-colaborador')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.colaboradores.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('colaboradores');
                     this.filtrarColaboradores();
                 });
                 
-                document.getElementById('filtro-empresa-colaborador').addEventListener('change', (e) => {
+                document.getElementById('filtro-empresa-colaborador')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.colaboradores.empresa = e.target.value;
                     this.atualizarFiltrosAtivos('colaboradores');
                     this.filtrarColaboradores();
                 });
                 
                 // Filtros de Itens (auto-aplicar)
-                document.getElementById('buscar-item').addEventListener('input', (e) => {
+                document.getElementById('buscar-item')?.addEventListener('input', (e) => {
                     this.filtrosAtivos.itens.busca = e.target.value.toLowerCase();
                     this.filtrarItens();
                 });
                 
-                document.getElementById('filtro-categoria-item').addEventListener('change', (e) => {
+                document.getElementById('filtro-categoria-item')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.itens.categoria = e.target.value;
                     this.atualizarFiltrosAtivos('itens');
                     this.filtrarItens();
                 });
                 
-                document.getElementById('filtro-status-item').addEventListener('change', (e) => {
+                document.getElementById('filtro-status-item')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.itens.status = e.target.value;
                     this.atualizarFiltrosAtivos('itens');
                     this.filtrarItens();
                 });
                 
                 // Filtros de Solicitações (auto-aplicar)
-                document.getElementById('filtro-status-solicitacao').addEventListener('change', (e) => {
+                document.getElementById('filtro-status-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.status = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
                     this.filtrarSolicitacoes();
                 });
                 
-                document.getElementById('filtro-departamento-solicitacao').addEventListener('change', (e) => {
+                document.getElementById('filtro-departamento-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
                     this.filtrarSolicitacoes();
                 });
                 
-                document.getElementById('filtro-empresa-solicitacao').addEventListener('change', (e) => {
+                document.getElementById('filtro-empresa-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.empresa = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
                     this.filtrarSolicitacoes();
                 });
                 
-                document.getElementById('filtro-periodo-solicitacao').addEventListener('change', (e) => {
+                document.getElementById('filtro-periodo-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.periodo = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
                     this.filtrarSolicitacoes();
                 });
                 
-                document.getElementById('filtro-colaborador-solicitacao').addEventListener('change', (e) => {
+                document.getElementById('filtro-colaborador-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.colaborador = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
                     this.filtrarSolicitacoes();
                 });
                 
                 // Filtros de Departamentos (auto-aplicar)
-                document.getElementById('buscar-departamento').addEventListener('input', (e) => {
+                document.getElementById('buscar-departamento')?.addEventListener('input', (e) => {
                     this.filtrosAtivos.departamentos.busca = e.target.value.toLowerCase();
                     this.filtrarDepartamentos();
                 });
                 
-                document.getElementById('filtro-status-departamento').addEventListener('change', (e) => {
+                document.getElementById('filtro-status-departamento')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.departamentos.status = e.target.value;
                     this.atualizarFiltrosAtivos('departamentos');
                     this.filtrarDepartamentos();
                 });
                 
                 // Filtros de Empresas (auto-aplicar)
-                document.getElementById('buscar-empresa').addEventListener('input', (e) => {
+                document.getElementById('buscar-empresa')?.addEventListener('input', (e) => {
                     this.filtrosAtivos.empresas.busca = e.target.value.toLowerCase();
                     this.filtrarEmpresas();
                 });
                 
-                document.getElementById('filtro-status-empresa').addEventListener('change', (e) => {
+                document.getElementById('filtro-status-empresa')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.empresas.status = e.target.value;
                     this.atualizarFiltrosAtivos('empresas');
                     this.filtrarEmpresas();
                 });
                 
                 // Filtros de Relatórios (auto-aplicar)
-                document.getElementById('tipo-relatorio').addEventListener('change', (e) => {
+                document.getElementById('tipo-relatorio')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.tipo = e.target.value;
                     this.gerarRelatorio();
                 });
                 
-                document.getElementById('periodo-relatorio').addEventListener('change', (e) => {
+                document.getElementById('periodo-relatorio')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.periodo = e.target.value;
                     this.gerarRelatorio();
                 });
                 
-                document.getElementById('empresa-relatorio').addEventListener('change', (e) => {
+                document.getElementById('empresa-relatorio')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.empresa = e.target.value;
                     this.gerarRelatorio();
                 });
                 
-                document.getElementById('departamento-relatorio').addEventListener('change', (e) => {
+                document.getElementById('departamento-relatorio')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.departamento = e.target.value;
                     this.gerarRelatorio();
                 });
                 
-                document.getElementById('colaborador-relatorio').addEventListener('change', (e) => {
+                document.getElementById('colaborador-relatorio')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.colaborador = e.target.value;
                     this.gerarRelatorio();
                 });
                 
-                document.getElementById('status-relatorio').addEventListener('change', (e) => {
+                document.getElementById('status-relatorio')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.relatorios.status = e.target.value;
                     this.gerarRelatorio();
                 });
@@ -2431,62 +2436,77 @@
                 // Definir data atual no formato correto para o campo date
                 const hoje = new Date();
                 const dataFormatada = hoje.toISOString().split('T')[0];
-                document.getElementById('colaborador-admissao').value = dataFormatada;
-                document.getElementById('solicitacao-data').value = dataFormatada;
+                const colaboradorAdmissao = document.getElementById('colaborador-admissao');
+                const solicitacaoData = document.getElementById('solicitacao-data');
+                
+                if (colaboradorAdmissao) {
+                    colaboradorAdmissao.value = dataFormatada;
+                }
+                if (solicitacaoData) {
+                    solicitacaoData.value = dataFormatada;
+                }
             }
 
             atualizarSelects() {
                 // Atualizar select de empresas para dashboard
                 const selectEmpresaDashboard = document.getElementById('empresa-select');
-                selectEmpresaDashboard.innerHTML = '<option value="todos">Todas as Empresas</option>';
-                this.dados.empresas.forEach(empresa => {
-                    if (empresa.status === 'ativo') {
-                        const option = document.createElement('option');
-                        option.value = empresa.id;
-                        option.textContent = empresa.nome;
-                        selectEmpresaDashboard.appendChild(option);
-                    }
-                });
+                if (selectEmpresaDashboard) {
+                    selectEmpresaDashboard.innerHTML = '<option value="todos">Todas as Empresas</option>';
+                    this.dados.empresas.forEach(empresa => {
+                        if (empresa.status === 'ativo') {
+                            const option = document.createElement('option');
+                            option.value = empresa.id;
+                            option.textContent = empresa.nome;
+                            selectEmpresaDashboard.appendChild(option);
+                        }
+                    });
+                }
                 
                 // Atualizar select de departamentos para dashboard
                 const selectDashboardDepto = document.getElementById('departamento-select');
-                selectDashboardDepto.innerHTML = '<option value="todos">Todos os Departamentos</option>';
-                this.dados.departamentos.forEach(depto => {
-                    if (depto.status === 'ativo') {
-                        const option = document.createElement('option');
-                        option.value = depto.id;
-                        option.textContent = depto.nome;
-                        selectDashboardDepto.appendChild(option);
-                    }
-                });
+                if (selectDashboardDepto) {
+                    selectDashboardDepto.innerHTML = '<option value="todos">Todos os Departamentos</option>';
+                    this.dados.departamentos.forEach(depto => {
+                        if (depto.status === 'ativo') {
+                            const option = document.createElement('option');
+                            option.value = depto.id;
+                            option.textContent = depto.nome;
+                            selectDashboardDepto.appendChild(option);
+                        }
+                    });
+                }
                 
                 // Atualizar select de colaboradores para dashboard
                 const selectDashboardColab = document.getElementById('colaborador-select');
-                selectDashboardColab.innerHTML = '<option value="todos">Todos os Colaboradores</option>';
-                this.dados.colaboradores.forEach(colab => {
-                    if (colab.status === 'ativo') {
-                        const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                        const deptoNome = depto ? depto.nome : 'N/A';
-                        const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                        const empresaNome = empresa ? empresa.nome : '';
-                        const option = document.createElement('option');
-                        option.value = colab.id;
-                        option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                        selectDashboardColab.appendChild(option);
-                    }
-                });
+                if (selectDashboardColab) {
+                    selectDashboardColab.innerHTML = '<option value="todos">Todos os Colaboradores</option>';
+                    this.dados.colaboradores.forEach(colab => {
+                        if (colab.status === 'ativo') {
+                            const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                            const deptoNome = depto ? depto.nome : 'N/A';
+                            const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                            const empresaNome = empresa ? empresa.nome : '';
+                            const option = document.createElement('option');
+                            option.value = colab.id;
+                            option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
+                            selectDashboardColab.appendChild(option);
+                        }
+                    });
+                }
                 
                 // Atualizar select de itens para dashboard
                 const selectItem = document.getElementById('item-select');
-                selectItem.innerHTML = '<option value="todos">Todos os Itens</option>';
-                this.dados.itens.forEach(item => {
-                    if (item.status === 'ativo') {
-                        const option = document.createElement('option');
-                        option.value = item.id;
-                        option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
-                        selectItem.appendChild(option);
-                    }
-                });
+                if (selectItem) {
+                    selectItem.innerHTML = '<option value="todos">Todos os Itens</option>';
+                    this.dados.itens.forEach(item => {
+                        if (item.status === 'ativo') {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
+                            selectItem.appendChild(option);
+                        }
+                    });
+                }
                 
                 // Atualizar select de empresas para colaboradores
                 const selectEmpresaColaborador = document.getElementById('colaborador-empresa');
@@ -2494,35 +2514,51 @@
                 const filtroEmpresaSolicitacao = document.getElementById('filtro-empresa-solicitacao');
                 const relatorioEmpresa = document.getElementById('empresa-relatorio');
                 
-                selectEmpresaColaborador.innerHTML = '<option value="">Selecione...</option>';
-                filtroEmpresaColaborador.innerHTML = '<option value="todos">Todas as Empresas</option>';
-                filtroEmpresaSolicitacao.innerHTML = '<option value="todos">Todas</option>';
-                relatorioEmpresa.innerHTML = '<option value="todos">Todas</option>';
+                if (selectEmpresaColaborador) {
+                    selectEmpresaColaborador.innerHTML = '<option value="">Selecione...</option>';
+                }
+                if (filtroEmpresaColaborador) {
+                    filtroEmpresaColaborador.innerHTML = '<option value="todos">Todas as Empresas</option>';
+                }
+                if (filtroEmpresaSolicitacao) {
+                    filtroEmpresaSolicitacao.innerHTML = '<option value="todos">Todas</option>';
+                }
+                if (relatorioEmpresa) {
+                    relatorioEmpresa.innerHTML = '<option value="todos">Todas</option>';
+                }
                 
                 this.dados.empresas.forEach(empresa => {
                     if (empresa.status === 'ativo') {
                         // Para formulário de colaborador
-                        const optionForm = document.createElement('option');
-                        optionForm.value = empresa.id;
-                        optionForm.textContent = empresa.nome;
-                        selectEmpresaColaborador.appendChild(optionForm);
+                        if (selectEmpresaColaborador) {
+                            const optionForm = document.createElement('option');
+                            optionForm.value = empresa.id;
+                            optionForm.textContent = empresa.nome;
+                            selectEmpresaColaborador.appendChild(optionForm);
+                        }
                         
                         // Para filtros
-                        const optionFiltro1 = document.createElement('option');
-                        optionFiltro1.value = empresa.id;
-                        optionFiltro1.textContent = empresa.nome;
-                        filtroEmpresaColaborador.appendChild(optionFiltro1.cloneNode(true));
+                        if (filtroEmpresaColaborador) {
+                            const optionFiltro1 = document.createElement('option');
+                            optionFiltro1.value = empresa.id;
+                            optionFiltro1.textContent = empresa.nome;
+                            filtroEmpresaColaborador.appendChild(optionFiltro1.cloneNode(true));
+                        }
                         
-                        const optionFiltro2 = document.createElement('option');
-                        optionFiltro2.value = empresa.id;
-                        optionFiltro2.textContent = empresa.nome;
-                        filtroEmpresaSolicitacao.appendChild(optionFiltro2);
+                        if (filtroEmpresaSolicitacao) {
+                            const optionFiltro2 = document.createElement('option');
+                            optionFiltro2.value = empresa.id;
+                            optionFiltro2.textContent = empresa.nome;
+                            filtroEmpresaSolicitacao.appendChild(optionFiltro2);
+                        }
                         
                         // Para relatórios
-                        const optionRel = document.createElement('option');
-                        optionRel.value = empresa.id;
-                        optionRel.textContent = empresa.nome;
-                        relatorioEmpresa.appendChild(optionRel);
+                        if (relatorioEmpresa) {
+                            const optionRel = document.createElement('option');
+                            optionRel.value = empresa.id;
+                            optionRel.textContent = empresa.nome;
+                            relatorioEmpresa.appendChild(optionRel);
+                        }
                     }
                 });
                 
@@ -2532,43 +2568,77 @@
                 const filtroDeptoSolicitacao = document.getElementById('filtro-departamento-solicitacao');
                 const relatorioDepto = document.getElementById('departamento-relatorio');
                 
-                selectDeptoColaborador.innerHTML = '<option value="">Selecione...</option>';
-                filtroDeptoColaborador.innerHTML = '<option value="todos">Todos os Departamentos</option>';
-                filtroDeptoSolicitacao.innerHTML = '<option value="todos">Todos</option>';
-                relatorioDepto.innerHTML = '<option value="todos">Todos</option>';
+                if (selectDeptoColaborador) {
+                    selectDeptoColaborador.innerHTML = '<option value="">Selecione...</option>';
+                }
+                if (filtroDeptoColaborador) {
+                    filtroDeptoColaborador.innerHTML = '<option value="todos">Todos os Departamentos</option>';
+                }
+                if (filtroDeptoSolicitacao) {
+                    filtroDeptoSolicitacao.innerHTML = '<option value="todos">Todos</option>';
+                }
+                if (relatorioDepto) {
+                    relatorioDepto.innerHTML = '<option value="todos">Todos</option>';
+                }
                 
                 this.dados.departamentos.forEach(depto => {
                     if (depto.status === 'ativo') {
                         // Para formulário de colaborador
-                        const optionForm = document.createElement('option');
-                        optionForm.value = depto.id;
-                        optionForm.textContent = depto.nome;
-                        selectDeptoColaborador.appendChild(optionForm);
+                        if (selectDeptoColaborador) {
+                            const optionForm = document.createElement('option');
+                            optionForm.value = depto.id;
+                            optionForm.textContent = depto.nome;
+                            selectDeptoColaborador.appendChild(optionForm);
+                        }
                         
                         // Para filtros
-                        const optionFiltro1 = document.createElement('option');
-                        optionFiltro1.value = depto.id;
-                        optionFiltro1.textContent = depto.nome;
-                        filtroDeptoColaborador.appendChild(optionFiltro1.cloneNode(true));
+                        if (filtroDeptoColaborador) {
+                            const optionFiltro1 = document.createElement('option');
+                            optionFiltro1.value = depto.id;
+                            optionFiltro1.textContent = depto.nome;
+                            filtroDeptoColaborador.appendChild(optionFiltro1.cloneNode(true));
+                        }
                         
-                        const optionFiltro2 = document.createElement('option');
-                        optionFiltro2.value = depto.id;
-                        optionFiltro2.textContent = depto.nome;
-                        filtroDeptoSolicitacao.appendChild(optionFiltro2);
+                        if (filtroDeptoSolicitacao) {
+                            const optionFiltro2 = document.createElement('option');
+                            optionFiltro2.value = depto.id;
+                            optionFiltro2.textContent = depto.nome;
+                            filtroDeptoSolicitacao.appendChild(optionFiltro2);
+                        }
                         
                         // Para relatórios
-                        const optionRel = document.createElement('option');
-                        optionRel.value = depto.id;
-                        optionRel.textContent = depto.nome;
-                        relatorioDepto.appendChild(optionRel);
+                        if (relatorioDepto) {
+                            const optionRel = document.createElement('option');
+                            optionRel.value = depto.id;
+                            optionRel.textContent = depto.nome;
+                            relatorioDepto.appendChild(optionRel);
+                        }
                     }
                 });
                 
                 // Atualizar select de colaboradores para solicitações
                 const selectColaborador = document.getElementById('solicitacao-colaborador');
-                selectColaborador.innerHTML = '<option value="">Selecione...</option>';
-                this.dados.colaboradores.forEach(colab => {
-                    if (colab.status === 'ativo') {
+                if (selectColaborador) {
+                    selectColaborador.innerHTML = '<option value="">Selecione...</option>';
+                    this.dados.colaboradores.forEach(colab => {
+                        if (colab.status === 'ativo') {
+                            const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                            const deptoNome = depto ? depto.nome : 'N/A';
+                            const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                            const empresaNome = empresa ? empresa.nome : '';
+                            const option = document.createElement('option');
+                            option.value = colab.id;
+                            option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
+                            selectColaborador.appendChild(option);
+                        }
+                    });
+                }
+                
+                // Atualizar select de colaboradores para filtro de solicitações
+                const filtroColaborador = document.getElementById('filtro-colaborador-solicitacao');
+                if (filtroColaborador) {
+                    filtroColaborador.innerHTML = '<option value="todos">Todos</option>';
+                    this.dados.colaboradores.forEach(colab => {
                         const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
                         const deptoNome = depto ? depto.nome : 'N/A';
                         const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
@@ -2576,37 +2646,25 @@
                         const option = document.createElement('option');
                         option.value = colab.id;
                         option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                        selectColaborador.appendChild(option);
-                    }
-                });
-                
-                // Atualizar select de colaboradores para filtro de solicitações
-                const filtroColaborador = document.getElementById('filtro-colaborador-solicitacao');
-                filtroColaborador.innerHTML = '<option value="todos">Todos</option>';
-                this.dados.colaboradores.forEach(colab => {
-                    const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                    const deptoNome = depto ? depto.nome : 'N/A';
-                    const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                    const empresaNome = empresa ? empresa.nome : '';
-                    const option = document.createElement('option');
-                    option.value = colab.id;
-                    option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                    filtroColaborador.appendChild(option);
-                });
+                        filtroColaborador.appendChild(option);
+                    });
+                }
                 
                 // Atualizar select de colaboradores para relatórios
                 const relatorioColaborador = document.getElementById('colaborador-relatorio');
-                relatorioColaborador.innerHTML = '<option value="todos">Todos</option>';
-                this.dados.colaboradores.forEach(colab => {
-                    const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                    const deptoNome = depto ? depto.nome : 'N/A';
-                    const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                    const empresaNome = empresa ? empresa.nome : '';
-                    const option = document.createElement('option');
-                    option.value = colab.id;
-                    option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                    relatorioColaborador.appendChild(option);
-                });
+                if (relatorioColaborador) {
+                    relatorioColaborador.innerHTML = '<option value="todos">Todos</option>';
+                    this.dados.colaboradores.forEach(colab => {
+                        const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                        const deptoNome = depto ? depto.nome : 'N/A';
+                        const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                        const empresaNome = empresa ? empresa.nome : '';
+                        const option = document.createElement('option');
+                        option.value = colab.id;
+                        option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
+                        relatorioColaborador.appendChild(option);
+                    });
+                }
             }
 
             calcularMediasTroca() {
@@ -3368,7 +3426,9 @@
                         </td>
                     `;
                     tbody.appendChild(tr);
-                    verMaisBtn.style.display = 'none';
+                    if (verMaisBtn) {
+                        verMaisBtn.style.display = 'none';
+                    }
                     return;
                 }
                 
@@ -3422,10 +3482,12 @@
                 });
                 
                 // Mostrar botão "Ver Mais" se houver mais solicitações
-                if (todasSolicitacoes.length > offset + limite) {
-                    verMaisBtn.style.display = 'block';
-                } else {
-                    verMaisBtn.style.display = 'none';
+                if (verMaisBtn) {
+                    if (todasSolicitacoes.length > offset + limite) {
+                        verMaisBtn.style.display = 'block';
+                    } else {
+                        verMaisBtn.style.display = 'none';
+                    }
                 }
             }
 
@@ -3507,10 +3569,10 @@
                 }
                 
                 if (id) {
-                    title.textContent = `Editar ${tipo}`;
+                    title.textContent = `Editar ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
                     this.carregarDadosEdicao(tipo, id);
                 } else {
-                    title.textContent = `Novo ${tipo}`;
+                    title.textContent = `Novo ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`;
                     this.limparFormulario(tipo);
                 }
                 
@@ -3530,7 +3592,9 @@
 
             limparItensSolicitacao() {
                 const container = document.getElementById('itens-container');
-                container.innerHTML = '';
+                if (container) {
+                    container.innerHTML = '';
+                }
             }
 
             carregarDadosEdicao(tipo, id) {
@@ -3897,6 +3961,8 @@
             // CRUD Solicitações
             adicionarItemSolicitacao() {
                 const container = document.getElementById('itens-container');
+                if (!container) return;
+                
                 const div = document.createElement('div');
                 div.className = 'item-with-sizes mb-2';
                 
@@ -4892,6 +4958,8 @@
                 const cabecalho = document.getElementById('relatorio-cabecalho');
                 const corpo = document.getElementById('relatorio-corpo');
                 
+                if (!container || !cabecalho || !corpo) return;
+                
                 container.style.display = 'block';
                 
                 switch(tipo) {
@@ -5264,6 +5332,8 @@
                 const doc = new jsPDF();
                 const tabela = document.getElementById('relatorio-tabela');
                 
+                if (!tabela) return;
+                
                 doc.autoTable({
                     html: tabela,
                     startY: 20,
@@ -5277,6 +5347,8 @@
 
             exportarExcel() {
                 const tabela = document.getElementById('relatorio-tabela');
+                if (!tabela) return;
+                
                 const ws = XLSX.utils.table_to_sheet(tabela);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Relatório");
@@ -5293,6 +5365,8 @@
 
             mostrarToast(mensagem, tipo = 'success') {
                 const toast = document.getElementById('toast');
+                if (!toast) return;
+                
                 const icon = toast.querySelector('.toast-icon');
                 
                 toast.className = `toast ${tipo === 'error' ? 'toast-error' : 'toast-success'}`;
