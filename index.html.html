@@ -389,7 +389,7 @@
             min-height: 100vh;
         }
 
-        .media-troca-badge {
+        .media-tempo-badge {
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -401,22 +401,22 @@
             color: #0369a1;
         }
 
-        .media-troca-badge.alta {
+        .media-tempo-badge.alta {
             background: #fef2f2;
             color: #dc2626;
         }
 
-        .media-troca-badge.baixa {
+        .media-tempo-badge.baixa {
             background: #f0fdf4;
             color: #16a34a;
         }
 
-        .media-troca-badge.media {
+        .media-tempo-badge.media {
             background: #fffbeb;
             color: #d97706;
         }
 
-        .media-troca-card {
+        .media-tempo-card {
             background: white;
             border-radius: var(--radius-sm);
             padding: 16px;
@@ -424,7 +424,7 @@
             box-shadow: var(--shadow);
         }
 
-        .media-troca-categoria {
+        .media-tempo-categoria {
             font-size: 0.75rem;
             color: var(--gray);
             background: var(--gray-light);
@@ -434,12 +434,12 @@
             margin-top: 4px;
         }
 
-        .media-troca-descricao {
+        .media-tempo-descricao {
             font-size: 0.8rem;
             color: var(--gray);
         }
 
-        .media-troca-footer {
+        .media-tempo-footer {
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid var(--border);
@@ -449,33 +449,33 @@
             color: var(--gray);
         }
 
-        .media-troca-grid {
+        .media-tempo-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 16px;
             margin-top: 16px;
         }
 
-        .media-troca-header {
+        .media-tempo-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 12px;
         }
 
-        .media-troca-nome {
+        .media-tempo-nome {
             font-weight: 600;
             color: var(--dark);
             font-size: 0.95rem;
         }
 
-        .media-troca-section {
+        .media-tempo-section {
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--border);
         }
 
-        .media-troca-valor {
+        .media-tempo-valor {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--dark);
@@ -1326,6 +1326,7 @@
                             <div>
                                 <div class="stat-value" id="media-trocas">0.0</div>
                                 <div class="stat-label">Média por Colaborador</div>
+                                <small id="media-detalhes" style="font-size: 0.7rem; color: var(--gray);">(solicitações por colaborador)</small>
                             </div>
                             <div class="stat-icon green">
                                 <i class="fas fa-chart-bar"></i>
@@ -1517,6 +1518,22 @@
                     </div>
                 </div>
                 
+                <!-- Seção de Tempo Médio de Troca -->
+                <div class="content-section media-tempo-section">
+                    <div class="section-header">
+                        <h4 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Tempo Médio de Troca por Item
+                        </h4>
+                        <small class="text-muted">Baseado nas solicitações realizadas</small>
+                    </div>
+                    
+                    <div class="media-tempo-grid" id="media-tempo-grid">
+                        <!-- Preenchido por JS -->
+                    </div>
+                </div>
+                
+                <!-- Tabela de Itens -->
                 <div class="table-container">
                     <table class="table">
                         <thead>
@@ -1525,6 +1542,7 @@
                                 <th>Categoria</th>
                                 <th>Tamanhos</th>
                                 <th>Solicitações</th>
+                                <th>Tempo Médio</th>
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>
@@ -2027,6 +2045,7 @@
                 this.carregarTabelas();
                 this.atualizarDashboardCharts();
                 this.atualizarFiltrosAtivos();
+                this.carregarTempoMedioItens();
             }
 
             setupResponsividade() {
@@ -2097,27 +2116,64 @@
                         empresas: JSON.parse(localStorage.getItem('uniformes_empresas'))
                     };
 
-                    // Se não houver dados salvos, usar dados vazios
+                    // Se não houver dados salvos, usar dados padrão para demonstração
                     if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.departamentos || !dadosSalvos.solicitacoes || !dadosSalvos.empresas) {
-                        console.log("Nenhum dado salvo encontrado. Carregando dados vazios.");
-                        return this.getDadosVazios();
+                        console.log("Nenhum dado salvo encontrado. Carregando dados padrão.");
+                        return this.getDadosPadrao();
                     }
 
                     console.log("Dados carregados do localStorage com sucesso!");
                     return dadosSalvos;
                 } catch (error) {
                     console.error("Erro ao carregar dados do localStorage:", error);
-                    return this.getDadosVazios();
+                    return this.getDadosPadrao();
                 }
             }
 
-            getDadosVazios() {
+            getDadosPadrao() {
+                // Dados padrão para demonstração
+                const hoje = new Date();
+                const umaSemanaAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+                const umMesAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+                const doisMesesAtras = new Date(hoje.getTime() - 60 * 24 * 60 * 60 * 1000);
+                const tresMesesAtras = new Date(hoje.getTime() - 90 * 24 * 60 * 60 * 1000);
+                
                 return {
-                    colaboradores: [],
-                    itens: [],
-                    departamentos: [],
-                    empresas: [],
-                    solicitacoes: []
+                    colaboradores: [
+                        { id: 1, nome: "João Silva", empresaId: 1, departamentoId: 1, admissao: "2023-01-15", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2024-01-15" },
+                        { id: 2, nome: "Maria Santos", empresaId: 1, departamentoId: 2, admissao: "2023-03-20", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2024-01-10" },
+                        { id: 3, nome: "Pedro Oliveira", empresaId: 2, departamentoId: 1, admissao: "2023-06-10", status: "ativo", solicitacoes: 7, ultimaSolicitacao: "2024-01-12" },
+                        { id: 4, nome: "Ana Costa", empresaId: 1, departamentoId: 3, admissao: "2023-08-05", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-12-20" },
+                        { id: 5, nome: "Carlos Rodrigues", empresaId: 2, departamentoId: 2, admissao: "2023-11-15", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2024-01-05" }
+                    ],
+                    itens: [
+                        { id: 1, nome: "Camisa Polo", categoria: "uniforme", tamanhos: "P,M,G,GG", status: "ativo", solicitacoes: 15 },
+                        { id: 2, nome: "Calça Social", categoria: "uniforme", tamanhos: "38,40,42,44,46", status: "ativo", solicitacoes: 10 },
+                        { id: 3, nome: "Capacete", categoria: "epi", tamanhos: "Único", status: "ativo", solicitacoes: 8 },
+                        { id: 4, nome: "Luva de Proteção", categoria: "epi", tamanhos: "P,M,G", status: "ativo", solicitacoes: 12 },
+                        { id: 5, nome: "Caderno", categoria: "materiais", tamanhos: "Único", status: "ativo", solicitacoes: 5 },
+                        { id: 6, nome: "Caneta", categoria: "materiais", tamanhos: "Único", status: "ativo", solicitacoes: 20 }
+                    ],
+                    departamentos: [
+                        { id: 1, nome: "Produção", status: "ativo", colaboradores: 0, solicitacoes: 0 },
+                        { id: 2, nome: "Administrativo", status: "ativo", colaboradores: 0, solicitacoes: 0 },
+                        { id: 3, nome: "RH", status: "ativo", colaboradores: 0, solicitacoes: 0 },
+                        { id: 4, nome: "TI", status: "ativo", colaboradores: 0, solicitacoes: 0 }
+                    ],
+                    empresas: [
+                        { id: 1, nome: "Empresa A", status: "ativo", departamentos: 0, colaboradores: 0, solicitacoes: 0 },
+                        { id: 2, nome: "Empresa B", status: "ativo", departamentos: 0, colaboradores: 0, solicitacoes: 0 },
+                        { id: 3, nome: "Empresa C", status: "inativo", departamentos: 0, colaboradores: 0, solicitacoes: 0 }
+                    ],
+                    solicitacoes: [
+                        { id: 1, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (M) - 2", "Calça Social (42) - 1"], data: umaSemanaAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 2, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 2, empresaId: 1, itens: ["Caderno (Único) - 1", "Caneta (Único) - 3"], data: umMesAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 3, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1", "Luva de Proteção (M) - 2"], data: doisMesesAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 4, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 3, empresaId: 1, itens: ["Camisa Polo (P) - 1"], data: tresMesesAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 5, colaboradorId: 5, colaboradorNome: "Carlos Rodrigues", departamentoId: 2, empresaId: 2, itens: ["Calça Social (40) - 1", "Camisa Polo (G) - 1"], data: hoje.toISOString().split('T')[0], status: "pendente" },
+                        { id: 6, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Luva de Proteção (G) - 1"], data: umMesAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 7, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1"], data: doisMesesAtras.toISOString().split('T')[0], status: "realizado" }
+                    ]
                 };
             }
 
@@ -2174,6 +2230,7 @@
                             this.atualizarFiltrosAtivos('colaboradores');
                         } else if (sectionId === 'itens') {
                             this.atualizarFiltrosAtivos('itens');
+                            this.carregarTempoMedioItens();
                         } else if (sectionId === 'solicitacoes') {
                             this.atualizarFiltrosAtivos('solicitacoes');
                             this.filtrarSolicitacoes();
@@ -2728,9 +2785,12 @@
                 
                 const canvasCtx = ctx.getContext('2d');
                 
-                // Obter top colaboradores com base nas solicitações realizadas
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
+                // Obter top colaboradores com base nas solicitações realizadas e filtradas
                 const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                    const solicitacoesRealizadas = this.dados.solicitacoes.filter(
+                    const solicitacoesRealizadas = solicitacoesFiltradas.filter(
                         s => s.colaboradorId === colab.id && s.status === 'realizado'
                     ).length;
                     return {
@@ -2790,8 +2850,11 @@
                 
                 const canvasCtx = ctx.getContext('2d');
                 
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
                 const solicitacoesPorDepartamento = {};
-                this.dados.solicitacoes.forEach(solic => {
+                solicitacoesFiltradas.forEach(solic => {
                     const departamento = this.getDepartamentoNome(solic.departamentoId);
                     solicitacoesPorDepartamento[departamento] = (solicitacoesPorDepartamento[departamento] || 0) + 1;
                 });
@@ -2833,10 +2896,13 @@
                 
                 const canvasCtx = ctx.getContext('2d');
                 
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
                 const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
                 const solicitacoesPorMes = Array(12).fill(0);
                 
-                this.dados.solicitacoes.forEach(solic => {
+                solicitacoesFiltradas.forEach(solic => {
                     const mes = new Date(solic.data).getMonth();
                     solicitacoesPorMes[mes]++;
                 });
@@ -2880,9 +2946,12 @@
                 
                 const canvasCtx = ctx.getContext('2d');
                 
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
                 // Contar solicitações por item
                 const itensContagem = {};
-                this.dados.solicitacoes.forEach(solic => {
+                solicitacoesFiltradas.forEach(solic => {
                     if (solic.status === 'realizado') {
                         solic.itens.forEach(item => {
                             const itemNome = item.split(' (')[0];
@@ -2939,6 +3008,70 @@
                 });
             }
 
+            getSolicitacoesComFiltrosDashboard() {
+                const periodo = this.filtrosAtivos.dashboard.periodo;
+                const departamento = this.filtrosAtivos.dashboard.departamento;
+                const colaborador = this.filtrosAtivos.dashboard.colaborador;
+                const item = this.filtrosAtivos.dashboard.item;
+                const empresa = this.filtrosAtivos.dashboard.empresa;
+                
+                let solicitacoesFiltradas = [...this.dados.solicitacoes];
+                
+                // Aplicar filtro de empresa
+                if (empresa !== 'todos') {
+                    const empresaId = parseInt(empresa);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.empresaId === empresaId);
+                }
+                
+                // Aplicar filtro de departamento
+                if (departamento !== 'todos') {
+                    const deptoId = parseInt(departamento);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.departamentoId === deptoId);
+                }
+                
+                // Aplicar filtro de colaborador
+                if (colaborador !== 'todos') {
+                    const colaboradorId = parseInt(colaborador);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.colaboradorId === colaboradorId);
+                }
+                
+                // Aplicar filtro de item
+                if (item !== 'todos') {
+                    const itemId = parseInt(item);
+                    const itemSelecionado = this.dados.itens.find(i => i.id === itemId);
+                    if (itemSelecionado) {
+                        solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
+                            return solic.itens.some(itemSolic => {
+                                const itemNome = itemSolic.split(' (')[0];
+                                return itemNome === itemSelecionado.nome;
+                            });
+                        });
+                    }
+                }
+                
+                // Aplicar filtro de período
+                if (periodo !== 'todos') {
+                    const hoje = new Date();
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
+                        const dataSolicitacao = new Date(solic.data);
+                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
+                        
+                        if (periodo === '7dias') return diffDias <= 7;
+                        if (periodo === '30dias') return diffDias <= 30;
+                        if (periodo === 'mes_atual') {
+                            return dataSolicitacao.getMonth() === hoje.getMonth() && 
+                                   dataSolicitacao.getFullYear() === hoje.getFullYear();
+                        }
+                        if (periodo === '3meses') return diffDias <= 90;
+                        if (periodo === '6meses') return diffDias <= 180;
+                        if (periodo === '1ano') return diffDias <= 365;
+                        return true;
+                    });
+                }
+                
+                return solicitacoesFiltradas;
+            }
+
             gerarCores(num) {
                 const cores = [
                     'rgba(37, 99, 235, 0.8)',
@@ -2955,16 +3088,8 @@
             }
 
             carregarDashboard() {
-                // Atualizar estatísticas
-                const colaboradoresAtivos = this.dados.colaboradores.filter(c => c.status === 'ativo').length;
-                const solicitacoesPendentes = this.dados.solicitacoes.filter(s => s.status === 'pendente').length;
-                const totalSolicitacoes = this.dados.solicitacoes.length;
-                const mediaTrocas = totalSolicitacoes > 0 ? (totalSolicitacoes / colaboradoresAtivos).toFixed(1) : '0.0';
-                
-                document.getElementById('total-colaboradores').textContent = colaboradoresAtivos;
-                document.getElementById('solicitacoes-pendentes').textContent = solicitacoesPendentes;
-                document.getElementById('total-solicitacoes').textContent = totalSolicitacoes;
-                document.getElementById('media-trocas').textContent = mediaTrocas;
+                // Atualizar estatísticas com filtros aplicados
+                this.atualizarEstatisticasDashboard();
                 
                 // Carregar top colaboradores (atualizado automaticamente)
                 this.carregarTopColaboradores();
@@ -2979,15 +3104,59 @@
                 this.carregarUltimasSolicitacoes();
             }
 
+            atualizarEstatisticasDashboard() {
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
+                // Filtrar colaboradores ativos com base nos filtros
+                let colaboradoresFiltrados = this.dados.colaboradores.filter(c => c.status === 'ativo');
+                
+                // Aplicar filtro de empresa
+                if (this.filtrosAtivos.dashboard.empresa !== 'todos') {
+                    const empresaId = parseInt(this.filtrosAtivos.dashboard.empresa);
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.empresaId === empresaId);
+                }
+                
+                // Aplicar filtro de departamento
+                if (this.filtrosAtivos.dashboard.departamento !== 'todos') {
+                    const deptoId = parseInt(this.filtrosAtivos.dashboard.departamento);
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.departamentoId === deptoId);
+                }
+                
+                // Aplicar filtro de colaborador
+                if (this.filtrosAtivos.dashboard.colaborador !== 'todos') {
+                    const colaboradorId = parseInt(this.filtrosAtivos.dashboard.colaborador);
+                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.id === colaboradorId);
+                }
+                
+                const colaboradoresAtivos = colaboradoresFiltrados.length;
+                const solicitacoesPendentes = solicitacoesFiltradas.filter(s => s.status === 'pendente').length;
+                const totalSolicitacoes = solicitacoesFiltradas.length;
+                const mediaTrocas = colaboradoresAtivos > 0 ? (totalSolicitacoes / colaboradoresAtivos).toFixed(1) : '0.0';
+                
+                document.getElementById('total-colaboradores').textContent = colaboradoresAtivos;
+                document.getElementById('solicitacoes-pendentes').textContent = solicitacoesPendentes;
+                document.getElementById('total-solicitacoes').textContent = totalSolicitacoes;
+                document.getElementById('media-trocas').textContent = mediaTrocas;
+                
+                // Atualizar detalhes da média
+                const mediaDetalhes = document.getElementById('media-detalhes');
+                if (mediaDetalhes) {
+                    mediaDetalhes.textContent = `(${totalSolicitacoes} solicitações / ${colaboradoresAtivos} colaboradores)`;
+                }
+            }
+
             carregarTopColaboradores() {
                 const container = document.getElementById('top-colaboradores-list');
                 if (!container) return;
                 
                 container.innerHTML = '';
                 
-                // Calcular solicitações realizadas por colaborador
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
+                // Calcular solicitações por colaborador com filtros
                 const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                    const solicitacoesRealizadas = this.dados.solicitacoes.filter(
+                    const solicitacoesRealizadas = solicitacoesFiltradas.filter(
                         s => s.colaboradorId === colab.id && s.status === 'realizado'
                     ).length;
                     return {
@@ -3035,10 +3204,13 @@
                 
                 container.innerHTML = '';
                 
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
                 const solicitacoesPorDepartamento = {};
                 const colaboradoresPorDepartamento = {};
                 
-                this.dados.solicitacoes.forEach(solicitacao => {
+                solicitacoesFiltradas.forEach(solicitacao => {
                     const departamentoId = solicitacao.departamentoId;
                     if (!solicitacoesPorDepartamento[departamentoId]) {
                         solicitacoesPorDepartamento[departamentoId] = 0;
@@ -3048,10 +3220,25 @@
                 
                 this.dados.colaboradores.forEach(colab => {
                     if (colab.status === 'ativo') {
-                        if (!colaboradoresPorDepartamento[colab.departamentoId]) {
-                            colaboradoresPorDepartamento[colab.departamentoId] = 0;
+                        // Verificar filtros de dashboard para colaboradores
+                        let incluirColaborador = true;
+                        
+                        if (this.filtrosAtivos.dashboard.empresa !== 'todos') {
+                            const empresaId = parseInt(this.filtrosAtivos.dashboard.empresa);
+                            if (colab.empresaId !== empresaId) incluirColaborador = false;
                         }
-                        colaboradoresPorDepartamento[colab.departamentoId]++;
+                        
+                        if (this.filtrosAtivos.dashboard.departamento !== 'todos') {
+                            const deptoId = parseInt(this.filtrosAtivos.dashboard.departamento);
+                            if (colab.departamentoId !== deptoId) incluirColaborador = false;
+                        }
+                        
+                        if (incluirColaborador) {
+                            if (!colaboradoresPorDepartamento[colab.departamentoId]) {
+                                colaboradoresPorDepartamento[colab.departamentoId] = 0;
+                            }
+                            colaboradoresPorDepartamento[colab.departamentoId]++;
+                        }
                     }
                 });
                 
@@ -3100,9 +3287,12 @@
                 
                 container.innerHTML = '';
                 
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
                 // Contar solicitações por item
                 const itensContagem = {};
-                this.dados.solicitacoes.forEach(solic => {
+                solicitacoesFiltradas.forEach(solic => {
                     if (solic.status === 'realizado') {
                         solic.itens.forEach(item => {
                             const itemNome = item.split(' (')[0];
@@ -3151,8 +3341,11 @@
                 
                 tbody.innerHTML = '';
                 
+                // Aplicar filtros atuais
+                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                
                 // Ordenar solicitações por data (mais recentes primeiro)
-                const todasSolicitacoes = [...this.dados.solicitacoes]
+                const todasSolicitacoes = [...solicitacoesFiltradas]
                     .sort((a, b) => new Date(b.data) - new Date(a.data));
                 
                 const limite = this.visualizacaoSolicitacoes.dashboard.limite;
@@ -3320,7 +3513,7 @@
                 if (this.dados.itens.length === 0) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td colspan="6" class="text-center text-muted">
+                        <td colspan="7" class="text-center text-muted">
                             Nenhum item cadastrado. <a href="#" onclick="document.getElementById('novo-item-btn').click(); return false;">Cadastre o primeiro item</a>.
                         </td>
                     `;
@@ -3329,6 +3522,9 @@
                 }
                 
                 this.dados.itens.forEach(item => {
+                    // Calcular tempo médio de troca para este item
+                    const tempoMedio = this.calcularTempoMedioItem(item.id);
+                    
                     const tr = document.createElement('tr');
                     
                     tr.innerHTML = `
@@ -3336,6 +3532,13 @@
                         <td>${this.formatarCategoria(item.categoria)}</td>
                         <td>${item.tamanhos}</td>
                         <td>${item.solicitacoes}</td>
+                        <td>
+                            ${tempoMedio ? `
+                                <span class="badge ${this.getClassTempoMedio(tempoMedio.dias)}" title="Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações">
+                                    ${tempoMedio.texto}
+                                </span>
+                            ` : '<span class="text-muted">Sem dados</span>'}
+                        </td>
                         <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="sistema.editarItem(${item.id})">
@@ -3348,6 +3551,155 @@
                     `;
                     tbody.appendChild(tr);
                 });
+            }
+
+            carregarTempoMedioItens() {
+                const container = document.getElementById('media-tempo-grid');
+                if (!container) return;
+                
+                container.innerHTML = '';
+                
+                // Calcular tempo médio para cada item
+                const itensComTempoMedio = this.dados.itens.map(item => {
+                    const tempoMedio = this.calcularTempoMedioItem(item.id);
+                    return {
+                        ...item,
+                        tempoMedio: tempoMedio
+                    };
+                });
+                
+                // Ordenar por solicitações (mais solicitados primeiro)
+                const itensOrdenados = itensComTempoMedio
+                    .filter(item => item.status === 'ativo')
+                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                    .slice(0, 6); // Mostrar apenas os 6 primeiros
+                
+                if (itensOrdenados.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted" style="grid-column: 1/-1; padding: 20px;">
+                            Nenhum item ativo para exibir tempo médio de troca
+                        </div>
+                    `;
+                    return;
+                }
+                
+                itensOrdenados.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'media-tempo-card';
+                    
+                    const categoriaClass = this.getClassCategoria(item.categoria);
+                    const tempoMedio = item.tempoMedio;
+                    
+                    card.innerHTML = `
+                        <div class="media-tempo-header">
+                            <div>
+                                <div class="media-tempo-nome">${item.nome}</div>
+                                <div class="media-tempo-categoria ${categoriaClass}">${this.formatarCategoria(item.categoria)}</div>
+                            </div>
+                            ${tempoMedio ? `
+                                <span class="media-tempo-badge ${this.getClassTempoMedio(tempoMedio.dias)}">
+                                    ${tempoMedio.texto}
+                                </span>
+                            ` : '<span class="media-tempo-badge">Sem dados</span>'}
+                        </div>
+                        
+                        <div class="media-tempo-valor">
+                            ${item.solicitacoes} solicitações
+                        </div>
+                        
+                        <div class="media-tempo-descricao">
+                            ${tempoMedio ? `
+                                Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações realizadas
+                                ${tempoMedio.observacao ? `<br><small>${tempoMedio.observacao}</small>` : ''}
+                            ` : 'Aguardando solicitações para cálculo'}
+                        </div>
+                        
+                        <div class="media-tempo-footer">
+                            <span>Tamanhos: ${item.tamanhos}</span>
+                            <span>${tempoMedio ? `Última: ${this.formatarData(tempoMedio.ultimaSolicitacao)}` : ''}</span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+            }
+
+            calcularTempoMedioItem(itemId) {
+                const item = this.dados.itens.find(i => i.id === itemId);
+                if (!item || item.solicitacoes < 2) return null;
+                
+                // Obter todas as solicitações que contêm este item
+                const solicitacoesDoItem = this.dados.solicitacoes.filter(solic => {
+                    return solic.itens.some(itemSolic => {
+                        const itemNome = itemSolic.split(' (')[0];
+                        return itemNome === item.nome;
+                    });
+                }).filter(s => s.status === 'realizado');
+                
+                if (solicitacoesDoItem.length < 2) return null;
+                
+                // Ordenar por data
+                solicitacoesDoItem.sort((a, b) => new Date(a.data) - new Date(b.data));
+                
+                // Calcular intervalos entre solicitações consecutivas
+                let totalDias = 0;
+                let quantidadeIntervalos = 0;
+                
+                for (let i = 1; i < solicitacoesDoItem.length; i++) {
+                    const dataAnterior = new Date(solicitacoesDoItem[i-1].data);
+                    const dataAtual = new Date(solicitacoesDoItem[i].data);
+                    const diffDias = Math.floor((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24));
+                    
+                    if (diffDias > 0) {
+                        totalDias += diffDias;
+                        quantidadeIntervalos++;
+                    }
+                }
+                
+                if (quantidadeIntervalos === 0) return null;
+                
+                const mediaDias = Math.round(totalDias / quantidadeIntervalos);
+                
+                // Formatar para exibição amigável
+                let texto = '';
+                let observacao = '';
+                
+                if (mediaDias < 30) {
+                    texto = `${mediaDias} dias`;
+                    if (mediaDias === 1) texto = '1 dia';
+                    observacao = 'Troca frequente';
+                } else if (mediaDias < 365) {
+                    const meses = Math.round(mediaDias / 30);
+                    texto = `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
+                    observacao = 'Troca periódica';
+                } else {
+                    const anos = Math.round(mediaDias / 365);
+                    texto = `${anos} ${anos === 1 ? 'ano' : 'anos'}`;
+                    observacao = 'Troca de longo prazo';
+                }
+                
+                return {
+                    dias: mediaDias,
+                    texto: texto,
+                    observacao: observacao,
+                    quantidadeSolicitacoes: solicitacoesDoItem.length,
+                    ultimaSolicitacao: solicitacoesDoItem[solicitacoesDoItem.length - 1].data
+                };
+            }
+
+            getClassTempoMedio(dias) {
+                if (dias < 30) return 'baixa'; // Troca frequente (verde)
+                if (dias < 180) return 'media'; // Troca periódica (amarelo)
+                return 'alta'; // Troca de longo prazo (vermelho)
+            }
+
+            getClassCategoria(categoria) {
+                const classes = {
+                    'uniforme': 'uniforme',
+                    'epi': 'epi',
+                    'materiais': 'materiais'
+                };
+                return classes[categoria] || '';
             }
 
             carregarTabelaSolicitacoes() {
@@ -3476,6 +3828,7 @@
                         this.filtrarSolicitacoes();
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
+                        this.carregarTempoMedioItens();
                         this.mostrarToast(`Status da solicitação #${solicitacao.id} atualizado para ${this.formatarStatus(novoStatus)}`);
                     }
                 }
@@ -3716,6 +4069,7 @@
                 if (salvou) {
                     this.fecharModais();
                     this.carregarTabelas();
+                    this.carregarTempoMedioItens();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
                     this.mostrarToast('Item salvo com sucesso!');
@@ -3732,6 +4086,7 @@
                     const salvou = this.salvarDados();
                     if (salvou) {
                         this.carregarTabelas();
+                        this.carregarTempoMedioItens();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
                         this.mostrarToast('Item excluído com sucesso!');
@@ -4073,6 +4428,7 @@
                 if (salvou) {
                     this.fecharModais();
                     this.carregarTabelas();
+                    this.carregarTempoMedioItens();
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
@@ -4133,6 +4489,7 @@
                     const salvou = this.salvarDados();
                     if (salvou) {
                         this.carregarTabelas();
+                        this.carregarTempoMedioItens();
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.mostrarToast('Solicitação excluída com sucesso!');
@@ -4140,344 +4497,18 @@
                 }
             }
 
-            // Filtros Automáticos
             aplicarFiltrosDashboard() {
-                const periodo = this.filtrosAtivos.dashboard.periodo;
-                const departamento = this.filtrosAtivos.dashboard.departamento;
-                const colaborador = this.filtrosAtivos.dashboard.colaborador;
-                const item = this.filtrosAtivos.dashboard.item;
-                const empresa = this.filtrosAtivos.dashboard.empresa;
+                // Atualizar estatísticas com filtros
+                this.atualizarEstatisticasDashboard();
                 
-                // Atualizar estatísticas com base nos filtros
-                let colaboradoresFiltrados = this.dados.colaboradores.filter(c => c.status === 'ativo');
-                let solicitacoesFiltradas = [...this.dados.solicitacoes];
-                
-                // Aplicar filtro de empresa
-                if (empresa !== 'todos') {
-                    const empresaId = parseInt(empresa);
-                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.empresaId === empresaId);
-                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.empresaId === empresaId);
-                }
-                
-                // Aplicar filtro de departamento
-                if (departamento !== 'todos') {
-                    const deptoId = parseInt(departamento);
-                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.departamentoId === deptoId);
-                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.departamentoId === deptoId);
-                }
-                
-                // Aplicar filtro de colaborador
-                if (colaborador !== 'todos') {
-                    const colaboradorId = parseInt(colaborador);
-                    colaboradoresFiltrados = colaboradoresFiltrados.filter(c => c.id === colaboradorId);
-                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.colaboradorId === colaboradorId);
-                }
-                
-                // Aplicar filtro de item
-                if (item !== 'todos') {
-                    const itemId = parseInt(item);
-                    const itemSelecionado = this.dados.itens.find(i => i.id === itemId);
-                    if (itemSelecionado) {
-                        solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
-                            return solic.itens.some(itemSolic => {
-                                const itemNome = itemSolic.split(' (')[0];
-                                return itemNome === itemSelecionado.nome;
-                            });
-                        });
-                    }
-                }
-                
-                // Aplicar filtro de período
-                if (periodo !== 'todos') {
-                    const hoje = new Date();
-                    solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
-                        const dataSolicitacao = new Date(solic.data);
-                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
-                        
-                        if (periodo === '7dias') return diffDias <= 7;
-                        if (periodo === '30dias') return diffDias <= 30;
-                        if (periodo === 'mes_atual') {
-                            return dataSolicitacao.getMonth() === hoje.getMonth() && 
-                                   dataSolicitacao.getFullYear() === hoje.getFullYear();
-                        }
-                        if (periodo === '3meses') return diffDias <= 90;
-                        if (periodo === '6meses') return diffDias <= 180;
-                        if (periodo === '1ano') return diffDias <= 365;
-                        return true;
-                    });
-                }
-                
-                // Atualizar estatísticas
-                const colaboradoresAtivos = colaboradoresFiltrados.length;
-                const solicitacoesPendentes = solicitacoesFiltradas.filter(s => s.status === 'pendente').length;
-                const totalSolicitacoes = solicitacoesFiltradas.length;
-                const mediaTrocas = totalSolicitacoes > 0 ? (totalSolicitacoes / colaboradoresAtivos).toFixed(1) : '0.0';
-                
-                document.getElementById('total-colaboradores').textContent = colaboradoresAtivos;
-                document.getElementById('solicitacoes-pendentes').textContent = solicitacoesPendentes;
-                document.getElementById('total-solicitacoes').textContent = totalSolicitacoes;
-                document.getElementById('media-trocas').textContent = mediaTrocas;
+                // Atualizar gráficos com filtros
+                this.atualizarDashboardCharts();
                 
                 // Atualizar top lists
-                this.carregarTopColaboradoresComFiltro(solicitacoesFiltradas);
-                this.carregarTopDepartamentosComFiltro(solicitacoesFiltradas);
-                this.carregarTopItensComFiltro(solicitacoesFiltradas);
-                this.carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas);
-                
-                // Atualizar gráficos
-                this.atualizarGraficosComFiltros(solicitacoesFiltradas);
-            }
-
-            carregarTopColaboradoresComFiltro(solicitacoesFiltradas) {
-                const container = document.getElementById('top-colaboradores-list');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                // Calcular solicitações por colaborador com filtros
-                const solicitacoesPorColaborador = {};
-                const colaboradoresMap = {};
-                
-                solicitacoesFiltradas.forEach(solic => {
-                    if (!solicitacoesPorColaborador[solic.colaboradorNome]) {
-                        solicitacoesPorColaborador[solic.colaboradorNome] = 0;
-                        colaboradoresMap[solic.colaboradorNome] = { departamentoId: solic.departamentoId, empresaId: solic.empresaId };
-                    }
-                    solicitacoesPorColaborador[solic.colaboradorNome]++;
-                });
-                
-                const topColaboradores = Object.entries(solicitacoesPorColaborador)
-                    .map(([nome, quantidade]) => ({ 
-                        nome, 
-                        quantidade,
-                        departamentoId: colaboradoresMap[nome].departamentoId,
-                        empresaId: colaboradoresMap[nome].empresaId
-                    }))
-                    .sort((a, b) => b.quantidade - a.quantidade)
-                    .slice(0, 5);
-                
-                if (topColaboradores.length === 0) {
-                    const li = document.createElement('li');
-                    li.className = 'top-item';
-                    li.innerHTML = `
-                        <div class="top-info">
-                            <span class="top-name">Nenhum colaborador encontrado</span>
-                            <span class="top-details">Ajuste os filtros</span>
-                        </div>
-                    `;
-                    container.appendChild(li);
-                    return;
-                }
-                
-                topColaboradores.forEach((colab, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'top-item';
-                    const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
-                    const empresaNome = this.getEmpresaNome(colab.empresaId);
-                    li.innerHTML = `
-                        <div class="top-info">
-                            <span class="top-name">${index + 1}. ${colab.nome}</span>
-                            <span class="top-details">${departamentoNome} - ${empresaNome}</span>
-                        </div>
-                        <div class="top-count">${colab.quantidade}</div>
-                    `;
-                    container.appendChild(li);
-                });
-            }
-
-            carregarTopDepartamentosComFiltro(solicitacoesFiltradas) {
-                const container = document.getElementById('top-departamentos-list');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                const solicitacoesPorDepartamento = {};
-                
-                solicitacoesFiltradas.forEach(solicitacao => {
-                    const departamentoId = solicitacao.departamentoId;
-                    if (!solicitacoesPorDepartamento[departamentoId]) {
-                        solicitacoesPorDepartamento[departamentoId] = 0;
-                    }
-                    solicitacoesPorDepartamento[departamentoId]++;
-                });
-                
-                const topDepartamentos = Object.entries(solicitacoesPorDepartamento)
-                    .map(([departamentoId, quantidade]) => {
-                        const departamento = this.dados.departamentos.find(d => d.id === parseInt(departamentoId));
-                        return {
-                            nome: departamento ? departamento.nome : 'N/A',
-                            quantidade: quantidade
-                        };
-                    })
-                    .sort((a, b) => b.quantidade - a.quantidade)
-                    .slice(0, 5);
-                
-                if (topDepartamentos.length === 0) {
-                    const li = document.createElement('li');
-                    li.className = 'top-item';
-                    li.innerHTML = `
-                        <div class="top-info">
-                            <span class="top-name">Nenhum departamento encontrado</span>
-                            <span class="top-details">Ajuste os filtros</span>
-                        </div>
-                    `;
-                    container.appendChild(li);
-                    return;
-                }
-                
-                topDepartamentos.forEach((depto, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'top-item';
-                    li.innerHTML = `
-                        <div class="top-info">
-                            <span class="top-name">${index + 1}. ${depto.nome}</span>
-                        </div>
-                        <div class="top-count">${depto.quantidade}</div>
-                    `;
-                    container.appendChild(li);
-                });
-            }
-
-            carregarTopItensComFiltro(solicitacoesFiltradas) {
-                const container = document.getElementById('top-itens-list');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                const itensContagem = {};
-                solicitacoesFiltradas.forEach(solic => {
-                    solic.itens.forEach(item => {
-                        const itemNome = item.split(' (')[0];
-                        // Extrair quantidade do item
-                        const match = item.match(/- (\d+)$/);
-                        const quantidade = match ? parseInt(match[1]) : 1;
-                        itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                    });
-                });
-                
-                const topItens = Object.entries(itensContagem)
-                    .map(([nome, quantidade]) => ({ nome, quantidade }))
-                    .sort((a, b) => b.quantidade - a.quantidade)
-                    .slice(0, 5);
-                
-                if (topItens.length === 0) {
-                    const li = document.createElement('li');
-                    li.className = 'top-item';
-                    li.innerHTML = `
-                        <div class="top-info">
-                            <span class="top-name">Nenhum item encontrado</span>
-                            <span class="top-details">Ajuste os filtros</span>
-                        </div>
-                    `;
-                    container.appendChild(li);
-                    return;
-                }
-                
-                topItens.forEach((item, index) => {
-                    const li = document.createElement('li');
-                    li.className = 'top-item';
-                    li.innerHTML = `
-                        <div class="top-info">
-                            <span class="top-name">${index + 1}. ${item.nome}</span>
-                        </div>
-                        <div class="top-count">${item.quantidade}</div>
-                    `;
-                    container.appendChild(li);
-                });
-            }
-
-            carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas) {
-                const tbody = document.getElementById('ultimas-solicitacoes-tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = '';
-                
-                const ultimas = [...solicitacoesFiltradas]
-                    .sort((a, b) => new Date(b.data) - new Date(a.data))
-                    .slice(0, this.visualizacaoSolicitacoes.dashboard.limite);
-                
-                if (ultimas.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="7" class="text-center text-muted">
-                            Nenhuma solicitação encontrada com os filtros atuais
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                    return;
-                }
-                
-                ultimas.forEach(solic => {
-                    const tr = document.createElement('tr');
-                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
-                    const empresaNome = this.getEmpresaNome(solic.empresaId);
-                    
-                    // Formatar itens em lista vertical
-                    const itensHTML = solic.itens.map(item => {
-                        const [nomeItem, restante] = item.split(' (');
-                        const tamanhoComQuantidade = restante ? restante.replace(')', '') : '';
-                        return `<div class="item-list-row">${nomeItem} (${tamanhoComQuantidade})</div>`;
-                    }).join('');
-                    
-                    tr.innerHTML = `
-                        <td>${solic.colaboradorNome}</td>
-                        <td>${departamentoNome}</td>
-                        <td><span class="empresa-badge">${empresaNome}</span></td>
-                        <td><div class="item-list">${itensHTML}</div></td>
-                        <td>${this.formatarData(solic.data)}</td>
-                        <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
-                        <td>
-                            <button class="btn btn-secondary btn-sm" onclick="sistema.visualizarSolicitacao(${solic.id})">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            atualizarGraficosComFiltros(solicitacoesFiltradas) {
-                // Atualizar gráfico de departamentos
-                if (this.charts.departamentos) {
-                    const solicitacoesPorDepartamento = {};
-                    solicitacoesFiltradas.forEach(solic => {
-                        const departamento = this.getDepartamentoNome(solic.departamentoId);
-                        solicitacoesPorDepartamento[departamento] = (solicitacoesPorDepartamento[departamento] || 0) + 1;
-                    });
-                    
-                    const labels = Object.keys(solicitacoesPorDepartamento);
-                    const data = Object.values(solicitacoesPorDepartamento);
-                    
-                    this.charts.departamentos.data.labels = labels.length > 0 ? labels : ['Nenhum dado'];
-                    this.charts.departamentos.data.datasets[0].data = data.length > 0 ? data : [1];
-                    this.charts.departamentos.update();
-                }
-                
-                // Atualizar gráfico de itens
-                if (this.charts.itens) {
-                    const itensContagem = {};
-                    solicitacoesFiltradas.forEach(solic => {
-                        if (solic.status === 'realizado') {
-                            solic.itens.forEach(item => {
-                                const itemNome = item.split(' (')[0];
-                                const match = item.match(/- (\d+)$/);
-                                const quantidade = match ? parseInt(match[1]) : 1;
-                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                            });
-                        }
-                    });
-                    
-                    const topItens = Object.entries(itensContagem)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5);
-                    
-                    const labels = topItens.map(item => item[0]);
-                    const data = topItens.map(item => item[1]);
-                    
-                    this.charts.itens.data.labels = labels.length > 0 ? labels : ['Nenhum dado'];
-                    this.charts.itens.data.datasets[0].data = data.length > 0 ? data : [0];
-                    this.charts.itens.update();
-                }
+                this.carregarTopColaboradores();
+                this.carregarTopDepartamentos();
+                this.carregarTopItens();
+                this.carregarUltimasSolicitacoes();
             }
 
             filtrarColaboradores() {
@@ -4517,7 +4548,7 @@
                 linhas.forEach(linha => {
                     const nome = linha.cells[0].textContent.toLowerCase();
                     const categoriaLinha = linha.cells[1].textContent.toLowerCase();
-                    const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
+                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
                     
                     const buscaMatch = busca === '' || nome.includes(busca);
                     const categoriaMatch = categoria === 'todos' || categoriaLinha === categoria;
@@ -5069,6 +5100,7 @@
                         <th>Categoria</th>
                         <th>Tamanhos</th>
                         <th>Solicitações</th>
+                        <th>Tempo Médio</th>
                         <th>Status</th>
                     </tr>
                 `;
@@ -5078,7 +5110,7 @@
                 if (this.dados.itens.length === 0) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td colspan="5" class="text-center text-muted">
+                        <td colspan="6" class="text-center text-muted">
                             Nenhum item cadastrado
                         </td>
                     `;
@@ -5087,12 +5119,21 @@
                 }
                 
                 this.dados.itens.forEach(item => {
+                    const tempoMedio = this.calcularTempoMedioItem(item.id);
+                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${item.nome}</td>
                         <td>${this.formatarCategoria(item.categoria)}</td>
                         <td>${item.tamanhos}</td>
                         <td>${item.solicitacoes}</td>
+                        <td>
+                            ${tempoMedio ? `
+                                <span class="badge ${this.getClassTempoMedio(tempoMedio.dias)}">
+                                    ${tempoMedio.texto}
+                                </span>
+                            ` : '<span class="text-muted">Sem dados</span>'}
+                        </td>
                         <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
                     `;
                     corpo.appendChild(tr);
@@ -5387,6 +5428,7 @@
                 this.dados = this.carregarDados();
                 this.carregarDashboard();
                 this.carregarTabelas();
+                this.carregarTempoMedioItens();
                 this.atualizarDashboardCharts();
                 this.atualizarSelects();
                 this.atualizarFiltrosAtivos();
