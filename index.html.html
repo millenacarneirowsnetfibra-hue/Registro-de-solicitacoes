@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniManager - Sistema de Gestão</title>
+    <title>Gestão de Solicitações Operacional</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
@@ -1141,8 +1141,8 @@
                     <i class="fas fa-tshirt"></i>
                 </div>
                 <div class="logo-text">
-                    <h1>UniManager</h1>
-                    <p>Sistema de Gestão</p>
+                    <h1>Gestão Operacional</h1>
+                    <p>Sistema de Solicitações</p>
                 </div>
             </div>
 
@@ -1334,27 +1334,6 @@
                     </div>
                 </div>
 
-                <!-- Média de Troca por Item -->
-                <div class="content-section media-troca-section">
-                    <div class="section-header">
-                        <h3 class="section-title">
-                            <i class="fas fa-calendar-alt"></i>
-                            Média de Tempo entre Trocas por Item
-                        </h3>
-                        <div class="tooltip">
-                            <i class="fas fa-info-circle text-muted"></i>
-                            <span class="tooltip-text">
-                                Tempo médio entre as solicitações de cada item.
-                                Calculado com base no histórico de solicitações "realizadas".
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="media-troca-grid" id="media-troca-container">
-                        <!-- Preenchido por JS -->
-                    </div>
-                </div>
-
                 <!-- Gráficos -->
                 <div class="charts-container">
                     <div class="chart-card">
@@ -1372,16 +1351,16 @@
                     </div>
                     
                     <div class="chart-card">
-                        <h4><i class="fas fa-chart-line"></i> Quem Mais Troca por Categoria</h4>
+                        <h4><i class="fas fa-calendar-alt"></i> Solicitações por Mês</h4>
                         <div class="chart-wrapper">
-                            <canvas id="chart-categorias"></canvas>
+                            <canvas id="chart-mensal"></canvas>
                         </div>
                     </div>
                     
                     <div class="chart-card">
-                        <h4><i class="fas fa-calendar-alt"></i> Solicitações por Mês</h4>
+                        <h4><i class="fas fa-chart-line"></i> Itens Mais Solicitados</h4>
                         <div class="chart-wrapper">
-                            <canvas id="chart-mensal"></canvas>
+                            <canvas id="chart-itens"></canvas>
                         </div>
                     </div>
                 </div>
@@ -1546,7 +1525,6 @@
                                 <th>Categoria</th>
                                 <th>Tamanhos</th>
                                 <th>Solicitações</th>
-                                <th>Média de Troca</th>
                                 <th>Status</th>
                                 <th>Ações</th>
                             </tr>
@@ -2049,7 +2027,6 @@
                 this.carregarTabelas();
                 this.atualizarDashboardCharts();
                 this.atualizarFiltrosAtivos();
-                this.calcularMediasTroca();
             }
 
             setupResponsividade() {
@@ -2096,11 +2073,11 @@
                 if (this.charts.departamentos) {
                     this.charts.departamentos.resize();
                 }
-                if (this.charts.categorias) {
-                    this.charts.categorias.resize();
-                }
                 if (this.charts.mensal) {
                     this.charts.mensal.resize();
+                }
+                if (this.charts.itens) {
+                    this.charts.itens.resize();
                 }
             }
 
@@ -2193,7 +2170,6 @@
                         if (sectionId === 'dashboard') {
                             this.atualizarDashboardCharts();
                             this.atualizarFiltrosAtivos('dashboard');
-                            this.calcularMediasTroca();
                         } else if (sectionId === 'colaboradores') {
                             this.atualizarFiltrosAtivos('colaboradores');
                         } else if (sectionId === 'itens') {
@@ -2739,130 +2715,11 @@
                 });
             }
 
-            calcularMediasTroca() {
-                // Para cada item, calcular a média de tempo entre trocas
-                this.dados.itens.forEach(item => {
-                    // Encontrar todas as solicitações que contêm este item
-                    const solicItem = [];
-                    
-                    this.dados.solicitacoes.forEach(solic => {
-                        if (solic.status === 'realizado') {
-                            solic.itens.forEach(itemSolic => {
-                                const itemNome = itemSolic.split(' (')[0];
-                                if (itemNome === item.nome) {
-                                    solicItem.push({
-                                        data: new Date(solic.data),
-                                        colaboradorId: solic.colaboradorId,
-                                        colaboradorNome: solic.colaboradorNome
-                                    });
-                                }
-                            });
-                        }
-                    });
-                    
-                    // Ordenar por data
-                    solicItem.sort((a, b) => a.data - b.data);
-                    
-                    if (solicItem.length <= 1) {
-                        item.mediaTroca = null;
-                        item.ultimaTroca = solicItem.length > 0 ? solicItem[solicItem.length - 1].data : null;
-                    } else {
-                        // Calcular diferenças entre datas consecutivas (em meses)
-                        let totalDias = 0;
-                        let totalPeriodos = 0;
-                        
-                        for (let i = 1; i < solicItem.length; i++) {
-                            const diffMs = solicItem[i].data - solicItem[i-1].data;
-                            const diffDias = diffMs / (1000 * 60 * 60 * 24);
-                            totalDias += diffDias;
-                            totalPeriodos++;
-                        }
-                        
-                        const mediaDias = totalDias / totalPeriodos;
-                        const mediaMeses = mediaDias / 30.44; // Média aproximada de dias por mês
-                        
-                        item.mediaTroca = parseFloat(mediaMeses.toFixed(1));
-                        item.ultimaTroca = solicItem[solicItem.length - 1].data;
-                        item.totalTrocas = solicItem.length;
-                    }
-                });
-                
-                // Atualizar visualização das médias
-                this.atualizarMediasTrocaVisualizacao();
-            }
-
-            atualizarMediasTrocaVisualizacao() {
-                const container = document.getElementById('media-troca-container');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                const itensComMedia = this.dados.itens
-                    .filter(item => item.status === 'ativo' && item.mediaTroca !== null)
-                    .sort((a, b) => a.mediaTroca - b.mediaTroca);
-                
-                if (itensComMedia.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px;">
-                            <i class="fas fa-chart-line fa-2x mb-3"></i>
-                            <p>Nenhuma média de troca disponível</p>
-                            <p class="text-sm">Os itens precisam ter pelo menos 2 solicitações realizadas</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Limitar a exibição a 8 itens para não sobrecarregar
-                const itensParaExibir = itensComMedia.slice(0, 8);
-                
-                itensParaExibir.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'media-troca-card';
-                    
-                    let classeCor = 'media';
-                    let descricao = 'Troca média';
-                    
-                    if (item.mediaTroca < 3) {
-                        classeCor = 'alta';
-                        descricao = 'Alta rotatividade';
-                    } else if (item.mediaTroca > 8) {
-                        classeCor = 'baixa';
-                        descricao = 'Baixa rotatividade';
-                    }
-                    
-                    const ultimaTrocaStr = item.ultimaTroca ? 
-                        this.formatarData(item.ultimaTroca.toISOString().split('T')[0]) : 'Nunca';
-                    
-                    card.innerHTML = `
-                        <div class="media-troca-header">
-                            <div>
-                                <div class="media-troca-nome">${item.nome}</div>
-                                <div class="media-troca-categoria">${this.formatarCategoria(item.categoria)}</div>
-                            </div>
-                            <span class="media-troca-badge ${classeCor}">
-                                <i class="fas fa-calendar-alt"></i>
-                                ${item.mediaTroca} meses
-                            </span>
-                        </div>
-                        
-                        <div class="media-troca-valor">${item.mediaTroca} meses</div>
-                        <div class="media-troca-descricao">${descricao}</div>
-                        
-                        <div class="media-troca-footer">
-                            <span>${item.totalTrocas || 0} trocas</span>
-                            <span>Última: ${ultimaTrocaStr}</span>
-                        </div>
-                    `;
-                    
-                    container.appendChild(card);
-                });
-            }
-
             atualizarDashboardCharts() {
                 this.criarGraficoTopColaboradores();
                 this.criarGraficoDepartamentos();
-                this.criarGraficoQuemMaisTrocaPorCategoria();
                 this.criarGraficoMensal();
+                this.criarGraficoItens();
             }
 
             criarGraficoTopColaboradores() {
@@ -2970,157 +2827,6 @@
                 });
             }
 
-            criarGraficoQuemMaisTrocaPorCategoria() {
-                const ctx = document.getElementById('chart-categorias');
-                if (!ctx) return;
-                
-                const canvasCtx = ctx.getContext('2d');
-                
-                // Inicializar contadores por categoria e colaborador
-                const contagemPorCategoria = {
-                    'uniforme': {},
-                    'epi': {},
-                    'materiais': {}
-                };
-                
-                // Contar solicitações por categoria e colaborador
-                this.dados.solicitacoes.forEach(solic => {
-                    if (solic.status === 'realizado') {
-                        solic.itens.forEach(itemSolic => {
-                            const itemNome = itemSolic.split(' (')[0];
-                            const item = this.dados.itens.find(i => i.nome === itemNome);
-                            
-                            if (item) {
-                                const categoria = item.categoria;
-                                const colaboradorNome = solic.colaboradorNome;
-                                
-                                if (!contagemPorCategoria[categoria][colaboradorNome]) {
-                                    contagemPorCategoria[categoria][colaboradorNome] = 0;
-                                }
-                                
-                                // Extrair quantidade do item
-                                const match = itemSolic.match(/- (\d+)$/);
-                                const quantidade = match ? parseInt(match[1]) : 1;
-                                
-                                contagemPorCategoria[categoria][colaboradorNome] += quantidade;
-                            }
-                        });
-                    }
-                });
-                
-                // Obter top 5 colaboradores por categoria
-                const topPorCategoria = {};
-                
-                Object.keys(contagemPorCategoria).forEach(categoria => {
-                    const colaboradores = Object.entries(contagemPorCategoria[categoria])
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5)
-                        .map(([nome, quantidade]) => ({ nome, quantidade }));
-                    
-                    topPorCategoria[categoria] = colaboradores;
-                });
-                
-                // Preparar dados para o gráfico
-                const datasets = [];
-                const categorias = ['uniforme', 'epi', 'materiais'];
-                const cores = {
-                    'uniforme': 'rgba(37, 99, 235, 0.8)',
-                    'epi': 'rgba(16, 185, 129, 0.8)',
-                    'materiais': 'rgba(139, 92, 246, 0.8)'
-                };
-                
-                categorias.forEach(categoria => {
-                    const colaboradores = topPorCategoria[categoria] || [];
-                    
-                    if (colaboradores.length > 0) {
-                        const labels = colaboradores.map(c => c.nome.split(' ')[0]); // Usar primeiro nome
-                        const data = colaboradores.map(c => c.quantidade);
-                        
-                        datasets.push({
-                            label: this.formatarCategoria(categoria),
-                            data: data,
-                            backgroundColor: cores[categoria],
-                            borderColor: cores[categoria].replace('0.8', '1'),
-                            borderWidth: 1
-                        });
-                    }
-                });
-                
-                if (datasets.length === 0) {
-                    // Caso não haja dados
-                    datasets.push({
-                        label: 'Nenhum dado',
-                        data: [1],
-                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
-                        borderColor: 'rgba(200, 200, 200, 1)',
-                        borderWidth: 1
-                    });
-                }
-                
-                // Obter labels (nomes dos colaboradores)
-                const todosNomes = new Set();
-                datasets.forEach(dataset => {
-                    dataset.data.forEach((_, index) => {
-                        // Para simplificar, usar índices
-                        todosNomes.add(`Colaborador ${index + 1}`);
-                    });
-                });
-                
-                const labels = Array.from(todosNomes);
-                
-                if (this.charts.categorias) {
-                    this.charts.categorias.destroy();
-                }
-                
-                this.charts.categorias = new Chart(canvasCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels.length > 0 ? labels : ['Nenhum dado'],
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                stacked: false,
-                            },
-                            y: {
-                                stacked: false,
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.dataset.label || '';
-                                        const value = context.raw;
-                                        const colaboradorNome = context.label;
-                                        return `${label}: ${value} itens (${colaboradorNome})`;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-                
-                // Atualizar também a lista de quem mais troca por categoria
-                this.atualizarTopPorCategoriaVisualizacao(topPorCategoria);
-            }
-
-            atualizarTopPorCategoriaVisualizacao(topPorCategoria) {
-                // Esta função pode ser usada para atualizar uma lista HTML se necessário
-                // Por enquanto, apenas mantemos os dados no gráfico
-            }
-
             criarGraficoMensal() {
                 const ctx = document.getElementById('chart-mensal');
                 if (!ctx) return;
@@ -3162,6 +2868,71 @@
                                 ticks: {
                                     stepSize: 1
                                 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            criarGraficoItens() {
+                const ctx = document.getElementById('chart-itens');
+                if (!ctx) return;
+                
+                const canvasCtx = ctx.getContext('2d');
+                
+                // Contar solicitações por item
+                const itensContagem = {};
+                this.dados.solicitacoes.forEach(solic => {
+                    if (solic.status === 'realizado') {
+                        solic.itens.forEach(item => {
+                            const itemNome = item.split(' (')[0];
+                            // Extrair quantidade do item
+                            const match = item.match(/- (\d+)$/);
+                            const quantidade = match ? parseInt(match[1]) : 1;
+                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                        });
+                    }
+                });
+                
+                // Ordenar por quantidade e pegar top 5
+                const topItens = Object.entries(itensContagem)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
+                
+                const labels = topItens.map(item => item[0]);
+                const data = topItens.map(item => item[1]);
+                const cores = this.gerarCores(data.length);
+                
+                if (this.charts.itens) {
+                    this.charts.itens.destroy();
+                }
+                
+                this.charts.itens = new Chart(canvasCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.length > 0 ? labels : ['Nenhum dado'],
+                        datasets: [{
+                            label: 'Quantidade Solicitada',
+                            data: data.length > 0 ? data : [0],
+                            backgroundColor: cores,
+                            borderColor: cores.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
                             }
                         }
                     }
@@ -3329,8 +3100,23 @@
                 
                 container.innerHTML = '';
                 
-                const topItens = [...this.dados.itens]
-                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
+                // Contar solicitações por item
+                const itensContagem = {};
+                this.dados.solicitacoes.forEach(solic => {
+                    if (solic.status === 'realizado') {
+                        solic.itens.forEach(item => {
+                            const itemNome = item.split(' (')[0];
+                            // Extrair quantidade do item
+                            const match = item.match(/- (\d+)$/);
+                            const quantidade = match ? parseInt(match[1]) : 1;
+                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                        });
+                    }
+                });
+                
+                const topItens = Object.entries(itensContagem)
+                    .map(([nome, quantidade]) => ({ nome, quantidade }))
+                    .sort((a, b) => b.quantidade - a.quantidade)
                     .slice(0, 5);
                 
                 if (topItens.length === 0) {
@@ -3352,9 +3138,8 @@
                     li.innerHTML = `
                         <div class="top-info">
                             <span class="top-name">${index + 1}. ${item.nome}</span>
-                            <span class="top-details">${this.formatarCategoria(item.categoria)}</span>
                         </div>
-                        <div class="top-count">${item.solicitacoes}</div>
+                        <div class="top-count">${item.quantidade}</div>
                     `;
                     container.appendChild(li);
                 });
@@ -3535,7 +3320,7 @@
                 if (this.dados.itens.length === 0) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td colspan="7" class="text-center text-muted">
+                        <td colspan="6" class="text-center text-muted">
                             Nenhum item cadastrado. <a href="#" onclick="document.getElementById('novo-item-btn').click(); return false;">Cadastre o primeiro item</a>.
                         </td>
                     `;
@@ -3546,22 +3331,11 @@
                 this.dados.itens.forEach(item => {
                     const tr = document.createElement('tr');
                     
-                    // Determinar badge de média de troca
-                    let mediaTrocaHTML = '<span class="badge badge-secondary">Sem dados</span>';
-                    if (item.mediaTroca !== null) {
-                        let badgeClass = 'badge-info';
-                        if (item.mediaTroca < 3) badgeClass = 'badge-danger';
-                        else if (item.mediaTroca > 8) badgeClass = 'badge-success';
-                        
-                        mediaTrocaHTML = `<span class="badge ${badgeClass}">${item.mediaTroca} meses</span>`;
-                    }
-                    
                     tr.innerHTML = `
                         <td>${item.nome}</td>
                         <td>${this.formatarCategoria(item.categoria)}</td>
                         <td>${item.tamanhos}</td>
                         <td>${item.solicitacoes}</td>
-                        <td>${mediaTrocaHTML}</td>
                         <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="sistema.editarItem(${item.id})">
@@ -3702,7 +3476,6 @@
                         this.filtrarSolicitacoes();
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
-                        this.calcularMediasTroca();
                         this.mostrarToast(`Status da solicitação #${solicitacao.id} atualizado para ${this.formatarStatus(novoStatus)}`);
                     }
                 }
@@ -3882,7 +3655,6 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
-                    this.calcularMediasTroca();
                     this.mostrarToast('Colaborador salvo com sucesso!');
                 }
             }
@@ -3900,7 +3672,6 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
-                        this.calcularMediasTroca();
                         this.mostrarToast('Colaborador excluído com sucesso!');
                     }
                 }
@@ -3937,8 +3708,7 @@
                         categoria,
                         tamanhos,
                         status,
-                        solicitacoes: 0,
-                        mediaTroca: null
+                        solicitacoes: 0
                     });
                 }
 
@@ -3948,7 +3718,6 @@
                     this.carregarTabelas();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
-                    this.calcularMediasTroca();
                     this.mostrarToast('Item salvo com sucesso!');
                 }
             }
@@ -3965,7 +3734,6 @@
                         this.carregarTabelas();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
-                        this.calcularMediasTroca();
                         this.mostrarToast('Item excluído com sucesso!');
                     }
                 }
@@ -4008,7 +3776,6 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
-                    this.calcularMediasTroca();
                     this.mostrarToast('Departamento salvo com sucesso!');
                 }
             }
@@ -4033,7 +3800,6 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
-                        this.calcularMediasTroca();
                         this.mostrarToast('Departamento excluído com sucesso!');
                     }
                 }
@@ -4084,7 +3850,6 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
-                    this.calcularMediasTroca();
                     this.mostrarToast('Empresa salva com sucesso!');
                 }
             }
@@ -4109,7 +3874,6 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
-                        this.calcularMediasTroca();
                         this.mostrarToast('Empresa excluída com sucesso!');
                     }
                 }
@@ -4312,7 +4076,6 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
-                    this.calcularMediasTroca();
                     this.mostrarToast('Solicitação salva com sucesso!');
                 }
             }
@@ -4372,7 +4135,6 @@
                         this.carregarTabelas();
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
-                        this.calcularMediasTroca();
                         this.mostrarToast('Solicitação excluída com sucesso!');
                     }
                 }
@@ -4462,130 +4224,8 @@
                 this.carregarTopItensComFiltro(solicitacoesFiltradas);
                 this.carregarUltimasSolicitacoesComFiltro(solicitacoesFiltradas);
                 
-                // Atualizar médias de troca com filtros
-                this.calcularMediasTrocaComFiltros(solicitacoesFiltradas);
-                
                 // Atualizar gráficos
                 this.atualizarGraficosComFiltros(solicitacoesFiltradas);
-            }
-
-            calcularMediasTrocaComFiltros(solicitacoesFiltradas) {
-                const container = document.getElementById('media-troca-container');
-                if (!container) return;
-                
-                container.innerHTML = '';
-                
-                // Calcular médias apenas com as solicitações filtradas
-                const itensComMedia = [];
-                
-                this.dados.itens.forEach(item => {
-                    if (item.status === 'ativo') {
-                        // Encontrar todas as solicitações filtradas que contêm este item
-                        const solicItem = [];
-                        
-                        solicitacoesFiltradas.forEach(solic => {
-                            if (solic.status === 'realizado') {
-                                solic.itens.forEach(itemSolic => {
-                                    const itemNome = itemSolic.split(' (')[0];
-                                    if (itemNome === item.nome) {
-                                        solicItem.push({
-                                            data: new Date(solic.data),
-                                            colaboradorId: solic.colaboradorId,
-                                            colaboradorNome: solic.colaboradorNome
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                        
-                        // Ordenar por data
-                        solicItem.sort((a, b) => a.data - b.data);
-                        
-                        if (solicItem.length <= 1) {
-                            return; // Não mostrar itens com menos de 2 solicitações
-                        }
-                        
-                        // Calcular média
-                        let totalDias = 0;
-                        let totalPeriodos = 0;
-                        
-                        for (let i = 1; i < solicItem.length; i++) {
-                            const diffMs = solicItem[i].data - solicItem[i-1].data;
-                            const diffDias = diffMs / (1000 * 60 * 60 * 24);
-                            totalDias += diffDias;
-                            totalPeriodos++;
-                        }
-                        
-                        const mediaDias = totalDias / totalPeriodos;
-                        const mediaMeses = parseFloat((mediaDias / 30.44).toFixed(1));
-                        
-                        itensComMedia.push({
-                            ...item,
-                            mediaTroca: mediaMeses,
-                            ultimaTroca: solicItem[solicItem.length - 1].data,
-                            totalTrocas: solicItem.length
-                        });
-                    }
-                });
-                
-                // Ordenar por média
-                itensComMedia.sort((a, b) => a.mediaTroca - b.mediaTroca);
-                
-                if (itensComMedia.length === 0) {
-                    container.innerHTML = `
-                        <div class="text-center text-muted" style="grid-column: 1 / -1; padding: 40px;">
-                            <i class="fas fa-filter fa-2x mb-3"></i>
-                            <p>Nenhum item encontrado com os filtros atuais</p>
-                            <p class="text-sm">Tente ajustar os filtros para ver as médias de troca</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                // Limitar a exibição a 8 itens para não sobrecarregar
-                const itensParaExibir = itensComMedia.slice(0, 8);
-                
-                itensParaExibir.forEach(item => {
-                    const card = document.createElement('div');
-                    card.className = 'media-troca-card';
-                    
-                    let classeCor = 'media';
-                    let descricao = 'Troca média';
-                    
-                    if (item.mediaTroca < 3) {
-                        classeCor = 'alta';
-                        descricao = 'Alta rotatividade';
-                    } else if (item.mediaTroca > 8) {
-                        classeCor = 'baixa';
-                        descricao = 'Baixa rotatividade';
-                    }
-                    
-                    const ultimaTrocaStr = item.ultimaTroca ? 
-                        this.formatarData(item.ultimaTroca.toISOString().split('T')[0]) : 'Nunca';
-                    
-                    card.innerHTML = `
-                        <div class="media-troca-header">
-                            <div>
-                                <div class="media-troca-nome">${item.nome}</div>
-                                <div class="media-troca-categoria">${this.formatarCategoria(item.categoria)}</div>
-                            </div>
-                            <span class="media-troca-badge ${classeCor}">
-                                <i class="fas fa-calendar-alt"></i>
-                                ${item.mediaTroca} meses
-                            </span>
-                        </div>
-                        
-                        <div class="media-troca-valor">${item.mediaTroca} meses</div>
-                        <div class="media-troca-descricao">${descricao}</div>
-                        
-                        <div class="media-troca-footer">
-                            <span>${item.totalTrocas || 0} trocas (filtradas)</span>
-                            <span>Última: ${ultimaTrocaStr}</span>
-                        </div>
-                    `;
-                    
-                    container.appendChild(card);
-                });
             }
 
             carregarTopColaboradoresComFiltro(solicitacoesFiltradas) {
@@ -4813,151 +4453,31 @@
                     this.charts.departamentos.update();
                 }
                 
-                // Atualizar gráfico de categorias
-                this.criarGraficoQuemMaisTrocaPorCategoriaComFiltros(solicitacoesFiltradas);
-            }
-
-            criarGraficoQuemMaisTrocaPorCategoriaComFiltros(solicitacoesFiltradas) {
-                const ctx = document.getElementById('chart-categorias');
-                if (!ctx) return;
-                
-                const canvasCtx = ctx.getContext('2d');
-                
-                // Inicializar contadores por categoria e colaborador
-                const contagemPorCategoria = {
-                    'uniforme': {},
-                    'epi': {},
-                    'materiais': {}
-                };
-                
-                // Contar solicitações por categoria e colaborador (apenas com filtros)
-                solicitacoesFiltradas.forEach(solic => {
-                    if (solic.status === 'realizado') {
-                        solic.itens.forEach(itemSolic => {
-                            const itemNome = itemSolic.split(' (')[0];
-                            const item = this.dados.itens.find(i => i.nome === itemNome);
-                            
-                            if (item) {
-                                const categoria = item.categoria;
-                                const colaboradorNome = solic.colaboradorNome;
-                                
-                                if (!contagemPorCategoria[categoria][colaboradorNome]) {
-                                    contagemPorCategoria[categoria][colaboradorNome] = 0;
-                                }
-                                
-                                // Extrair quantidade do item
-                                const match = itemSolic.match(/- (\d+)$/);
+                // Atualizar gráfico de itens
+                if (this.charts.itens) {
+                    const itensContagem = {};
+                    solicitacoesFiltradas.forEach(solic => {
+                        if (solic.status === 'realizado') {
+                            solic.itens.forEach(item => {
+                                const itemNome = item.split(' (')[0];
+                                const match = item.match(/- (\d+)$/);
                                 const quantidade = match ? parseInt(match[1]) : 1;
-                                
-                                contagemPorCategoria[categoria][colaboradorNome] += quantidade;
-                            }
-                        });
-                    }
-                });
-                
-                // Obter top 5 colaboradores por categoria
-                const topPorCategoria = {};
-                
-                Object.keys(contagemPorCategoria).forEach(categoria => {
-                    const colaboradores = Object.entries(contagemPorCategoria[categoria])
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5)
-                        .map(([nome, quantidade]) => ({ nome, quantidade }));
-                    
-                    topPorCategoria[categoria] = colaboradores;
-                });
-                
-                // Preparar dados para o gráfico
-                const datasets = [];
-                const categorias = ['uniforme', 'epi', 'materiais'];
-                const cores = {
-                    'uniforme': 'rgba(37, 99, 235, 0.8)',
-                    'epi': 'rgba(16, 185, 129, 0.8)',
-                    'materiais': 'rgba(139, 92, 246, 0.8)'
-                };
-                
-                categorias.forEach(categoria => {
-                    const colaboradores = topPorCategoria[categoria] || [];
-                    
-                    if (colaboradores.length > 0) {
-                        const labels = colaboradores.map(c => c.nome.split(' ')[0]); // Usar primeiro nome
-                        const data = colaboradores.map(c => c.quantidade);
-                        
-                        datasets.push({
-                            label: this.formatarCategoria(categoria),
-                            data: data,
-                            backgroundColor: cores[categoria],
-                            borderColor: cores[categoria].replace('0.8', '1'),
-                            borderWidth: 1
-                        });
-                    }
-                });
-                
-                if (datasets.length === 0) {
-                    // Caso não haja dados
-                    datasets.push({
-                        label: 'Nenhum dado (filtrado)',
-                        data: [1],
-                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
-                        borderColor: 'rgba(200, 200, 200, 1)',
-                        borderWidth: 1
-                    });
-                }
-                
-                // Obter labels (nomes dos colaboradores)
-                const todosNomes = new Set();
-                datasets.forEach(dataset => {
-                    dataset.data.forEach((_, index) => {
-                        // Para simplificar, usar índices
-                        todosNomes.add(`Colaborador ${index + 1}`);
-                    });
-                });
-                
-                const labels = Array.from(todosNomes);
-                
-                if (this.charts.categorias) {
-                    this.charts.categorias.destroy();
-                }
-                
-                this.charts.categorias = new Chart(canvasCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels.length > 0 ? labels : ['Nenhum dado'],
-                        datasets: datasets
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            x: {
-                                stacked: false,
-                            },
-                            y: {
-                                stacked: false,
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top'
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.dataset.label || '';
-                                        const value = context.raw;
-                                        const colaboradorNome = context.label;
-                                        return `${label}: ${value} itens (${colaboradorNome})`;
-                                    }
-                                }
-                            }
+                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                            });
                         }
-                    }
-                });
+                    });
+                    
+                    const topItens = Object.entries(itensContagem)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5);
+                    
+                    const labels = topItens.map(item => item[0]);
+                    const data = topItens.map(item => item[1]);
+                    
+                    this.charts.itens.data.labels = labels.length > 0 ? labels : ['Nenhum dado'];
+                    this.charts.itens.data.datasets[0].data = data.length > 0 ? data : [0];
+                    this.charts.itens.update();
+                }
             }
 
             filtrarColaboradores() {
@@ -4997,7 +4517,7 @@
                 linhas.forEach(linha => {
                     const nome = linha.cells[0].textContent.toLowerCase();
                     const categoriaLinha = linha.cells[1].textContent.toLowerCase();
-                    const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
+                    const statusLinha = linha.cells[4].querySelector('.badge').textContent.toLowerCase();
                     
                     const buscaMatch = busca === '' || nome.includes(busca);
                     const categoriaMatch = categoria === 'todos' || categoriaLinha === categoria;
@@ -5549,7 +5069,6 @@
                         <th>Categoria</th>
                         <th>Tamanhos</th>
                         <th>Solicitações</th>
-                        <th>Média de Troca</th>
                         <th>Status</th>
                     </tr>
                 `;
@@ -5559,7 +5078,7 @@
                 if (this.dados.itens.length === 0) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td colspan="6" class="text-center text-muted">
+                        <td colspan="5" class="text-center text-muted">
                             Nenhum item cadastrado
                         </td>
                     `;
@@ -5574,7 +5093,6 @@
                         <td>${this.formatarCategoria(item.categoria)}</td>
                         <td>${item.tamanhos}</td>
                         <td>${item.solicitacoes}</td>
-                        <td>${item.mediaTroca !== null ? `${item.mediaTroca} meses` : 'Sem dados'}</td>
                         <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
                     `;
                     corpo.appendChild(tr);
@@ -5718,7 +5236,7 @@
                 const doc = new jsPDF();
                 
                 doc.setFontSize(18);
-                doc.text('Relatório do Dashboard', 20, 20);
+                doc.text('Relatório do Dashboard - Gestão Operacional', 20, 20);
                 
                 doc.setFontSize(12);
                 doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
@@ -5740,81 +5258,61 @@
                     doc.text(stat, 30, statsY + 15 + (index * 10));
                 });
                 
-                // Adicionar médias de troca
-                const mediaTrocaY = statsY + 70;
+                // Adicionar top colaboradores
+                const topColabY = statsY + 70;
                 doc.setFontSize(14);
-                doc.text('Médias de Troca por Item:', 20, mediaTrocaY);
+                doc.text('Top Colaboradores que Mais Trocam:', 20, topColabY);
                 
                 doc.setFontSize(10);
-                const itensComMedia = this.dados.itens
-                    .filter(item => item.status === 'ativo' && item.mediaTroca !== null)
-                    .sort((a, b) => a.mediaTroca - b.mediaTroca)
-                    .slice(0, 8);
-                
-                itensComMedia.forEach((item, index) => {
-                    const yPos = mediaTrocaY + 15 + (index * 8);
-                    doc.text(`${item.nome}: ${item.mediaTroca} meses`, 30, yPos);
+                const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
+                    const solicitacoesRealizadas = this.dados.solicitacoes.filter(
+                        s => s.colaboradorId === colab.id && s.status === 'realizado'
+                    ).length;
+                    return {
+                        ...colab,
+                        solicitacoesRealizadas: solicitacoesRealizadas
+                    };
                 });
                 
-                // Adicionar quem mais troca por categoria
-                const categoriasY = mediaTrocaY + 15 + (itensComMedia.length * 8) + 20;
+                const topColaboradores = colaboradoresComSolicitacoes
+                    .filter(c => c.status === 'ativo')
+                    .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
+                    .slice(0, 5);
+                
+                topColaboradores.forEach((colab, index) => {
+                    const yPos = topColabY + 15 + (index * 8);
+                    doc.text(`${index + 1}. ${colab.nome}: ${colab.solicitacoesRealizadas} solicitações`, 30, yPos);
+                });
+                
+                // Adicionar top itens
+                const topItensY = topColabY + 15 + (topColaboradores.length * 8) + 20;
                 doc.setFontSize(14);
-                doc.text('Quem Mais Troca por Categoria:', 20, categoriasY);
+                doc.text('Itens Mais Solicitados:', 20, topItensY);
                 
-                // Calcular quem mais troca por categoria para o PDF
-                const contagemPorCategoria = {
-                    'uniforme': {},
-                    'epi': {},
-                    'materiais': {}
-                };
-                
+                // Contar solicitações por item
+                const itensContagem = {};
                 this.dados.solicitacoes.forEach(solic => {
                     if (solic.status === 'realizado') {
-                        solic.itens.forEach(itemSolic => {
-                            const itemNome = itemSolic.split(' (')[0];
-                            const item = this.dados.itens.find(i => i.nome === itemNome);
-                            
-                            if (item) {
-                                const categoria = item.categoria;
-                                const colaboradorNome = solic.colaboradorNome;
-                                
-                                if (!contagemPorCategoria[categoria][colaboradorNome]) {
-                                    contagemPorCategoria[categoria][colaboradorNome] = 0;
-                                }
-                                
-                                // Extrair quantidade do item
-                                const match = itemSolic.match(/- (\d+)$/);
-                                const quantidade = match ? parseInt(match[1]) : 1;
-                                
-                                contagemPorCategoria[categoria][colaboradorNome] += quantidade;
-                            }
+                        solic.itens.forEach(item => {
+                            const itemNome = item.split(' (')[0];
+                            const match = item.match(/- (\d+)$/);
+                            const quantidade = match ? parseInt(match[1]) : 1;
+                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
                         });
                     }
                 });
+                
+                const topItens = Object.entries(itensContagem)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5);
                 
                 doc.setFontSize(10);
-                let yPosCategoria = categoriasY + 10;
-                
-                Object.keys(contagemPorCategoria).forEach(categoria => {
-                    const colaboradores = Object.entries(contagemPorCategoria[categoria])
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 3);
-                    
-                    if (colaboradores.length > 0) {
-                        doc.setFontSize(12);
-                        doc.text(`${this.formatarCategoria(categoria)}:`, 30, yPosCategoria);
-                        yPosCategoria += 8;
-                        
-                        doc.setFontSize(10);
-                        colaboradores.forEach(([nome, quantidade], idx) => {
-                            doc.text(`  ${idx + 1}. ${nome.split(' ')[0]}: ${quantidade} itens`, 35, yPosCategoria);
-                            yPosCategoria += 6;
-                        });
-                        yPosCategoria += 4;
-                    }
+                topItens.forEach((item, index) => {
+                    const yPos = topItensY + 15 + (index * 8);
+                    doc.text(`${index + 1}. ${item[0]}: ${item[1]} unidades`, 30, yPos);
                 });
                 
-                doc.save(`dashboard_uniformes_${new Date().getTime()}.pdf`);
+                doc.save(`dashboard_gestao_operacional_${new Date().getTime()}.pdf`);
                 this.mostrarToast('Dashboard exportado para PDF!');
             }
 
@@ -5823,27 +5321,41 @@
                 const doc = new jsPDF();
                 const tabela = document.getElementById('relatorio-tabela');
                 
-                if (!tabela) return;
+                if (!tabela) {
+                    this.mostrarToast('Gere um relatório antes de exportar!', 'error');
+                    return;
+                }
                 
+                // Adicionar título
+                doc.setFontSize(18);
+                doc.text('Relatório - Gestão Operacional', 20, 20);
+                
+                doc.setFontSize(12);
+                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+                
+                // Adicionar a tabela
                 doc.autoTable({
                     html: tabela,
-                    startY: 20,
+                    startY: 40,
                     theme: 'grid',
                     headStyles: { fillColor: [37, 99, 235] }
                 });
                 
-                doc.save(`relatorio_uniformes_${new Date().getTime()}.pdf`);
+                doc.save(`relatorio_gestao_operacional_${new Date().getTime()}.pdf`);
                 this.mostrarToast('Relatório exportado para PDF!');
             }
 
             exportarExcel() {
                 const tabela = document.getElementById('relatorio-tabela');
-                if (!tabela) return;
+                if (!tabela) {
+                    this.mostrarToast('Gere um relatório antes de exportar!', 'error');
+                    return;
+                }
                 
                 const ws = XLSX.utils.table_to_sheet(tabela);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-                XLSX.writeFile(wb, `relatorio_uniformes_${new Date().getTime()}.xlsx`);
+                XLSX.writeFile(wb, `relatorio_gestao_operacional_${new Date().getTime()}.xlsx`);
                 this.mostrarToast('Relatório exportado para Excel!');
             }
 
@@ -5877,7 +5389,6 @@
                 this.carregarTabelas();
                 this.atualizarDashboardCharts();
                 this.atualizarSelects();
-                this.calcularMediasTroca();
                 this.atualizarFiltrosAtivos();
                 this.mostrarToast('Dados atualizados!', 'info');
             }
