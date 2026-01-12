@@ -6,9 +6,9 @@
     <title>Gestão de Solicitações Operacional</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* A */
         .active {
@@ -5179,127 +5179,177 @@
 
             // Exportação
             exportarDashboard() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                doc.setFontSize(18);
-                doc.text('Relatório do Dashboard - Gestão Operacional', 20, 20);
-                
-                doc.setFontSize(12);
-                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
-                
-                const statsY = 50;
-                doc.setFontSize(14);
-                doc.text('Estatísticas Gerais:', 20, statsY);
-                
-                doc.setFontSize(12);
-                const mediaTempo = this.calcularMediaTempoTrocaDashboard();
-                const stats = [
-                    `Colaboradores Ativos: ${document.getElementById('total-colaboradores').textContent}`,
-                    `Solicitações Pendentes: ${document.getElementById('solicitacoes-pendentes').textContent}`,
-                    `Total de Solicitações: ${document.getElementById('total-solicitacoes').textContent}`,
-                    `Média de Tempo de Troca: ${mediaTempo.texto}`
-                ];
-                
-                stats.forEach((stat, index) => {
-                    doc.text(stat, 30, statsY + 15 + (index * 10));
-                });
-                
-                const topColabY = statsY + 70;
-                doc.setFontSize(14);
-                doc.text('Top Colaboradores que Mais Trocam:', 20, topColabY);
-                
-                doc.setFontSize(10);
-                const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
-                const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                    const solicitacoesRealizadas = solicitacoesFiltradas.filter(
-                        s => s.colaboradorId === colab.id && s.status === 'realizado'
-                    ).length;
-                    return {
-                        ...colab,
-                        solicitacoesRealizadas: solicitacoesRealizadas
-                    };
-                });
-                
-                const topColaboradores = colaboradoresComSolicitacoes
-                    .filter(c => c.status === 'ativo')
-                    .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
-                    .slice(0, 5);
-                
-                topColaboradores.forEach((colab, index) => {
-                    const yPos = topColabY + 15 + (index * 8);
-                    doc.text(`${index + 1}. ${colab.nome}: ${colab.solicitacoesRealizadas} solicitações`, 30, yPos);
-                });
-                
-                const topItensY = topColabY + 15 + (topColaboradores.length * 8) + 20;
-                doc.setFontSize(14);
-                doc.text('Itens Mais Solicitados:', 20, topItensY);
-                
-                const itensContagem = {};
-                this.dados.solicitacoes.forEach(solic => {
-                    if (solic.status === 'realizado') {
-                        solic.itens.forEach(item => {
-                            const itemNome = item.split(' (')[0];
-                            const match = item.match(/- (\d+)$/);
-                            const quantidade = match ? parseInt(match[1]) : 1;
-                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                        });
-                    }
-                });
-                
-                const topItens = Object.entries(itensContagem)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0, 5);
-                
-                doc.setFontSize(10);
-                topItens.forEach((item, index) => {
-                    const yPos = topItensY + 15 + (index * 8);
-                    doc.text(`${index + 1}. ${item[0]}: ${item[1]} unidades`, 30, yPos);
-                });
-                
-                doc.save(`dashboard_gestao_operacional_${new Date().getTime()}.pdf`);
-                this.mostrarToast('Dashboard exportado para PDF!');
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    doc.setFontSize(18);
+                    doc.text('Relatório do Dashboard - Gestão Operacional', 20, 20);
+                    
+                    doc.setFontSize(12);
+                    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+                    
+                    const statsY = 50;
+                    doc.setFontSize(14);
+                    doc.text('Estatísticas Gerais:', 20, statsY);
+                    
+                    doc.setFontSize(12);
+                    const mediaTempo = this.calcularMediaTempoTrocaDashboard();
+                    const stats = [
+                        `Colaboradores Ativos: ${document.getElementById('total-colaboradores').textContent}`,
+                        `Solicitações Pendentes: ${document.getElementById('solicitacoes-pendentes').textContent}`,
+                        `Total de Solicitações: ${document.getElementById('total-solicitacoes').textContent}`,
+                        `Média de Tempo de Troca: ${mediaTempo.texto}`
+                    ];
+                    
+                    stats.forEach((stat, index) => {
+                        doc.text(stat, 30, statsY + 15 + (index * 10));
+                    });
+                    
+                    const topColabY = statsY + 70;
+                    doc.setFontSize(14);
+                    doc.text('Top Colaboradores que Mais Trocam:', 20, topColabY);
+                    
+                    doc.setFontSize(10);
+                    const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
+                    const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
+                        const solicitacoesRealizadas = solicitacoesFiltradas.filter(
+                            s => s.colaboradorId === colab.id && s.status === 'realizado'
+                        ).length;
+                        return {
+                            ...colab,
+                            solicitacoesRealizadas: solicitacoesRealizadas
+                        };
+                    });
+                    
+                    const topColaboradores = colaboradoresComSolicitacoes
+                        .filter(c => c.status === 'ativo')
+                        .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
+                        .slice(0, 5);
+                    
+                    topColaboradores.forEach((colab, index) => {
+                        const yPos = topColabY + 15 + (index * 8);
+                        doc.text(`${index + 1}. ${colab.nome}: ${colab.solicitacoesRealizadas} solicitações`, 30, yPos);
+                    });
+                    
+                    const topItensY = topColabY + 15 + (topColaboradores.length * 8) + 20;
+                    doc.setFontSize(14);
+                    doc.text('Itens Mais Solicitados:', 20, topItensY);
+                    
+                    const itensContagem = {};
+                    this.dados.solicitacoes.forEach(solic => {
+                        if (solic.status === 'realizado') {
+                            solic.itens.forEach(item => {
+                                const itemNome = item.split(' (')[0];
+                                const match = item.match(/- (\d+)$/);
+                                const quantidade = match ? parseInt(match[1]) : 1;
+                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                            });
+                        }
+                    });
+                    
+                    const topItens = Object.entries(itensContagem)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5);
+                    
+                    doc.setFontSize(10);
+                    topItens.forEach((item, index) => {
+                        const yPos = topItensY + 15 + (index * 8);
+                        doc.text(`${index + 1}. ${item[0]}: ${item[1]} unidades`, 30, yPos);
+                    });
+                    
+                    doc.save(`dashboard_gestao_operacional_${new Date().getTime()}.pdf`);
+                    this.mostrarToast('Dashboard exportado para PDF!');
+                } catch (error) {
+                    console.error('Erro ao exportar dashboard para PDF:', error);
+                    this.mostrarToast('Erro ao exportar dashboard para PDF!', 'error');
+                }
             }
 
             exportarPDF() {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                const tabela = document.getElementById('relatorio-tabela');
-                
-                if (!tabela) {
-                    this.mostrarToast('Gere um relatório antes de exportar!', 'error');
-                    return;
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    const tabela = document.getElementById('relatorio-tabela');
+                    
+                    if (!tabela) {
+                        this.mostrarToast('Gere um relatório antes de exportar!', 'error');
+                        return;
+                    }
+                    
+                    doc.setFontSize(18);
+                    doc.text('Relatório - Gestão Operacional', 20, 20);
+                    
+                    doc.setFontSize(12);
+                    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
+                    
+                    const tipoRelatorio = document.getElementById('tipo-relatorio').value;
+                    let tituloRelatorio = '';
+                    
+                    switch(tipoRelatorio) {
+                        case 'solicitacoes':
+                            tituloRelatorio = 'Relatório de Solicitações';
+                            break;
+                        case 'colaboradores':
+                            tituloRelatorio = 'Relatório de Colaboradores';
+                            break;
+                        case 'itens':
+                            tituloRelatorio = 'Relatório de Itens';
+                            break;
+                        case 'departamentos':
+                            tituloRelatorio = 'Relatório de Departamentos';
+                            break;
+                        case 'empresas':
+                            tituloRelatorio = 'Relatório de Empresas';
+                            break;
+                    }
+                    
+                    doc.setFontSize(14);
+                    doc.text(tituloRelatorio, 20, 45);
+                    
+                    // Usando autoTable para criar a tabela
+                    doc.autoTable({
+                        html: tabela,
+                        startY: 55,
+                        theme: 'grid',
+                        headStyles: { fillColor: [37, 99, 235] },
+                        styles: { fontSize: 9 },
+                        columnStyles: {
+                            0: { cellWidth: 'auto' },
+                            1: { cellWidth: 'auto' },
+                            2: { cellWidth: 'auto' },
+                            3: { cellWidth: 'auto' },
+                            4: { cellWidth: 'auto' },
+                            5: { cellWidth: 'auto' }
+                        }
+                    });
+                    
+                    doc.save(`relatorio_${tipoRelatorio}_${new Date().getTime()}.pdf`);
+                    this.mostrarToast('Relatório exportado para PDF!');
+                } catch (error) {
+                    console.error('Erro ao exportar para PDF:', error);
+                    this.mostrarToast('Erro ao exportar para PDF!', 'error');
                 }
-                
-                doc.setFontSize(18);
-                doc.text('Relatório - Gestão Operacional', 20, 20);
-                
-                doc.setFontSize(12);
-                doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
-                
-                doc.autoTable({
-                    html: tabela,
-                    startY: 40,
-                    theme: 'grid',
-                    headStyles: { fillColor: [37, 99, 235] }
-                });
-                
-                doc.save(`relatorio_gestao_operacional_${new Date().getTime()}.pdf`);
-                this.mostrarToast('Relatório exportado para PDF!');
             }
 
             exportarExcel() {
-                const tabela = document.getElementById('relatorio-tabela');
-                if (!tabela) {
-                    this.mostrarToast('Gere um relatório antes de exportar!', 'error');
-                    return;
+                try {
+                    const tabela = document.getElementById('relatorio-tabela');
+                    if (!tabela) {
+                        this.mostrarToast('Gere um relatório antes de exportar!', 'error');
+                        return;
+                    }
+                    
+                    const ws = XLSX.utils.table_to_sheet(tabela);
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Relatório");
+                    XLSX.writeFile(wb, `relatorio_gestao_operacional_${new Date().getTime()}.xlsx`);
+                    this.mostrarToast('Relatório exportado para Excel!');
+                } catch (error) {
+                    console.error('Erro ao exportar para Excel:', error);
+                    this.mostrarToast('Erro ao exportar para Excel!', 'error');
                 }
-                
-                const ws = XLSX.utils.table_to_sheet(tabela);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-                XLSX.writeFile(wb, `relatorio_gestao_operacional_${new Date().getTime()}.xlsx`);
-                this.mostrarToast('Relatório exportado para Excel!');
             }
 
             // Utilitários
