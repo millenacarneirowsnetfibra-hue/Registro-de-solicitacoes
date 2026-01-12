@@ -1437,11 +1437,6 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="text-center mt-3">
-                        <button class="btn btn-secondary btn-sm" id="ver-mais-solicitacoes" style="display: none;">
-                            <i class="fas fa-eye"></i> Ver Mais Solicitações
-                        </button>
-                    </div>
                 </div>
             </section>
 
@@ -1641,16 +1636,6 @@
                             <!-- Preenchido por JS -->
                         </tbody>
                     </table>
-                </div>
-                <div class="text-center mt-3">
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button class="btn btn-secondary" id="voltar-inicio-solicitacoes" style="display: none;">
-                            <i class="fas fa-arrow-left"></i> Voltar ao início
-                        </button>
-                        <button class="btn btn-secondary" id="ver-mais-solicitacoes-tabela" style="display: none;">
-                            <i class="fas fa-eye"></i> Ver Mais Solicitações
-                        </button>
-                    </div>
                 </div>
             </section>
 
@@ -2049,8 +2034,7 @@
                     relatorios: { tipo: 'solicitacoes', periodo: 'todos', empresa: 'todos', departamento: 'todos', colaborador: 'todos', status: 'todos' }
                 };
                 this.visualizacaoSolicitacoes = {
-                    dashboard: { limite: 5, offset: 0 },
-                    tabela: { limite: 1000, offset: 0 } // Alterado para mostrar todas de uma vez
+                    dashboard: { limite: 5, offset: 0 }
                 };
                 this.init();
             }
@@ -2210,16 +2194,13 @@
                             this.atualizarDashboardCharts();
                             this.atualizarFiltrosAtivos('dashboard');
                             this.calcularMediasTroca();
-                            this.resetarVisualizacaoSolicitacoes('dashboard');
                         } else if (sectionId === 'colaboradores') {
                             this.atualizarFiltrosAtivos('colaboradores');
                         } else if (sectionId === 'itens') {
                             this.atualizarFiltrosAtivos('itens');
                         } else if (sectionId === 'solicitacoes') {
                             this.atualizarFiltrosAtivos('solicitacoes');
-                            this.resetarVisualizacaoSolicitacoes('tabela');
-                            // Carregar todas as solicitações de uma vez
-                            this.carregarTabelaSolicitacoes(true);
+                            this.filtrarSolicitacoes();
                         } else if (sectionId === 'departamentos') {
                             this.atualizarFiltrosAtivos('departamentos');
                         } else if (sectionId === 'empresas') {
@@ -2250,24 +2231,6 @@
                 document.getElementById('nova-solicitacao-btn2')?.addEventListener('click', () => this.abrirModal('solicitacao'));
                 document.getElementById('novo-departamento-btn')?.addEventListener('click', () => this.abrirModal('departamento'));
                 document.getElementById('nova-empresa-btn')?.addEventListener('click', () => this.abrirModal('empresa'));
-                
-                // Ver mais solicitações
-                document.getElementById('ver-mais-solicitacoes')?.addEventListener('click', () => {
-                    this.verMaisSolicitacoes('dashboard');
-                });
-                document.getElementById('ver-mais-solicitacoes-tabela')?.addEventListener('click', () => {
-                    this.verMaisSolicitacoes('tabela');
-                });
-                
-                // Voltar ao início (botão novo)
-                document.getElementById('voltar-inicio-solicitacoes')?.addEventListener('click', () => {
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    this.carregarTabelaSolicitacoes();
-                });
-                
-                // Relatórios
-                document.getElementById('exportar-pdf-btn')?.addEventListener('click', () => this.exportarPDF());
-                document.getElementById('exportar-excel-btn')?.addEventListener('click', () => this.exportarExcel());
                 
                 // Formulários
                 document.getElementById('form-colaborador')?.addEventListener('submit', (e) => {
@@ -2377,49 +2340,37 @@
                 document.getElementById('filtro-status-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.status = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    // Mostrar todas as solicitações filtradas de uma vez
-                    this.carregarTabelaSolicitacoes(true);
+                    this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-departamento-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    // Mostrar todas as solicitações filtradas de uma vez
-                    this.carregarTabelaSolicitacoes(true);
+                    this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-empresa-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.empresa = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    // Mostrar todas as solicitações filtradas de uma vez
-                    this.carregarTabelaSolicitacoes(true);
+                    this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-item-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.item = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    // Mostrar todas as solicitações filtradas de uma vez
-                    this.carregarTabelaSolicitacoes(true);
+                    this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-periodo-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.periodo = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    // Mostrar todas as solicitações filtradas de uma vez
-                    this.carregarTabelaSolicitacoes(true);
+                    this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-colaborador-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.colaborador = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
-                    // Mostrar todas as solicitações filtradas de uma vez
-                    this.carregarTabelaSolicitacoes(true);
+                    this.filtrarSolicitacoes();
                 });
                 
                 // Filtros de Departamentos (auto-aplicar)
@@ -2476,6 +2427,10 @@
                     this.filtrosAtivos.relatorios.status = e.target.value;
                     this.gerarRelatorio();
                 });
+                
+                // Relatórios
+                document.getElementById('exportar-pdf-btn')?.addEventListener('click', () => this.exportarPDF());
+                document.getElementById('exportar-excel-btn')?.addEventListener('click', () => this.exportarExcel());
                 
                 // Fechar modais
                 document.querySelectorAll('.modal-close').forEach(btn => {
@@ -3139,7 +3094,7 @@
                 // Carregar top itens (atualizado automaticamente)
                 this.carregarTopItens();
                 
-                // Carregar últimas solicitações (10 mais recentes)
+                // Carregar últimas solicitações (5 mais recentes)
                 this.carregarUltimasSolicitacoes();
             }
 
@@ -3297,7 +3252,6 @@
 
             carregarUltimasSolicitacoes() {
                 const tbody = document.getElementById('ultimas-solicitacoes-tbody');
-                const verMaisBtn = document.getElementById('ver-mais-solicitacoes');
                 if (!tbody) return;
                 
                 tbody.innerHTML = '';
@@ -3307,8 +3261,7 @@
                     .sort((a, b) => new Date(b.data) - new Date(a.data));
                 
                 const limite = this.visualizacaoSolicitacoes.dashboard.limite;
-                const offset = this.visualizacaoSolicitacoes.dashboard.offset;
-                const solicitacoesParaExibir = todasSolicitacoes.slice(offset, offset + limite);
+                const solicitacoesParaExibir = todasSolicitacoes.slice(0, limite);
                 
                 if (solicitacoesParaExibir.length === 0) {
                     const tr = document.createElement('tr');
@@ -3318,7 +3271,6 @@
                         </td>
                     `;
                     tbody.appendChild(tr);
-                    verMaisBtn.style.display = 'none';
                     return;
                 }
                 
@@ -3349,31 +3301,6 @@
                     `;
                     tbody.appendChild(tr);
                 });
-                
-                // Mostrar botão "Ver Mais" se houver mais solicitações
-                if (todasSolicitacoes.length > offset + limite) {
-                    verMaisBtn.style.display = 'block';
-                } else {
-                    verMaisBtn.style.display = 'none';
-                }
-            }
-
-            verMaisSolicitacoes(tipo) {
-                if (tipo === 'dashboard') {
-                    this.visualizacaoSolicitacoes.dashboard.offset += this.visualizacaoSolicitacoes.dashboard.limite;
-                    this.carregarUltimasSolicitacoes();
-                } else if (tipo === 'tabela') {
-                    this.visualizacaoSolicitacoes.tabela.offset += this.visualizacaoSolicitacoes.tabela.limite;
-                    this.carregarTabelaSolicitacoes();
-                }
-            }
-
-            resetarVisualizacaoSolicitacoes(tipo) {
-                if (tipo === 'dashboard') {
-                    this.visualizacaoSolicitacoes.dashboard.offset = 0;
-                } else if (tipo === 'tabela') {
-                    this.visualizacaoSolicitacoes.tabela.offset = 0;
-                }
             }
 
             visualizarSolicitacao(id) {
@@ -3389,7 +3316,7 @@
             carregarTabelas() {
                 this.carregarTabelaColaboradores();
                 this.carregarTabelaItens();
-                this.carregarTabelaSolicitacoes(true); // Carregar todas de uma vez
+                this.carregarTabelaSolicitacoes();
                 this.carregarTabelaDepartamentos();
                 this.carregarTabelaEmpresas();
             }
@@ -3539,10 +3466,8 @@
                 });
             }
 
-            carregarTabelaSolicitacoes(forcarTodas = false) {
+            carregarTabelaSolicitacoes() {
                 const tbody = document.getElementById('solicitacoes-tbody');
-                const verMaisBtn = document.getElementById('ver-mais-solicitacoes-tabela');
-                const voltarInicioBtn = document.getElementById('voltar-inicio-solicitacoes');
                 if (!tbody) return;
                 
                 tbody.innerHTML = '';
@@ -3555,8 +3480,6 @@
                         </td>
                     `;
                     tbody.appendChild(tr);
-                    if (verMaisBtn) verMaisBtn.style.display = 'none';
-                    if (voltarInicioBtn) voltarInicioBtn.style.display = 'none';
                     return;
                 }
                 
@@ -3564,48 +3487,7 @@
                 const todasSolicitacoes = [...this.dados.solicitacoes]
                     .sort((a, b) => new Date(b.data) - new Date(a.data));
                 
-                let solicitacoesParaExibir;
-                
-                if (forcarTodas) {
-                    // Mostrar todas as solicitações de uma vez
-                    solicitacoesParaExibir = todasSolicitacoes;
-                    if (verMaisBtn) verMaisBtn.style.display = 'none';
-                } else {
-                    const limite = this.visualizacaoSolicitacoes.tabela.limite;
-                    const offset = this.visualizacaoSolicitacoes.tabela.offset;
-                    solicitacoesParaExibir = todasSolicitacoes.slice(offset, offset + limite);
-                    
-                    // Mostrar botão "Ver Mais" se houver mais solicitações
-                    if (verMaisBtn) {
-                        if (todasSolicitacoes.length > offset + limite) {
-                            verMaisBtn.style.display = 'block';
-                        } else {
-                            verMaisBtn.style.display = 'none';
-                        }
-                    }
-                }
-                
-                // Mostrar botão "Voltar ao início" se estiver em uma página além da primeira
-                if (voltarInicioBtn) {
-                    if (this.visualizacaoSolicitacoes.tabela.offset > 0) {
-                        voltarInicioBtn.style.display = 'block';
-                    } else {
-                        voltarInicioBtn.style.display = 'none';
-                    }
-                }
-                
-                if (solicitacoesParaExibir.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="7" class="text-center text-muted">
-                            Nenhuma solicitação encontrada.
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                    return;
-                }
-                
-                solicitacoesParaExibir.forEach(solic => {
+                todasSolicitacoes.forEach(solic => {
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
                     const empresaNome = this.getEmpresaNome(solic.empresaId);
@@ -3707,7 +3589,7 @@
                     solicitacao.status = novoStatus;
                     const salvou = this.salvarDados();
                     if (salvou) {
-                        this.carregarTabelaSolicitacoes(true);
+                        this.filtrarSolicitacoes();
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.calcularMediasTroca();
@@ -4321,8 +4203,6 @@
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
                     this.calcularMediasTroca();
-                    this.resetarVisualizacaoSolicitacoes('dashboard');
-                    this.resetarVisualizacaoSolicitacoes('tabela');
                     this.mostrarToast('Solicitação salva com sucesso!');
                 }
             }
@@ -4383,8 +4263,6 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.calcularMediasTroca();
-                        this.resetarVisualizacaoSolicitacoes('dashboard');
-                        this.resetarVisualizacaoSolicitacoes('tabela');
                         this.mostrarToast('Solicitação excluída com sucesso!');
                     }
                 }
@@ -4874,9 +4752,135 @@
             }
 
             filtrarSolicitacoes() {
-                // Este método não é mais necessário pois agora carregamos todas as solicitações de uma vez
-                // e aplicamos filtros diretamente no carregamento
-                this.carregarTabelaSolicitacoes(true);
+                const status = this.filtrosAtivos.solicitacoes.status;
+                const departamento = this.filtrosAtivos.solicitacoes.departamento;
+                const empresa = this.filtrosAtivos.solicitacoes.empresa;
+                const item = this.filtrosAtivos.solicitacoes.item;
+                const periodo = this.filtrosAtivos.solicitacoes.periodo;
+                const colaborador = this.filtrosAtivos.solicitacoes.colaborador;
+                
+                const tbody = document.getElementById('solicitacoes-tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+                
+                let solicitacoesFiltradas = [...this.dados.solicitacoes];
+                
+                // Aplicar filtro de status
+                if (status !== 'todos') {
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.status === status);
+                }
+                
+                // Aplicar filtro de departamento
+                if (departamento !== 'todos') {
+                    const deptoId = parseInt(departamento);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.departamentoId === deptoId);
+                }
+                
+                // Aplicar filtro de empresa
+                if (empresa !== 'todos') {
+                    const empresaId = parseInt(empresa);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.empresaId === empresaId);
+                }
+                
+                // Aplicar filtro de colaborador
+                if (colaborador !== 'todos') {
+                    const colaboradorId = parseInt(colaborador);
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(s => s.colaboradorId === colaboradorId);
+                }
+                
+                // Aplicar filtro de item
+                if (item !== 'todos') {
+                    const itemId = parseInt(item);
+                    const itemSelecionado = this.dados.itens.find(i => i.id === itemId);
+                    if (itemSelecionado) {
+                        solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
+                            return solic.itens.some(itemSolic => {
+                                const itemNome = itemSolic.split(' (')[0];
+                                return itemNome === itemSelecionado.nome;
+                            });
+                        });
+                    }
+                }
+                
+                // Aplicar filtro de período
+                if (periodo !== 'todos') {
+                    const hoje = new Date();
+                    solicitacoesFiltradas = solicitacoesFiltradas.filter(solic => {
+                        const dataSolicitacao = new Date(solic.data);
+                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
+                        
+                        if (periodo === '7dias') return diffDias <= 7;
+                        if (periodo === '30dias') return diffDias <= 30;
+                        if (periodo === 'mes_atual') {
+                            return dataSolicitacao.getMonth() === hoje.getMonth() && 
+                                   dataSolicitacao.getFullYear() === hoje.getFullYear();
+                        }
+                        return true;
+                    });
+                }
+                
+                // Ordenar solicitações por data (mais recentes primeiro)
+                solicitacoesFiltradas.sort((a, b) => new Date(b.data) - new Date(a.data));
+                
+                if (solicitacoesFiltradas.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="7" class="text-center text-muted">
+                            Nenhuma solicitação encontrada com os filtros atuais.
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                    return;
+                }
+                
+                solicitacoesFiltradas.forEach(solic => {
+                    const tr = document.createElement('tr');
+                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
+                    const empresaNome = this.getEmpresaNome(solic.empresaId);
+                    const statusClass = this.getStatusClass(solic.status);
+                    const statusFormatado = this.formatarStatus(solic.status);
+                    
+                    // Formatar itens em lista vertical
+                    const itensHTML = solic.itens.map(item => {
+                        const [nomeItem, tamanho] = item.split(' (');
+                        const tamanhoFormatado = tamanho ? tamanho.replace(')', '') : '';
+                        return `<div class="item-list-row">${nomeItem} ${tamanhoFormatado ? `(${tamanhoFormatado})` : ''}</div>`;
+                    }).join('');
+                    
+                    tr.innerHTML = `
+                        <td>${solic.colaboradorNome}</td>
+                        <td>${departamentoNome}</td>
+                        <td><span class="empresa-badge">${empresaNome}</span></td>
+                        <td><div class="item-list">${itensHTML}</div></td>
+                        <td>${this.formatarData(solic.data)}</td>
+                        <td>
+                            <span class="badge ${statusClass}">${statusFormatado}</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                <div class="status-actions">
+                                    <button class="status-btn pendente" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'pendente')" title="Marcar como Pendente">
+                                        P
+                                    </button>
+                                    <button class="status-btn nao-precisa" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'nao_precisa')" title="Marcar como Não Precisa">
+                                        NP
+                                    </button>
+                                    <button class="status-btn realizado" onclick="sistema.atualizarStatusSolicitacao(${solic.id}, 'realizado')" title="Marcar como Realizado">
+                                        R
+                                    </button>
+                                </div>
+                                <button class="btn btn-secondary btn-sm" onclick="sistema.editarSolicitacao(${solic.id})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="sistema.excluirSolicitacao(${solic.id})" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
             }
 
             filtrarDepartamentos() {
@@ -5085,11 +5089,7 @@
                         if (chave === 'item') document.getElementById('filtro-item-solicitacao').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
-                        
-                        // Resetar visualização quando limpar filtro
-                        this.resetarVisualizacaoSolicitacoes('tabela');
-                        // Carregar todas as solicitações de uma vez
-                        this.carregarTabelaSolicitacoes(true);
+                        this.filtrarSolicitacoes();
                         break;
                     case 'departamentos':
                         if (chave === 'busca') document.getElementById('buscar-departamento').value = '';
@@ -5565,8 +5565,6 @@
                 this.atualizarSelects();
                 this.calcularMediasTroca();
                 this.atualizarFiltrosAtivos();
-                this.resetarVisualizacaoSolicitacoes('dashboard');
-                this.resetarVisualizacaoSolicitacoes('tabela');
                 this.mostrarToast('Dados atualizados!', 'info');
             }
 
