@@ -1324,7 +1324,7 @@
                             <div>
                                 <div class="stat-value" id="media-tempo-troca">0 dias</div>
                                 <div class="stat-label">Média de Tempo de Troca</div>
-                                <small id="media-detalhes" style="font-size: 0.7rem; color: var(--gray);">(baseado nas solicitações realizadas)</small>
+                                <small id="media-detalhes" style="font-size: 0.7rem; color: var(--gray);">(todas as solicitações)</small>
                             </div>
                             <div class="stat-icon green">
                                 <i class="fas fa-calendar-alt"></i>
@@ -1523,7 +1523,7 @@
                             <i class="fas fa-clock"></i>
                             Tempo Médio de Troca por Item
                         </h4>
-                        <small class="text-muted">Baseado nas solicitações realizadas</small>
+                        <small class="text-muted">Baseado em todas as solicitações</small>
                     </div>
                     
                     <div class="media-tempo-grid" id="media-tempo-grid">
@@ -2164,14 +2164,16 @@
                     solicitacoes: [
                         { id: 1, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (M) - 2", "Calça Social (42) - 1"], data: umaSemanaAtras.toISOString().split('T')[0], status: "realizado" },
                         { id: 2, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 2, empresaId: 1, itens: ["Caderno (Único) - 1", "Caneta (Único) - 3"], data: umMesAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 3, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1", "Luva de Proteção (M) - 2"], data: doisMesesAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 4, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 3, empresaId: 1, itens: ["Camisa Polo (P) - 1"], data: tresMesesAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 3, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1", "Luva de Proteção (M) - 2"], data: doisMesesAtras.toISOString().split('T')[0], status: "pendente" },
+                        { id: 4, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 3, empresaId: 1, itens: ["Camisa Polo (P) - 1"], data: tresMesesAtras.toISOString().split('T')[0], status: "nao_precisa" },
                         { id: 5, colaboradorId: 5, colaboradorNome: "Carlos Rodrigues", departamentoId: 2, empresaId: 2, itens: ["Calça Social (40) - 1", "Camisa Polo (G) - 1"], data: hoje.toISOString().split('T')[0], status: "pendente" },
                         { id: 6, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Luva de Proteção (G) - 1"], data: duasSemanasAtras.toISOString().split('T')[0], status: "realizado" },
                         { id: 7, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1"], data: seisMesesAtras.toISOString().split('T')[0], status: "realizado" },
                         { id: 8, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (G) - 2"], data: umAnoAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 9, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (G) - 1"], data: umMesAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 10, colaboradorId: 7, colaboradorNome: "Ricardo Alves", departamentoId: 3, empresaId: 2, itens: ["Caneta (Único) - 5"], data: doisMesesAtras.toISOString().split('T')[0], status: "realizado" }
+                        { id: 9, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (G) - 1"], data: umMesAtras.toISOString().split('T')[0], status: "nao_precisa" },
+                        { id: 10, colaboradorId: 7, colaboradorNome: "Ricardo Alves", departamentoId: 3, empresaId: 2, itens: ["Caneta (Único) - 5"], data: doisMesesAtras.toISOString().split('T')[0], status: "realizado" },
+                        { id: 11, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 2, empresaId: 1, itens: ["Camisa Polo (M) - 1"], data: new Date(hoje.getTime() - 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "pendente" },
+                        { id: 12, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Calça Social (44) - 1"], data: new Date(hoje.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "realizado" }
                     ]
                 };
             }
@@ -2761,22 +2763,22 @@
                 const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
                 
                 const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                    const solicitacoesRealizadas = solicitacoesFiltradas.filter(
-                        s => s.colaboradorId === colab.id && s.status === 'realizado'
+                    const solicitacoesTotal = solicitacoesFiltradas.filter(
+                        s => s.colaboradorId === colab.id
                     ).length;
                     return {
                         ...colab,
-                        solicitacoesRealizadas: solicitacoesRealizadas
+                        solicitacoesTotal: solicitacoesTotal
                     };
                 });
                 
                 const topColaboradores = colaboradoresComSolicitacoes
                     .filter(c => c.status === 'ativo')
-                    .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
+                    .sort((a, b) => b.solicitacoesTotal - a.solicitacoesTotal)
                     .slice(0, 5);
                 
                 const labels = topColaboradores.map(c => c.nome.split(' ')[0]);
-                const data = topColaboradores.map(c => c.solicitacoesRealizadas);
+                const data = topColaboradores.map(c => c.solicitacoesTotal);
                 const cores = this.gerarCores(data.length);
                 
                 if (this.charts.topColaboradores) {
@@ -2788,7 +2790,7 @@
                     data: {
                         labels: labels.length > 0 ? labels : ['Nenhum dado'],
                         datasets: [{
-                            label: 'Solicitações Realizadas',
+                            label: 'Total de Solicitações',
                             data: data.length > 0 ? data : [0],
                             backgroundColor: cores,
                             borderColor: cores.map(c => c.replace('0.8', '1')),
@@ -2919,14 +2921,12 @@
                 
                 const itensContagem = {};
                 solicitacoesFiltradas.forEach(solic => {
-                    if (solic.status === 'realizado') {
-                        solic.itens.forEach(item => {
-                            const itemNome = item.split(' (')[0];
-                            const match = item.match(/- (\d+)$/);
-                            const quantidade = match ? parseInt(match[1]) : 1;
-                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                        });
-                    }
+                    solic.itens.forEach(item => {
+                        const itemNome = item.split(' (')[0];
+                        const match = item.match(/- (\d+)$/);
+                        const quantidade = match ? parseInt(match[1]) : 1;
+                        itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                    });
                 });
                 
                 const topItens = Object.entries(itensContagem)
@@ -3035,18 +3035,21 @@
             calcularMediaTempoTrocaDashboard() {
                 const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
                 
-                const solicitacoesRealizadas = solicitacoesFiltradas.filter(s => s.status === 'realizado');
-                
-                if (solicitacoesRealizadas.length < 2) {
-                    return { mediaDias: 0, texto: "Sem dados suficientes", observacao: "Necessário pelo menos 2 solicitações realizadas" };
+                if (solicitacoesFiltradas.length < 2) {
+                    return { mediaDias: 0, texto: "Sem dados suficientes", observacao: "Necessário pelo menos 2 solicitações" };
                 }
+                
+                // Ordena as solicitações por data
+                const solicitacoesOrdenadas = [...solicitacoesFiltradas].sort((a, b) => 
+                    new Date(a.data) - new Date(b.data)
+                );
                 
                 let totalDias = 0;
                 let quantidadeIntervalos = 0;
                 
-                for (let i = 1; i < solicitacoesRealizadas.length; i++) {
-                    const dataAnterior = new Date(solicitacoesRealizadas[i-1].data);
-                    const dataAtual = new Date(solicitacoesRealizadas[i].data);
+                for (let i = 1; i < solicitacoesOrdenadas.length; i++) {
+                    const dataAnterior = new Date(solicitacoesOrdenadas[i-1].data);
+                    const dataAtual = new Date(solicitacoesOrdenadas[i].data);
                     const diffDias = Math.floor((dataAtual - dataAnterior) / (1000 * 60 * 60 * 24));
                     
                     if (diffDias > 0) {
@@ -3076,7 +3079,7 @@
                 return {
                     mediaDias: mediaDias,
                     texto: texto,
-                    observacao: `Baseado em ${solicitacoesRealizadas.length} solicitações realizadas`
+                    observacao: `Baseado em ${solicitacoesFiltradas.length} solicitações (todas)`
                 };
             }
 
@@ -3149,18 +3152,18 @@
                 const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
                 
                 const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                    const solicitacoesRealizadas = solicitacoesFiltradas.filter(
-                        s => s.colaboradorId === colab.id && s.status === 'realizado'
+                    const solicitacoesTotal = solicitacoesFiltradas.filter(
+                        s => s.colaboradorId === colab.id
                     ).length;
                     return {
                         ...colab,
-                        solicitacoesRealizadas: solicitacoesRealizadas
+                        solicitacoesTotal: solicitacoesTotal
                     };
                 });
                 
                 const topColaboradores = colaboradoresComSolicitacoes
                     .filter(c => c.status === 'ativo')
-                    .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
+                    .sort((a, b) => b.solicitacoesTotal - a.solicitacoesTotal)
                     .slice(0, 5);
                 
                 if (topColaboradores.length === 0) {
@@ -3185,7 +3188,7 @@
                             <span class="top-name">${index + 1}. ${colab.nome}</span>
                             <span class="top-details">${departamento}</span>
                         </div>
-                        <div class="top-count">${colab.solicitacoesRealizadas}</div>
+                        <div class="top-count">${colab.solicitacoesTotal}</div>
                     `;
                     container.appendChild(li);
                 });
@@ -3282,14 +3285,12 @@
                 
                 const itensContagem = {};
                 solicitacoesFiltradas.forEach(solic => {
-                    if (solic.status === 'realizado') {
-                        solic.itens.forEach(item => {
-                            const itemNome = item.split(' (')[0];
-                            const match = item.match(/- (\d+)$/);
-                            const quantidade = match ? parseInt(match[1]) : 1;
-                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                        });
-                    }
+                    solic.itens.forEach(item => {
+                        const itemNome = item.split(' (')[0];
+                        const match = item.match(/- (\d+)$/);
+                        const quantidade = match ? parseInt(match[1]) : 1;
+                        itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                    });
                 });
                 
                 const topItens = Object.entries(itensContagem)
@@ -3515,7 +3516,7 @@
                         <td>${item.solicitacoes}</td>
                         <td>
                             ${tempoMedio ? `
-                                <span class="badge ${this.getClassTempoMedio(tempoMedio.dias)}" title="Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações">
+                                <span class="badge ${this.getClassTempoMedio(tempoMedio.dias)}" title="Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações (todas)">
                                     ${tempoMedio.texto}
                                 </span>
                             ` : '<span class="text-muted">Sem dados</span>'}
@@ -3588,7 +3589,7 @@
                         
                         <div class="media-tempo-descricao">
                             ${tempoMedio ? `
-                                Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações realizadas
+                                Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações (todas)
                                 ${tempoMedio.observacao ? `<br><small>${tempoMedio.observacao}</small>` : ''}
                             ` : 'Aguardando solicitações para cálculo'}
                         </div>
@@ -3607,15 +3608,17 @@
                 const item = this.dados.itens.find(i => i.id === itemId);
                 if (!item || item.solicitacoes < 2) return null;
                 
+                // Inclui TODAS as solicitações (pendentes, não precisa, realizadas)
                 const solicitacoesDoItem = this.dados.solicitacoes.filter(solic => {
                     return solic.itens.some(itemSolic => {
                         const itemNome = itemSolic.split(' (')[0];
                         return itemNome === item.nome;
                     });
-                }).filter(s => s.status === 'realizado');
+                });
                 
                 if (solicitacoesDoItem.length < 2) return null;
                 
+                // Ordena as solicitações por data
                 solicitacoesDoItem.sort((a, b) => new Date(a.data) - new Date(b.data));
                 
                 let totalDias = 0;
@@ -5213,23 +5216,23 @@
                     doc.setFontSize(10);
                     const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
                     const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                        const solicitacoesRealizadas = solicitacoesFiltradas.filter(
-                            s => s.colaboradorId === colab.id && s.status === 'realizado'
+                        const solicitacoesTotal = solicitacoesFiltradas.filter(
+                            s => s.colaboradorId === colab.id
                         ).length;
                         return {
                             ...colab,
-                            solicitacoesRealizadas: solicitacoesRealizadas
+                            solicitacoesTotal: solicitacoesTotal
                         };
                     });
                     
                     const topColaboradores = colaboradoresComSolicitacoes
                         .filter(c => c.status === 'ativo')
-                        .sort((a, b) => b.solicitacoesRealizadas - a.solicitacoesRealizadas)
+                        .sort((a, b) => b.solicitacoesTotal - a.solicitacoesTotal)
                         .slice(0, 5);
                     
                     topColaboradores.forEach((colab, index) => {
                         const yPos = topColabY + 15 + (index * 8);
-                        doc.text(`${index + 1}. ${colab.nome}: ${colab.solicitacoesRealizadas} solicitações`, 30, yPos);
+                        doc.text(`${index + 1}. ${colab.nome}: ${colab.solicitacoesTotal} solicitações`, 30, yPos);
                     });
                     
                     const topItensY = topColabY + 15 + (topColaboradores.length * 8) + 20;
@@ -5238,14 +5241,12 @@
                     
                     const itensContagem = {};
                     this.dados.solicitacoes.forEach(solic => {
-                        if (solic.status === 'realizado') {
-                            solic.itens.forEach(item => {
-                                const itemNome = item.split(' (')[0];
-                                const match = item.match(/- (\d+)$/);
-                                const quantidade = match ? parseInt(match[1]) : 1;
-                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                            });
-                        }
+                        solic.itens.forEach(item => {
+                            const itemNome = item.split(' (')[0];
+                            const match = item.match(/- (\d+)$/);
+                            const quantidade = match ? parseInt(match[1]) : 1;
+                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
+                        });
                     });
                     
                     const topItens = Object.entries(itensContagem)
