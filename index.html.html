@@ -1643,9 +1643,14 @@
                     </table>
                 </div>
                 <div class="text-center mt-3">
-                    <button class="btn btn-secondary" id="ver-mais-solicitacoes-tabela" style="display: none;">
-                        <i class="fas fa-eye"></i> Ver Mais Solicitações
-                    </button>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button class="btn btn-secondary" id="voltar-inicio-solicitacoes" style="display: none;">
+                            <i class="fas fa-arrow-left"></i> Voltar ao início
+                        </button>
+                        <button class="btn btn-secondary" id="ver-mais-solicitacoes-tabela" style="display: none;">
+                            <i class="fas fa-eye"></i> Ver Mais Solicitações
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -2213,6 +2218,8 @@
                         } else if (sectionId === 'solicitacoes') {
                             this.atualizarFiltrosAtivos('solicitacoes');
                             this.resetarVisualizacaoSolicitacoes('tabela');
+                            // Mostrar sempre a primeira página ao mudar para a aba
+                            this.carregarTabelaSolicitacoes();
                         } else if (sectionId === 'departamentos') {
                             this.atualizarFiltrosAtivos('departamentos');
                         } else if (sectionId === 'empresas') {
@@ -2250,6 +2257,12 @@
                 });
                 document.getElementById('ver-mais-solicitacoes-tabela')?.addEventListener('click', () => {
                     this.verMaisSolicitacoes('tabela');
+                });
+                
+                // Voltar ao início (botão novo)
+                document.getElementById('voltar-inicio-solicitacoes')?.addEventListener('click', () => {
+                    this.resetarVisualizacaoSolicitacoes('tabela');
+                    this.carregarTabelaSolicitacoes();
                 });
                 
                 // Relatórios
@@ -2364,36 +2377,42 @@
                 document.getElementById('filtro-status-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.status = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
+                    this.resetarVisualizacaoSolicitacoes('tabela'); // Resetar ao mudar filtro
                     this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-departamento-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.departamento = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
+                    this.resetarVisualizacaoSolicitacoes('tabela'); // Resetar ao mudar filtro
                     this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-empresa-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.empresa = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
+                    this.resetarVisualizacaoSolicitacoes('tabela'); // Resetar ao mudar filtro
                     this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-item-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.item = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
+                    this.resetarVisualizacaoSolicitacoes('tabela'); // Resetar ao mudar filtro
                     this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-periodo-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.periodo = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
+                    this.resetarVisualizacaoSolicitacoes('tabela'); // Resetar ao mudar filtro
                     this.filtrarSolicitacoes();
                 });
                 
                 document.getElementById('filtro-colaborador-solicitacao')?.addEventListener('change', (e) => {
                     this.filtrosAtivos.solicitacoes.colaborador = e.target.value;
                     this.atualizarFiltrosAtivos('solicitacoes');
+                    this.resetarVisualizacaoSolicitacoes('tabela'); // Resetar ao mudar filtro
                     this.filtrarSolicitacoes();
                 });
                 
@@ -3514,6 +3533,7 @@
             carregarTabelaSolicitacoes() {
                 const tbody = document.getElementById('solicitacoes-tbody');
                 const verMaisBtn = document.getElementById('ver-mais-solicitacoes-tabela');
+                const voltarInicioBtn = document.getElementById('voltar-inicio-solicitacoes');
                 if (!tbody) return;
                 
                 tbody.innerHTML = '';
@@ -3526,9 +3546,8 @@
                         </td>
                     `;
                     tbody.appendChild(tr);
-                    if (verMaisBtn) {
-                        verMaisBtn.style.display = 'none';
-                    }
+                    if (verMaisBtn) verMaisBtn.style.display = 'none';
+                    if (voltarInicioBtn) voltarInicioBtn.style.display = 'none';
                     return;
                 }
                 
@@ -3587,6 +3606,15 @@
                     `;
                     tbody.appendChild(tr);
                 });
+                
+                // Mostrar botão "Voltar ao início" se estiver em uma página além da primeira
+                if (voltarInicioBtn) {
+                    if (offset > 0) {
+                        voltarInicioBtn.style.display = 'block';
+                    } else {
+                        voltarInicioBtn.style.display = 'none';
+                    }
+                }
                 
                 // Mostrar botão "Ver Mais" se houver mais solicitações
                 if (verMaisBtn) {
@@ -4825,6 +4853,22 @@
                 const linhas = document.querySelectorAll('#solicitacoes-tbody tr');
                 const hoje = new Date();
                 
+                // Verificar se todos os filtros estão em "todos"
+                const todosFiltrosLimpos = 
+                    status === 'todos' && 
+                    departamento === 'todos' && 
+                    empresa === 'todos' && 
+                    periodo === 'todos' && 
+                    colaborador === 'todos' && 
+                    item === 'todos';
+                
+                if (todosFiltrosLimpos) {
+                    // Se todos os filtros estiverem limpos, resetar a visualização e carregar tudo
+                    this.resetarVisualizacaoSolicitacoes('tabela');
+                    this.carregarTabelaSolicitacoes();
+                    return;
+                }
+                
                 linhas.forEach(linha => {
                     const statusLinha = linha.cells[5].querySelector('.badge').textContent.toLowerCase();
                     const departamentoLinha = linha.cells[1].textContent.toLowerCase();
@@ -5076,6 +5120,9 @@
                         if (chave === 'item') document.getElementById('filtro-item-solicitacao').value = valorPadrao;
                         if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
                         if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
+                        
+                        // Resetar visualização quando limpar filtro
+                        this.resetarVisualizacaoSolicitacoes('tabela');
                         this.filtrarSolicitacoes();
                         break;
                     case 'departamentos':
@@ -5299,15 +5346,13 @@
                 }
                 
                 this.dados.itens.forEach(item => {
-                    const mediaTrocaStr = item.mediaTroca !== null ? `${item.mediaTroca} meses` : 'Sem dados';
-                    
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>${item.nome}</td>
                         <td>${this.formatarCategoria(item.categoria)}</td>
                         <td>${item.tamanhos}</td>
                         <td>${item.solicitacoes}</td>
-                        <td>${mediaTrocaStr}</td>
+                        <td>${item.mediaTroca !== null ? `${item.mediaTroca} meses` : 'Sem dados'}</td>
                         <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
                     `;
                     corpo.appendChild(tr);
