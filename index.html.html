@@ -1372,9 +1372,9 @@
                     </div>
                     
                     <div class="chart-card">
-                        <h4><i class="fas fa-chart-line"></i> Itens Mais Solicitados</h4>
+                        <h4><i class="fas fa-chart-line"></i> Quem Mais Troca por Categoria</h4>
                         <div class="chart-wrapper">
-                            <canvas id="chart-itens"></canvas>
+                            <canvas id="chart-categorias"></canvas>
                         </div>
                     </div>
                     
@@ -2096,8 +2096,8 @@
                 if (this.charts.departamentos) {
                     this.charts.departamentos.resize();
                 }
-                if (this.charts.itens) {
-                    this.charts.itens.resize();
+                if (this.charts.categorias) {
+                    this.charts.categorias.resize();
                 }
                 if (this.charts.mensal) {
                     this.charts.mensal.resize();
@@ -2861,7 +2861,7 @@
             atualizarDashboardCharts() {
                 this.criarGraficoTopColaboradores();
                 this.criarGraficoDepartamentos();
-                this.criarGraficoItens();
+                this.criarGraficoQuemMaisTrocaPorCategoria();
                 this.criarGraficoMensal();
             }
 
@@ -2970,45 +2970,155 @@
                 });
             }
 
-            criarGraficoItens() {
-                const ctx = document.getElementById('chart-itens');
+            criarGraficoQuemMaisTrocaPorCategoria() {
+                const ctx = document.getElementById('chart-categorias');
                 if (!ctx) return;
                 
                 const canvasCtx = ctx.getContext('2d');
                 
-                const topItens = [...this.dados.itens]
-                    .sort((a, b) => b.solicitacoes - a.solicitacoes)
-                    .slice(0, 5);
+                // Inicializar contadores por categoria e colaborador
+                const contagemPorCategoria = {
+                    'uniforme': {},
+                    'epi': {},
+                    'materiais': {}
+                };
                 
-                const labels = topItens.map(item => item.nome);
-                const data = topItens.map(item => item.solicitacoes);
-                const cores = this.gerarCores(data.length);
+                // Contar solicitações por categoria e colaborador
+                this.dados.solicitacoes.forEach(solic => {
+                    if (solic.status === 'realizado') {
+                        solic.itens.forEach(itemSolic => {
+                            const itemNome = itemSolic.split(' (')[0];
+                            const item = this.dados.itens.find(i => i.nome === itemNome);
+                            
+                            if (item) {
+                                const categoria = item.categoria;
+                                const colaboradorNome = solic.colaboradorNome;
+                                
+                                if (!contagemPorCategoria[categoria][colaboradorNome]) {
+                                    contagemPorCategoria[categoria][colaboradorNome] = 0;
+                                }
+                                
+                                // Extrair quantidade do item
+                                const match = itemSolic.match(/- (\d+)$/);
+                                const quantidade = match ? parseInt(match[1]) : 1;
+                                
+                                contagemPorCategoria[categoria][colaboradorNome] += quantidade;
+                            }
+                        });
+                    }
+                });
                 
-                if (this.charts.itens) {
-                    this.charts.itens.destroy();
+                // Obter top 5 colaboradores por categoria
+                const topPorCategoria = {};
+                
+                Object.keys(contagemPorCategoria).forEach(categoria => {
+                    const colaboradores = Object.entries(contagemPorCategoria[categoria])
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([nome, quantidade]) => ({ nome, quantidade }));
+                    
+                    topPorCategoria[categoria] = colaboradores;
+                });
+                
+                // Preparar dados para o gráfico
+                const datasets = [];
+                const categorias = ['uniforme', 'epi', 'materiais'];
+                const cores = {
+                    'uniforme': 'rgba(37, 99, 235, 0.8)',
+                    'epi': 'rgba(16, 185, 129, 0.8)',
+                    'materiais': 'rgba(139, 92, 246, 0.8)'
+                };
+                
+                categorias.forEach(categoria => {
+                    const colaboradores = topPorCategoria[categoria] || [];
+                    
+                    if (colaboradores.length > 0) {
+                        const labels = colaboradores.map(c => c.nome.split(' ')[0]); // Usar primeiro nome
+                        const data = colaboradores.map(c => c.quantidade);
+                        
+                        datasets.push({
+                            label: this.formatarCategoria(categoria),
+                            data: data,
+                            backgroundColor: cores[categoria],
+                            borderColor: cores[categoria].replace('0.8', '1'),
+                            borderWidth: 1
+                        });
+                    }
+                });
+                
+                if (datasets.length === 0) {
+                    // Caso não haja dados
+                    datasets.push({
+                        label: 'Nenhum dado',
+                        data: [1],
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        borderColor: 'rgba(200, 200, 200, 1)',
+                        borderWidth: 1
+                    });
                 }
                 
-                this.charts.itens = new Chart(canvasCtx, {
-                    type: 'polarArea',
+                // Obter labels (nomes dos colaboradores)
+                const todosNomes = new Set();
+                datasets.forEach(dataset => {
+                    dataset.data.forEach((_, index) => {
+                        // Para simplificar, usar índices
+                        todosNomes.add(`Colaborador ${index + 1}`);
+                    });
+                });
+                
+                const labels = Array.from(todosNomes);
+                
+                if (this.charts.categorias) {
+                    this.charts.categorias.destroy();
+                }
+                
+                this.charts.categorias = new Chart(canvasCtx, {
+                    type: 'bar',
                     data: {
                         labels: labels.length > 0 ? labels : ['Nenhum dado'],
-                        datasets: [{
-                            data: data.length > 0 ? data : [1],
-                            backgroundColor: cores,
-                            borderColor: cores.map(c => c.replace('0.8', '1')),
-                            borderWidth: 1
-                        }]
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: false,
+                            },
+                            y: {
+                                stacked: false,
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
                         plugins: {
                             legend: {
-                                position: 'right'
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label || '';
+                                        const value = context.raw;
+                                        const colaboradorNome = context.label;
+                                        return `${label}: ${value} itens (${colaboradorNome})`;
+                                    }
+                                }
                             }
                         }
                     }
                 });
+                
+                // Atualizar também a lista de quem mais troca por categoria
+                this.atualizarTopPorCategoriaVisualizacao(topPorCategoria);
+            }
+
+            atualizarTopPorCategoriaVisualizacao(topPorCategoria) {
+                // Esta função pode ser usada para atualizar uma lista HTML se necessário
+                // Por enquanto, apenas mantemos os dados no gráfico
             }
 
             criarGraficoMensal() {
@@ -4702,6 +4812,152 @@
                     this.charts.departamentos.data.datasets[0].data = data.length > 0 ? data : [1];
                     this.charts.departamentos.update();
                 }
+                
+                // Atualizar gráfico de categorias
+                this.criarGraficoQuemMaisTrocaPorCategoriaComFiltros(solicitacoesFiltradas);
+            }
+
+            criarGraficoQuemMaisTrocaPorCategoriaComFiltros(solicitacoesFiltradas) {
+                const ctx = document.getElementById('chart-categorias');
+                if (!ctx) return;
+                
+                const canvasCtx = ctx.getContext('2d');
+                
+                // Inicializar contadores por categoria e colaborador
+                const contagemPorCategoria = {
+                    'uniforme': {},
+                    'epi': {},
+                    'materiais': {}
+                };
+                
+                // Contar solicitações por categoria e colaborador (apenas com filtros)
+                solicitacoesFiltradas.forEach(solic => {
+                    if (solic.status === 'realizado') {
+                        solic.itens.forEach(itemSolic => {
+                            const itemNome = itemSolic.split(' (')[0];
+                            const item = this.dados.itens.find(i => i.nome === itemNome);
+                            
+                            if (item) {
+                                const categoria = item.categoria;
+                                const colaboradorNome = solic.colaboradorNome;
+                                
+                                if (!contagemPorCategoria[categoria][colaboradorNome]) {
+                                    contagemPorCategoria[categoria][colaboradorNome] = 0;
+                                }
+                                
+                                // Extrair quantidade do item
+                                const match = itemSolic.match(/- (\d+)$/);
+                                const quantidade = match ? parseInt(match[1]) : 1;
+                                
+                                contagemPorCategoria[categoria][colaboradorNome] += quantidade;
+                            }
+                        });
+                    }
+                });
+                
+                // Obter top 5 colaboradores por categoria
+                const topPorCategoria = {};
+                
+                Object.keys(contagemPorCategoria).forEach(categoria => {
+                    const colaboradores = Object.entries(contagemPorCategoria[categoria])
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 5)
+                        .map(([nome, quantidade]) => ({ nome, quantidade }));
+                    
+                    topPorCategoria[categoria] = colaboradores;
+                });
+                
+                // Preparar dados para o gráfico
+                const datasets = [];
+                const categorias = ['uniforme', 'epi', 'materiais'];
+                const cores = {
+                    'uniforme': 'rgba(37, 99, 235, 0.8)',
+                    'epi': 'rgba(16, 185, 129, 0.8)',
+                    'materiais': 'rgba(139, 92, 246, 0.8)'
+                };
+                
+                categorias.forEach(categoria => {
+                    const colaboradores = topPorCategoria[categoria] || [];
+                    
+                    if (colaboradores.length > 0) {
+                        const labels = colaboradores.map(c => c.nome.split(' ')[0]); // Usar primeiro nome
+                        const data = colaboradores.map(c => c.quantidade);
+                        
+                        datasets.push({
+                            label: this.formatarCategoria(categoria),
+                            data: data,
+                            backgroundColor: cores[categoria],
+                            borderColor: cores[categoria].replace('0.8', '1'),
+                            borderWidth: 1
+                        });
+                    }
+                });
+                
+                if (datasets.length === 0) {
+                    // Caso não haja dados
+                    datasets.push({
+                        label: 'Nenhum dado (filtrado)',
+                        data: [1],
+                        backgroundColor: 'rgba(200, 200, 200, 0.8)',
+                        borderColor: 'rgba(200, 200, 200, 1)',
+                        borderWidth: 1
+                    });
+                }
+                
+                // Obter labels (nomes dos colaboradores)
+                const todosNomes = new Set();
+                datasets.forEach(dataset => {
+                    dataset.data.forEach((_, index) => {
+                        // Para simplificar, usar índices
+                        todosNomes.add(`Colaborador ${index + 1}`);
+                    });
+                });
+                
+                const labels = Array.from(todosNomes);
+                
+                if (this.charts.categorias) {
+                    this.charts.categorias.destroy();
+                }
+                
+                this.charts.categorias = new Chart(canvasCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels.length > 0 ? labels : ['Nenhum dado'],
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                stacked: false,
+                            },
+                            y: {
+                                stacked: false,
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label || '';
+                                        const value = context.raw;
+                                        const colaboradorNome = context.label;
+                                        return `${label}: ${value} itens (${colaboradorNome})`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
             }
 
             filtrarColaboradores() {
@@ -5498,6 +5754,64 @@
                 itensComMedia.forEach((item, index) => {
                     const yPos = mediaTrocaY + 15 + (index * 8);
                     doc.text(`${item.nome}: ${item.mediaTroca} meses`, 30, yPos);
+                });
+                
+                // Adicionar quem mais troca por categoria
+                const categoriasY = mediaTrocaY + 15 + (itensComMedia.length * 8) + 20;
+                doc.setFontSize(14);
+                doc.text('Quem Mais Troca por Categoria:', 20, categoriasY);
+                
+                // Calcular quem mais troca por categoria para o PDF
+                const contagemPorCategoria = {
+                    'uniforme': {},
+                    'epi': {},
+                    'materiais': {}
+                };
+                
+                this.dados.solicitacoes.forEach(solic => {
+                    if (solic.status === 'realizado') {
+                        solic.itens.forEach(itemSolic => {
+                            const itemNome = itemSolic.split(' (')[0];
+                            const item = this.dados.itens.find(i => i.nome === itemNome);
+                            
+                            if (item) {
+                                const categoria = item.categoria;
+                                const colaboradorNome = solic.colaboradorNome;
+                                
+                                if (!contagemPorCategoria[categoria][colaboradorNome]) {
+                                    contagemPorCategoria[categoria][colaboradorNome] = 0;
+                                }
+                                
+                                // Extrair quantidade do item
+                                const match = itemSolic.match(/- (\d+)$/);
+                                const quantidade = match ? parseInt(match[1]) : 1;
+                                
+                                contagemPorCategoria[categoria][colaboradorNome] += quantidade;
+                            }
+                        });
+                    }
+                });
+                
+                doc.setFontSize(10);
+                let yPosCategoria = categoriasY + 10;
+                
+                Object.keys(contagemPorCategoria).forEach(categoria => {
+                    const colaboradores = Object.entries(contagemPorCategoria[categoria])
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 3);
+                    
+                    if (colaboradores.length > 0) {
+                        doc.setFontSize(12);
+                        doc.text(`${this.formatarCategoria(categoria)}:`, 30, yPosCategoria);
+                        yPosCategoria += 8;
+                        
+                        doc.setFontSize(10);
+                        colaboradores.forEach(([nome, quantidade], idx) => {
+                            doc.text(`  ${idx + 1}. ${nome.split(' ')[0]}: ${quantidade} itens`, 35, yPosCategoria);
+                            yPosCategoria += 6;
+                        });
+                        yPosCategoria += 4;
+                    }
                 });
                 
                 doc.save(`dashboard_uniformes_${new Date().getTime()}.pdf`);
