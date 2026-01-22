@@ -5511,14 +5511,25 @@ async function migrarParaFirebase() {
   Migrar dados antigos
 </button>
 
-<script>
-document.getElementById('btnMigrar').addEventListener('click', async () => {
-  try {
-    if (!window.db || !window.criarDocumento) {
-      alert("Firebase ainda não carregou. Aguarde a página carregar totalmente.");
-      return;
-    }
+<div id="statusMigracao" style="
+  position:fixed;
+  bottom:60px;
+  right:20px;
+  background:#000;
+  color:#fff;
+  padding:10px;
+  font-size:14px;
+  display:none;
+  z-index:9999;
+"></div>
 
+<script>
+document.getElementById('btnMigrar').onclick = async () => {
+  const status = document.getElementById('statusMigracao');
+  status.style.display = 'block';
+  status.innerText = 'Iniciando migração...';
+
+  try {
     const dados = {
       colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
       itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
@@ -5527,30 +5538,25 @@ document.getElementById('btnMigrar').addEventListener('click', async () => {
       empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
     };
 
-    let total = 0;
+    let enviados = 0;
 
-    alert(
-      `Iniciando migração...\n\n` +
-      `Colaboradores: ${dados.colaboradores.length}\n` +
-      `Itens: ${dados.itens.length}\n` +
-      `Departamentos: ${dados.departamentos.length}\n` +
-      `Solicitações: ${dados.solicitacoes.length}\n` +
-      `Empresas: ${dados.empresas.length}`
-    );
-
-    for (const [colecao, lista] of Object.entries(dados)) {
-      for (const item of lista) {
+    for (const colecao in dados) {
+      for (const item of dados[colecao]) {
         await window.criarDocumento(colecao, item);
-        total++;
+        enviados++;
+        status.innerText = `Migrando... ${enviados} registros enviados`;
       }
     }
 
-    alert(`✅ Migração concluída com sucesso!\n\nTotal de registros enviados: ${total}`);
-  } catch (erro) {
-    console.error(erro);
-    alert("❌ Erro durante a migração. Veja o console.");
+    status.innerText = `✅ Migração concluída! Total: ${enviados}`;
+    alert(`Migração concluída com sucesso!\nTotal de registros: ${enviados}`);
+
+  } catch (e) {
+    console.error(e);
+    status.innerText = '❌ Erro durante a migração';
+    alert('Erro durante a migração. Veja o console.');
   }
-});
+};
 </script>
 
 </body>
