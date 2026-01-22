@@ -5507,5 +5507,32 @@ async function migrarParaFirebase() {
 }
 </script>
 
+<button id="btnMigrar" style="position:fixed;bottom:20px;right:20px;z-index:9999;">
+  Migrar dados antigos
+</button>
+
+<script>
+document.getElementById('btnMigrar').addEventListener('click', async () => {
+  const dados = {
+    colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
+    itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
+    departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
+    solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
+    empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
+  };
+
+  let total = 0;
+
+  for (const [colecao, lista] of Object.entries(dados)) {
+    for (const item of lista) {
+      await window.criarDocumento(colecao, item);
+      total++;
+    }
+  }
+
+  alert(`Migração concluída! ${total} registros enviados para o Firebase.`);
+});
+</script>
+
 </body>
 </html>
