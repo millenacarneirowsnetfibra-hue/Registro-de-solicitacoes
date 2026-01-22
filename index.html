@@ -5513,24 +5513,43 @@ async function migrarParaFirebase() {
 
 <script>
 document.getElementById('btnMigrar').addEventListener('click', async () => {
-  const dados = {
-    colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
-    itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
-    departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
-    solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
-    empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
-  };
-
-  let total = 0;
-
-  for (const [colecao, lista] of Object.entries(dados)) {
-    for (const item of lista) {
-      await window.criarDocumento(colecao, item);
-      total++;
+  try {
+    if (!window.db || !window.criarDocumento) {
+      alert("Firebase ainda não carregou. Aguarde a página carregar totalmente.");
+      return;
     }
-  }
 
-  alert(`Migração concluída! ${total} registros enviados para o Firebase.`);
+    const dados = {
+      colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
+      itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
+      departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
+      solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
+      empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
+    };
+
+    let total = 0;
+
+    alert(
+      `Iniciando migração...\n\n` +
+      `Colaboradores: ${dados.colaboradores.length}\n` +
+      `Itens: ${dados.itens.length}\n` +
+      `Departamentos: ${dados.departamentos.length}\n` +
+      `Solicitações: ${dados.solicitacoes.length}\n` +
+      `Empresas: ${dados.empresas.length}`
+    );
+
+    for (const [colecao, lista] of Object.entries(dados)) {
+      for (const item of lista) {
+        await window.criarDocumento(colecao, item);
+        total++;
+      }
+    }
+
+    alert(`✅ Migração concluída com sucesso!\n\nTotal de registros enviados: ${total}`);
+  } catch (erro) {
+    console.error(erro);
+    alert("❌ Erro durante a migração. Veja o console.");
+  }
 });
 </script>
 
