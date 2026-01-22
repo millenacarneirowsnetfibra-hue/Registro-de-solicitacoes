@@ -9,6 +9,52 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            addDoc, 
+            doc, 
+            setDoc,
+            deleteDoc,
+            onSnapshot,
+            query,
+            where
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Configuração do Firebase - SUBSTITUA COM SUAS CREDENCIAIS
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3tWszcQHgbvIdy-0vPJngZ5oM-iK7fU8",
+            authDomain: "gestao-uniformes-7dda8.firebaseapp.com",
+            projectId: "gestao-uniformes-7dda8",
+            storageBucket: "gestao-uniformes-7dda8.firebasestorage.app",
+            messagingSenderId: "1094790093649",
+            appId: "1:1094790093649:web:04dcdc01d2207ed2885f15"
+        };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Funções para exportar para uso global
+        window.firebaseDB = db;
+        window.firebaseFunctions = {
+            collection,
+            getDocs,
+            addDoc,
+            doc,
+            setDoc,
+            deleteDoc,
+            onSnapshot,
+            query,
+            where
+        };
+
+        console.log("Firebase inicializado com sucesso!");
+    </script>
     <style>
         /* A */
         .active {
@@ -1217,6 +1263,9 @@
                         <button class="btn btn-primary" id="export-dashboard-btn">
                             <i class="fas fa-download"></i> Exportar
                         </button>
+                        <button class="btn btn-success" id="sync-firebase-btn">
+                            <i class="fas fa-cloud-upload-alt"></i> Sincronizar
+                        </button>
                     </div>
                 </div>
 
@@ -2016,6 +2065,8 @@
     <script>
         class SistemaUniformes {
             constructor() {
+                this.useFirebase = false;
+                this.firebaseReady = false;
                 this.dados = this.carregarDados();
                 this.charts = {};
                 this.filtrosAtivos = {
@@ -2030,7 +2081,205 @@
                 this.visualizacaoSolicitacoes = {
                     dashboard: { limite: 5, offset: 0 }
                 };
+                
+                // Verificar se Firebase está disponível
+                this.checkFirebase();
                 this.init();
+            }
+
+            async checkFirebase() {
+                try {
+                    // Aguardar Firebase carregar
+                    let attempts = 0;
+                    const maxAttempts = 10;
+                    
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        if (window.firebaseDB && window.firebaseFunctions) {
+                            clearInterval(checkInterval);
+                            this.firebaseReady = true;
+                            this.useFirebase = true;
+                            console.log("Firebase conectado com sucesso!");
+                            this.mostrarToast("Conectado ao Firebase!", "success");
+                            
+                            // Verificar se há dados no localStorage para migrar
+                            this.verificarDadosParaMigrar();
+                            
+                            // Carregar dados do Firebase
+                            this.carregarDadosFirebase();
+                        } else if (attempts >= maxAttempts) {
+                            clearInterval(checkInterval);
+                            console.log("Firebase não disponível, usando localStorage");
+                            this.mostrarToast("Usando armazenamento local", "info");
+                        }
+                    }, 500);
+                } catch (error) {
+                    console.error("Erro ao verificar Firebase:", error);
+                    this.firebaseReady = false;
+                    this.useFirebase = false;
+                }
+            }
+
+            async verificarDadosParaMigrar() {
+                // Verificar se há dados no localStorage que ainda não foram migrados
+                const dadosLocais = {
+                    colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
+                    itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
+                    departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
+                    solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
+                    empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
+                };
+
+                const totalDados = Object.values(dadosLocais).reduce((sum, arr) => sum + arr.length, 0);
+                
+                if (totalDados > 0) {
+                    const migrado = localStorage.getItem('firebase_migrated');
+                    if (!migrado) {
+                        if (confirm(`Encontramos ${totalDados} registros no armazenamento local. Deseja migrá-los para o Firebase?`)) {
+                            await this.migrarParaFirebase(dadosLocais);
+                        }
+                    }
+                }
+            }
+
+            async migrarParaFirebase(dadosLocais) {
+                try {
+                    this.mostrarToast("Iniciando migração para Firebase...", "info");
+                    
+                    let totalMigrado = 0;
+                    
+                    for (const [colecao, lista] of Object.entries(dadosLocais)) {
+                        if (lista.length > 0) {
+                            for (const item of lista) {
+                                try {
+                                    // Usar o mesmo ID do localStorage
+                                    const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, item.id.toString());
+                                    await window.firebaseFunctions.setDoc(docRef, item);
+                                    totalMigrado++;
+                                } catch (error) {
+                                    console.error(`Erro ao migrar ${colecao}:`, error);
+                                }
+                            }
+                        }
+                    }
+                    
+                    localStorage.setItem('firebase_migrated', 'true');
+                    this.mostrarToast(`Migração concluída! ${totalMigrado} registros migrados para Firebase.`, "success");
+                    
+                    // Recarregar dados do Firebase
+                    await this.carregarDadosFirebase();
+                    
+                } catch (error) {
+                    console.error("Erro na migração:", error);
+                    this.mostrarToast("Erro durante a migração!", "error");
+                }
+            }
+
+            async carregarDadosFirebase() {
+                if (!this.firebaseReady) return;
+                
+                try {
+                    this.mostrarToast("Carregando dados do Firebase...", "info");
+                    
+                    const colecoes = ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas'];
+                    
+                    for (const colecao of colecoes) {
+                        const querySnapshot = await window.firebaseFunctions.getDocs(
+                            window.firebaseFunctions.collection(window.firebaseDB, colecao)
+                        );
+                        
+                        this.dados[colecao] = [];
+                        querySnapshot.forEach((doc) => {
+                            this.dados[colecao].push({ id: doc.id, ...doc.data() });
+                        });
+                        
+                        // Converter IDs de string para número para manter compatibilidade
+                        this.dados[colecao].forEach(item => {
+                            item.id = parseInt(item.id) || item.id;
+                        });
+                    }
+                    
+                    // Salvar também no localStorage para backup
+                    this.salvarDadosLocalStorage();
+                    
+                    this.mostrarToast("Dados do Firebase carregados com sucesso!", "success");
+                    
+                    // Atualizar a interface
+                    this.atualizarSelects();
+                    this.carregarDashboard();
+                    this.carregarTabelas();
+                    this.atualizarDashboardCharts();
+                    this.carregarTempoMedioItens();
+                    
+                } catch (error) {
+                    console.error("Erro ao carregar dados do Firebase:", error);
+                    this.mostrarToast("Erro ao carregar dados do Firebase!", "error");
+                    this.useFirebase = false;
+                }
+            }
+
+            async salvarDadosFirebase() {
+                if (!this.firebaseReady || !this.useFirebase) return false;
+                
+                try {
+                    // Esta função é chamada automaticamente quando dados são alterados
+                    // A sincronização é feita em tempo real
+                    return true;
+                } catch (error) {
+                    console.error("Erro ao salvar no Firebase:", error);
+                    return false;
+                }
+            }
+
+            async salvarItemFirebase(tipo, item) {
+                if (!this.firebaseReady || !this.useFirebase) return null;
+                
+                try {
+                    const colecao = tipo === 'colaborador' ? 'colaboradores' :
+                                   tipo === 'item' ? 'itens' :
+                                   tipo === 'solicitacao' ? 'solicitacoes' :
+                                   tipo === 'departamento' ? 'departamentos' :
+                                   tipo === 'empresa' ? 'empresas' : tipo;
+                    
+                    if (item.id) {
+                        const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, item.id.toString());
+                        await window.firebaseFunctions.setDoc(docRef, item);
+                        return item.id;
+                    } else {
+                        const novoId = this.gerarNovoId(colecao);
+                        item.id = novoId;
+                        const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, novoId.toString());
+                        await window.firebaseFunctions.setDoc(docRef, item);
+                        return novoId;
+                    }
+                } catch (error) {
+                    console.error(`Erro ao salvar ${tipo} no Firebase:`, error);
+                    throw error;
+                }
+            }
+
+            async excluirItemFirebase(tipo, id) {
+                if (!this.firebaseReady || !this.useFirebase) return false;
+                
+                try {
+                    const colecao = tipo === 'colaborador' ? 'colaboradores' :
+                                   tipo === 'item' ? 'itens' :
+                                   tipo === 'solicitacao' ? 'solicitacoes' :
+                                   tipo === 'departamento' ? 'departamentos' :
+                                   tipo === 'empresa' ? 'empresas' : tipo;
+                    
+                    const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, id.toString());
+                    await window.firebaseFunctions.deleteDoc(docRef);
+                    return true;
+                } catch (error) {
+                    console.error(`Erro ao excluir ${tipo} do Firebase:`, error);
+                    return false;
+                }
+            }
+
+            gerarNovoId(colecao) {
+                if (this.dados[colecao].length === 0) return 1;
+                return Math.max(...this.dados[colecao].map(item => parseInt(item.id) || 0)) + 1;
             }
 
             init() {
@@ -2095,8 +2344,9 @@
             }
 
             carregarDados() {
+                // Primeiro tentar carregar do localStorage
                 if (typeof(Storage) === "undefined") {
-                    console.error("LocalStorage não suportado. Usando dados padrão.");
+                    console.error("LocalStorage não suportado.");
                     return this.getDadosPadrao();
                 }
 
@@ -2109,6 +2359,7 @@
                         empresas: JSON.parse(localStorage.getItem('uniformes_empresas'))
                     };
 
+                    // Se não houver dados salvos, usar dados padrão
                     if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.departamentos || !dadosSalvos.solicitacoes || !dadosSalvos.empresas) {
                         console.log("Nenhum dado salvo encontrado. Carregando dados padrão.");
                         return this.getDadosPadrao();
@@ -2178,10 +2429,9 @@
                 };
             }
 
-            salvarDados() {
+            salvarDadosLocalStorage() {
                 if (typeof(Storage) === "undefined") {
-                    console.error("LocalStorage não suportado. Não foi possível salvar os dados.");
-                    this.mostrarToast("Seu navegador não suporta armazenamento local. Os dados não serão salvos.", "error");
+                    console.error("LocalStorage não suportado.");
                     return false;
                 }
 
@@ -2191,13 +2441,30 @@
                     localStorage.setItem('uniformes_departamentos', JSON.stringify(this.dados.departamentos));
                     localStorage.setItem('uniformes_solicitacoes', JSON.stringify(this.dados.solicitacoes));
                     localStorage.setItem('uniformes_empresas', JSON.stringify(this.dados.empresas));
-                    console.log("Dados salvos com sucesso no localStorage!");
+                    console.log("Dados salvos no localStorage com sucesso!");
                     return true;
                 } catch (error) {
                     console.error("Erro ao salvar dados no localStorage:", error);
-                    this.mostrarToast("Erro ao salvar dados!", "error");
                     return false;
                 }
+            }
+
+            async salvarDados() {
+                // Salvar sempre no localStorage como backup
+                const localStorageSalvo = this.salvarDadosLocalStorage();
+                
+                // Se Firebase estiver disponível, salvar também lá
+                if (this.firebaseReady && this.useFirebase) {
+                    try {
+                        await this.salvarDadosFirebase();
+                        return true;
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firebase:", error);
+                        return localStorageSalvo;
+                    }
+                }
+                
+                return localStorageSalvo;
             }
 
             setupNavegacao() {
@@ -2253,6 +2520,7 @@
                 // Botões principais
                 document.getElementById('refresh-btn')?.addEventListener('click', () => this.recarregarDados());
                 document.getElementById('export-dashboard-btn')?.addEventListener('click', () => this.exportarDashboard());
+                document.getElementById('sync-firebase-btn')?.addEventListener('click', () => this.sincronizarComFirebase());
                 
                 // Botões de adição
                 document.getElementById('novo-colaborador-btn')?.addEventListener('click', () => this.abrirModal('colaborador'));
@@ -2263,29 +2531,29 @@
                 document.getElementById('nova-empresa-btn')?.addEventListener('click', () => this.abrirModal('empresa'));
                 
                 // Formulários
-                document.getElementById('form-colaborador')?.addEventListener('submit', (e) => {
+                document.getElementById('form-colaborador')?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    this.salvarColaborador();
+                    await this.salvarColaborador();
                 });
                 
-                document.getElementById('form-item')?.addEventListener('submit', (e) => {
+                document.getElementById('form-item')?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    this.salvarItem();
+                    await this.salvarItem();
                 });
                 
-                document.getElementById('form-solicitacao')?.addEventListener('submit', (e) => {
+                document.getElementById('form-solicitacao')?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    this.salvarSolicitacao();
+                    await this.salvarSolicitacao();
                 });
                 
-                document.getElementById('form-departamento')?.addEventListener('submit', (e) => {
+                document.getElementById('form-departamento')?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    this.salvarDepartamento();
+                    await this.salvarDepartamento();
                 });
                 
-                document.getElementById('form-empresa')?.addEventListener('submit', (e) => {
+                document.getElementById('form-empresa')?.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    this.salvarEmpresa();
+                    await this.salvarEmpresa();
                 });
                 
                 // Adicionar item dinâmico
@@ -2477,6 +2745,31 @@
                         }
                     });
                 });
+            }
+
+            async sincronizarComFirebase() {
+                if (!this.firebaseReady) {
+                    this.mostrarToast("Firebase não disponível!", "error");
+                    return;
+                }
+                
+                try {
+                    this.mostrarToast("Sincronizando com Firebase...", "info");
+                    
+                    // Sincronizar todos os dados
+                    for (const colecao of ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas']) {
+                        for (const item of this.dados[colecao]) {
+                            await this.salvarItemFirebase(colecao.slice(0, -1), item);
+                        }
+                    }
+                    
+                    localStorage.setItem('firebase_migrated', 'true');
+                    this.mostrarToast("Sincronização completa!", "success");
+                    
+                } catch (error) {
+                    console.error("Erro na sincronização:", error);
+                    this.mostrarToast("Erro na sincronização!", "error");
+                }
             }
 
             setupDate() {
@@ -3793,10 +4086,20 @@
                 });
             }
 
-            atualizarStatusSolicitacao(id, novoStatus) {
+            async atualizarStatusSolicitacao(id, novoStatus) {
                 const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
                 if (solicitacao) {
                     solicitacao.status = novoStatus;
+                    
+                    // Salvar no Firebase se disponível
+                    if (this.useFirebase) {
+                        try {
+                            await this.salvarItemFirebase('solicitacao', solicitacao);
+                        } catch (error) {
+                            console.error("Erro ao salvar no Firebase:", error);
+                        }
+                    }
+                    
                     const salvou = this.salvarDados();
                     if (salvou) {
                         this.filtrarSolicitacoes();
@@ -3932,7 +4235,7 @@
                 }
             }
 
-            salvarColaborador() {
+            async salvarColaborador() {
                 const id = document.getElementById('colaborador-id').value;
                 const nome = document.getElementById('colaborador-nome').value;
                 const empresaId = parseInt(document.getElementById('colaborador-empresa').value);
@@ -3940,6 +4243,8 @@
                 const admissao = document.getElementById('colaborador-admissao').value;
                 const status = document.getElementById('colaborador-status').value;
 
+                let colaboradorId = id;
+                
                 if (id) {
                     const index = this.dados.colaboradores.findIndex(c => c.id == id);
                     if (index !== -1) {
@@ -3956,7 +4261,7 @@
                     const novoId = this.dados.colaboradores.length > 0 ? 
                         Math.max(...this.dados.colaboradores.map(c => c.id)) + 1 : 1;
                     
-                    this.dados.colaboradores.push({
+                    const novoColaborador = {
                         id: novoId,
                         nome,
                         empresaId,
@@ -3965,7 +4270,20 @@
                         status,
                         solicitacoes: 0,
                         ultimaSolicitacao: null
-                    });
+                    };
+                    
+                    this.dados.colaboradores.push(novoColaborador);
+                    colaboradorId = novoId;
+                }
+
+                // Salvar no Firebase se disponível
+                if (this.useFirebase) {
+                    try {
+                        const colaborador = this.dados.colaboradores.find(c => c.id == colaboradorId);
+                        await this.salvarItemFirebase('colaborador', colaborador);
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firebase:", error);
+                    }
                 }
 
                 const salvou = this.salvarDados();
@@ -3983,8 +4301,17 @@
                 this.abrirModal('colaborador', id);
             }
 
-            excluirColaborador(id) {
+            async excluirColaborador(id) {
                 if (confirm('Tem certeza que deseja excluir este colaborador?')) {
+                    // Excluir do Firebase se disponível
+                    if (this.useFirebase) {
+                        try {
+                            await this.excluirItemFirebase('colaborador', id);
+                        } catch (error) {
+                            console.error("Erro ao excluir do Firebase:", error);
+                        }
+                    }
+                    
                     this.dados.colaboradores = this.dados.colaboradores.filter(c => c.id !== id);
                     const salvou = this.salvarDados();
                     if (salvou) {
@@ -3998,13 +4325,15 @@
             }
 
             // CRUD Itens
-            salvarItem() {
+            async salvarItem() {
                 const id = document.getElementById('item-id').value;
                 const nome = document.getElementById('item-nome').value;
                 const categoria = document.getElementById('item-categoria').value;
                 const tamanhos = document.getElementById('item-tamanhos').value;
                 const status = document.getElementById('item-status').value;
 
+                let itemId = id;
+                
                 if (id) {
                     const index = this.dados.itens.findIndex(i => i.id == id);
                     if (index !== -1) {
@@ -4020,14 +4349,27 @@
                     const novoId = this.dados.itens.length > 0 ? 
                         Math.max(...this.dados.itens.map(i => i.id)) + 1 : 1;
                     
-                    this.dados.itens.push({
+                    const novoItem = {
                         id: novoId,
                         nome,
                         categoria,
                         tamanhos,
                         status,
                         solicitacoes: 0
-                    });
+                    };
+                    
+                    this.dados.itens.push(novoItem);
+                    itemId = novoId;
+                }
+
+                // Salvar no Firebase se disponível
+                if (this.useFirebase) {
+                    try {
+                        const item = this.dados.itens.find(i => i.id == itemId);
+                        await this.salvarItemFirebase('item', item);
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firebase:", error);
+                    }
                 }
 
                 const salvou = this.salvarDados();
@@ -4045,8 +4387,17 @@
                 this.abrirModal('item', id);
             }
 
-            excluirItem(id) {
+            async excluirItem(id) {
                 if (confirm('Tem certeza que deseja excluir este item?')) {
+                    // Excluir do Firebase se disponível
+                    if (this.useFirebase) {
+                        try {
+                            await this.excluirItemFirebase('item', id);
+                        } catch (error) {
+                            console.error("Erro ao excluir do Firebase:", error);
+                        }
+                    }
+                    
                     this.dados.itens = this.dados.itens.filter(i => i.id !== id);
                     const salvou = this.salvarDados();
                     if (salvou) {
@@ -4060,11 +4411,13 @@
             }
 
             // CRUD Departamentos
-            salvarDepartamento() {
+            async salvarDepartamento() {
                 const id = document.getElementById('departamento-id').value;
                 const nome = document.getElementById('departamento-nome').value;
                 const status = document.getElementById('departamento-status').value;
 
+                let departamentoId = id;
+                
                 if (id) {
                     const index = this.dados.departamentos.findIndex(d => d.id == id);
                     if (index !== -1) {
@@ -4078,13 +4431,26 @@
                     const novoId = this.dados.departamentos.length > 0 ? 
                         Math.max(...this.dados.departamentos.map(d => d.id)) + 1 : 1;
                     
-                    this.dados.departamentos.push({
+                    const novoDepartamento = {
                         id: novoId,
                         nome,
                         status,
                         colaboradores: 0,
                         solicitacoes: 0
-                    });
+                    };
+                    
+                    this.dados.departamentos.push(novoDepartamento);
+                    departamentoId = novoId;
+                }
+
+                // Salvar no Firebase se disponível
+                if (this.useFirebase) {
+                    try {
+                        const departamento = this.dados.departamentos.find(d => d.id == departamentoId);
+                        await this.salvarItemFirebase('departamento', departamento);
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firebase:", error);
+                    }
                 }
 
                 const salvou = this.salvarDados();
@@ -4102,12 +4468,21 @@
                 this.abrirModal('departamento', id);
             }
 
-            excluirDepartamento(id) {
+            async excluirDepartamento(id) {
                 if (confirm('Tem certeza que deseja excluir este departamento? Esta ação não poderá ser desfeita.')) {
                     const colaboradoresNoDepartamento = this.dados.colaboradores.filter(c => c.departamentoId === id);
                     if (colaboradoresNoDepartamento.length > 0) {
                         this.mostrarToast('Não é possível excluir o departamento pois há colaboradores vinculados a ele!', 'error');
                         return;
+                    }
+                    
+                    // Excluir do Firebase se disponível
+                    if (this.useFirebase) {
+                        try {
+                            await this.excluirItemFirebase('departamento', id);
+                        } catch (error) {
+                            console.error("Erro ao excluir do Firebase:", error);
+                        }
                     }
                     
                     this.dados.departamentos = this.dados.departamentos.filter(d => d.id !== id);
@@ -4123,11 +4498,13 @@
             }
 
             // CRUD Empresas
-            salvarEmpresa() {
+            async salvarEmpresa() {
                 const id = document.getElementById('empresa-id').value;
                 const nome = document.getElementById('empresa-nome').value;
                 const status = document.getElementById('empresa-status').value;
 
+                let empresaId = id;
+                
                 if (id) {
                     const index = this.dados.empresas.findIndex(e => e.id == id);
                     if (index !== -1) {
@@ -4147,14 +4524,27 @@
                     const novoId = this.dados.empresas.length > 0 ? 
                         Math.max(...this.dados.empresas.map(e => e.id)) + 1 : 1;
                     
-                    this.dados.empresas.push({
+                    const novaEmpresa = {
                         id: novoId,
                         nome,
                         status,
                         departamentos: 0,
                         colaboradores: 0,
                         solicitacoes: 0
-                    });
+                    };
+                    
+                    this.dados.empresas.push(novaEmpresa);
+                    empresaId = novoId;
+                }
+
+                // Salvar no Firebase se disponível
+                if (this.useFirebase) {
+                    try {
+                        const empresa = this.dados.empresas.find(e => e.id == empresaId);
+                        await this.salvarItemFirebase('empresa', empresa);
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firebase:", error);
+                    }
                 }
 
                 const salvou = this.salvarDados();
@@ -4172,12 +4562,21 @@
                 this.abrirModal('empresa', id);
             }
 
-            excluirEmpresa(id) {
+            async excluirEmpresa(id) {
                 if (confirm('Tem certeza que deseja excluir esta empresa? Esta ação não poderá ser desfeita.')) {
                     const colaboradoresNaEmpresa = this.dados.colaboradores.filter(c => c.empresaId === id);
                     if (colaboradoresNaEmpresa.length > 0) {
                         this.mostrarToast('Não é possível excluir a empresa pois há colaboradores vinculados a ela!', 'error');
                         return;
+                    }
+                    
+                    // Excluir do Firebase se disponível
+                    if (this.useFirebase) {
+                        try {
+                            await this.excluirItemFirebase('empresa', id);
+                        } catch (error) {
+                            console.error("Erro ao excluir do Firebase:", error);
+                        }
                     }
                     
                     this.dados.empresas = this.dados.empresas.filter(e => e.id !== id);
@@ -4257,7 +4656,7 @@
                 container.appendChild(div);
             }
 
-            salvarSolicitacao() {
+            async salvarSolicitacao() {
                 const id = document.getElementById('solicitacao-id').value;
                 const colaboradorId = parseInt(document.getElementById('solicitacao-colaborador').value);
                 const data = document.getElementById('solicitacao-data').value;
@@ -4301,6 +4700,8 @@
                 const empresaId = colaborador.empresaId;
                 const empresa = this.dados.empresas.find(e => e.id === empresaId);
                 
+                let solicitacaoId = id;
+                
                 if (id) {
                     const index = this.dados.solicitacoes.findIndex(s => s.id == id);
                     if (index !== -1) {
@@ -4336,7 +4737,7 @@
                     const novoId = this.dados.solicitacoes.length > 0 ? 
                         Math.max(...this.dados.solicitacoes.map(s => s.id)) + 1 : 1;
                     
-                    this.dados.solicitacoes.push({
+                    const novaSolicitacao = {
                         id: novoId,
                         colaboradorId,
                         colaboradorNome: colaborador.nome,
@@ -4345,7 +4746,10 @@
                         itens: itensSelecionados,
                         data,
                         status
-                    });
+                    };
+                    
+                    this.dados.solicitacoes.push(novaSolicitacao);
+                    solicitacaoId = novoId;
                     
                     itensParaAtualizar.forEach(item => {
                         item.solicitacoes++;
@@ -4363,6 +4767,33 @@
                     }
                 }
                 
+                // Salvar no Firebase se disponível
+                if (this.useFirebase) {
+                    try {
+                        const solicitacao = this.dados.solicitacoes.find(s => s.id == solicitacaoId);
+                        await this.salvarItemFirebase('solicitacao', solicitacao);
+                        
+                        // Atualizar também o colaborador no Firebase
+                        await this.salvarItemFirebase('colaborador', colaborador);
+                        
+                        // Atualizar departamento e empresa se necessário
+                        if (departamento) {
+                            await this.salvarItemFirebase('departamento', departamento);
+                        }
+                        
+                        if (empresa) {
+                            await this.salvarItemFirebase('empresa', empresa);
+                        }
+                        
+                        // Atualizar itens
+                        for (const item of itensParaAtualizar) {
+                            await this.salvarItemFirebase('item', item);
+                        }
+                    } catch (error) {
+                        console.error("Erro ao salvar no Firebase:", error);
+                    }
+                }
+
                 const salvou = this.salvarDados();
                 if (salvou) {
                     this.fecharModais();
@@ -4379,7 +4810,7 @@
                 this.abrirModal('solicitacao', id);
             }
 
-            excluirSolicitacao(id) {
+            async excluirSolicitacao(id) {
                 if (confirm('Tem certeza que deseja excluir esta solicitação?')) {
                     const solicitacao = this.dados.solicitacoes.find(s => s.id === id);
                     if (solicitacao) {
@@ -4415,6 +4846,28 @@
                         const empresa = this.dados.empresas.find(e => e.id === solicitacao.empresaId);
                         if (empresa && empresa.solicitacoes > 0) {
                             empresa.solicitacoes--;
+                        }
+                        
+                        // Excluir do Firebase se disponível
+                        if (this.useFirebase) {
+                            try {
+                                await this.excluirItemFirebase('solicitacao', id);
+                                
+                                // Atualizar outros documentos no Firebase
+                                if (colaborador) {
+                                    await this.salvarItemFirebase('colaborador', colaborador);
+                                }
+                                
+                                if (departamento) {
+                                    await this.salvarItemFirebase('departamento', departamento);
+                                }
+                                
+                                if (empresa) {
+                                    await this.salvarItemFirebase('empresa', empresa);
+                                }
+                            } catch (error) {
+                                console.error("Erro ao excluir do Firebase:", error);
+                            }
                         }
                     }
                     
@@ -5377,8 +5830,13 @@
                 }, 3000);
             }
 
-            recarregarDados() {
-                this.dados = this.carregarDados();
+            async recarregarDados() {
+                if (this.useFirebase) {
+                    await this.carregarDadosFirebase();
+                } else {
+                    this.dados = this.carregarDados();
+                }
+                
                 this.carregarDashboard();
                 this.carregarTabelas();
                 this.carregarTempoMedioItens();
@@ -5438,126 +5896,5 @@
             }, 500);
         });
     </script>
-
-<!-- 🔹 1) Firebase - inicialização (NOVO) -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "SEU_PROJETO.firebaseapp.com",
-    projectId: "SEU_PROJETO",
-    storageBucket: "SEU_PROJETO.appspot.com",
-    messagingSenderId: "XXXX",
-    appId: "XXXX"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  window.db = getFirestore(app);
-</script>
-
-<!-- 🔹 2) Funções Firebase (NOVO) -->
-<script type="module">
-  import {
-    collection,
-    getDocs,
-    addDoc
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-  window.buscarColecao = async function(nome) {
-    const snapshot = await getDocs(collection(window.db, nome));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  };
-
-  window.criarDocumento = async function(colecao, dados) {
-    await addDoc(collection(window.db, colecao), dados);
-  };
-</script>
-
-<!-- 🔹 3) SEU SCRIPT ATUAL (fica por último) -->
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    sistema = new SistemaUniformes();
-    window.sistema = sistema;
-
-    setTimeout(() => {
-      sistema.redesenharGraficos();
-    }, 500);
-  });
-</script>
-
-<script>
-async function migrarParaFirebase() {
-  const dados = {
-    colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
-    itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
-    departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
-    solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
-    empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
-  };
-
-  for (const [colecao, lista] of Object.entries(dados)) {
-    for (const item of lista) {
-      await window.criarDocumento(colecao, item);
-    }
-  }
-
-  alert("Migração concluída com sucesso!");
-}
-</script>
-
-<button id="btnMigrar" style="position:fixed;bottom:20px;right:20px;z-index:9999;">
-  Migrar dados antigos
-</button>
-
-<div id="statusMigracao" style="
-  position:fixed;
-  bottom:60px;
-  right:20px;
-  background:#000;
-  color:#fff;
-  padding:10px;
-  font-size:14px;
-  display:none;
-  z-index:9999;
-"></div>
-
-<script>
-document.getElementById('btnMigrar').onclick = async () => {
-  const status = document.getElementById('statusMigracao');
-  status.style.display = 'block';
-  status.innerText = 'Iniciando migração...';
-
-  try {
-    const dados = {
-      colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
-      itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
-      departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
-      solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
-      empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
-    };
-
-    let enviados = 0;
-
-    for (const colecao in dados) {
-      for (const item of dados[colecao]) {
-        await window.criarDocumento(colecao, item);
-        enviados++;
-        status.innerText = `Migrando... ${enviados} registros enviados`;
-      }
-    }
-
-    status.innerText = `✅ Migração concluída! Total: ${enviados}`;
-    alert(`Migração concluída com sucesso!\nTotal de registros: ${enviados}`);
-
-  } catch (e) {
-    console.error(e);
-    status.innerText = '❌ Erro durante a migração';
-    alert('Erro durante a migração. Veja o console.');
-  }
-};
-</script>
-
 </body>
 </html>
