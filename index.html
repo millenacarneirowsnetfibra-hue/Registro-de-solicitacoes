@@ -22,7 +22,8 @@
             deleteDoc,
             onSnapshot,
             query,
-            where
+            where,
+            updateDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // Configuração do Firebase - SUBSTITUA COM SUAS CREDENCIAIS
@@ -50,7 +51,8 @@
             deleteDoc,
             onSnapshot,
             query,
-            where
+            where,
+            updateDoc
         };
 
         console.log("Firebase inicializado com sucesso!");
@@ -2065,9 +2067,9 @@
     <script>
         class SistemaUniformes {
             constructor() {
-                this.useFirebase = false;
+                this.useFirebase = true;
                 this.firebaseReady = false;
-                this.dados = this.carregarDados();
+                this.dados = this.getDadosPadrao();
                 this.charts = {};
                 this.filtrosAtivos = {
                     dashboard: { periodo: 'todos', departamento: 'todos', colaborador: 'todos', item: 'todos', empresa: 'todos' },
@@ -2082,7 +2084,6 @@
                     dashboard: { limite: 5, offset: 0 }
                 };
                 
-                // Verificar se Firebase está disponível
                 this.checkFirebase();
                 this.init();
             }
@@ -2102,81 +2103,38 @@
                             console.log("Firebase conectado com sucesso!");
                             this.mostrarToast("Conectado ao Firebase!", "success");
                             
-                            // Verificar se há dados no localStorage para migrar
-                            this.verificarDadosParaMigrar();
-                            
                             // Carregar dados do Firebase
                             this.carregarDadosFirebase();
                         } else if (attempts >= maxAttempts) {
                             clearInterval(checkInterval);
                             console.log("Firebase não disponível, usando localStorage");
                             this.mostrarToast("Usando armazenamento local", "info");
+                            this.loadLocalStorageData();
                         }
                     }, 500);
                 } catch (error) {
                     console.error("Erro ao verificar Firebase:", error);
                     this.firebaseReady = false;
                     this.useFirebase = false;
+                    this.loadLocalStorageData();
                 }
             }
 
-            async verificarDadosParaMigrar() {
-                // Verificar se há dados no localStorage que ainda não foram migrados
-                const dadosLocais = {
-                    colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')) || [],
-                    itens: JSON.parse(localStorage.getItem('uniformes_itens')) || [],
-                    departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')) || [],
-                    solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')) || [],
-                    empresas: JSON.parse(localStorage.getItem('uniformes_empresas')) || []
-                };
-
-                const totalDados = Object.values(dadosLocais).reduce((sum, arr) => sum + arr.length, 0);
-                
-                if (totalDados > 0) {
-                    const migrado = localStorage.getItem('firebase_migrated');
-                    if (!migrado) {
-                        if (confirm(`Encontramos ${totalDados} registros no armazenamento local. Deseja migrá-los para o Firebase?`)) {
-                            await this.migrarParaFirebase(dadosLocais);
-                        }
-                    }
-                }
-            }
-
-            async migrarParaFirebase(dadosLocais) {
-                try {
-                    this.mostrarToast("Iniciando migração para Firebase...", "info");
-                    
-                    let totalMigrado = 0;
-                    
-                    for (const [colecao, lista] of Object.entries(dadosLocais)) {
-                        if (lista.length > 0) {
-                            for (const item of lista) {
-                                try {
-                                    // Usar o mesmo ID do localStorage
-                                    const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, item.id.toString());
-                                    await window.firebaseFunctions.setDoc(docRef, item);
-                                    totalMigrado++;
-                                } catch (error) {
-                                    console.error(`Erro ao migrar ${colecao}:`, error);
-                                }
-                            }
-                        }
-                    }
-                    
-                    localStorage.setItem('firebase_migrated', 'true');
-                    this.mostrarToast(`Migração concluída! ${totalMigrado} registros migrados para Firebase.`, "success");
-                    
-                    // Recarregar dados do Firebase
-                    await this.carregarDadosFirebase();
-                    
-                } catch (error) {
-                    console.error("Erro na migração:", error);
-                    this.mostrarToast("Erro durante a migração!", "error");
-                }
+            loadLocalStorageData() {
+                this.dados = this.carregarDados();
+                this.atualizarSelects();
+                this.carregarDashboard();
+                this.carregarTabelas();
+                this.atualizarDashboardCharts();
+                this.carregarTempoMedioItens();
             }
 
             async carregarDadosFirebase() {
-                if (!this.firebaseReady) return;
+                if (!this.firebaseReady) {
+                    this.mostrarToast("Firebase não disponível!", "error");
+                    this.loadLocalStorageData();
+                    return;
+                }
                 
                 try {
                     this.mostrarToast("Carregando dados do Firebase...", "info");
@@ -2190,14 +2148,16 @@
                         
                         this.dados[colecao] = [];
                         querySnapshot.forEach((doc) => {
-                            this.dados[colecao].push({ id: doc.id, ...doc.data() });
+                            const data = doc.data();
+                            // Manter o ID do documento como string para Firebase
+                            this.dados[colecao].push({ id: doc.id, ...data });
                         });
                         
-                        // Converter IDs de string para número para manter compatibilidade
-                        this.dados[colecao].forEach(item => {
-                            item.id = parseInt(item.id) || item.id;
-                        });
+                        console.log(`Carregados ${this.dados[colecao].length} registros de ${colecao} do Firebase`);
                     }
+                    
+                    // Converter IDs numéricos para compatibilidade
+                    this.convertFirebaseIds();
                     
                     // Salvar também no localStorage para backup
                     this.salvarDadosLocalStorage();
@@ -2213,133 +2173,21 @@
                     
                 } catch (error) {
                     console.error("Erro ao carregar dados do Firebase:", error);
-                    this.mostrarToast("Erro ao carregar dados do Firebase!", "error");
-                    this.useFirebase = false;
+                    this.mostrarToast("Erro ao carregar dados do Firebase! Usando dados locais.", "error");
+                    this.loadLocalStorageData();
                 }
             }
 
-            async salvarDadosFirebase() {
-                if (!this.firebaseReady || !this.useFirebase) return false;
-                
-                try {
-                    // Esta função é chamada automaticamente quando dados são alterados
-                    // A sincronização é feita em tempo real
-                    return true;
-                } catch (error) {
-                    console.error("Erro ao salvar no Firebase:", error);
-                    return false;
-                }
-            }
-
-            async salvarItemFirebase(tipo, item) {
-                if (!this.firebaseReady || !this.useFirebase) return null;
-                
-                try {
-                    const colecao = tipo === 'colaborador' ? 'colaboradores' :
-                                   tipo === 'item' ? 'itens' :
-                                   tipo === 'solicitacao' ? 'solicitacoes' :
-                                   tipo === 'departamento' ? 'departamentos' :
-                                   tipo === 'empresa' ? 'empresas' : tipo;
-                    
-                    if (item.id) {
-                        const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, item.id.toString());
-                        await window.firebaseFunctions.setDoc(docRef, item);
-                        return item.id;
-                    } else {
-                        const novoId = this.gerarNovoId(colecao);
-                        item.id = novoId;
-                        const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, novoId.toString());
-                        await window.firebaseFunctions.setDoc(docRef, item);
-                        return novoId;
-                    }
-                } catch (error) {
-                    console.error(`Erro ao salvar ${tipo} no Firebase:`, error);
-                    throw error;
-                }
-            }
-
-            async excluirItemFirebase(tipo, id) {
-                if (!this.firebaseReady || !this.useFirebase) return false;
-                
-                try {
-                    const colecao = tipo === 'colaborador' ? 'colaboradores' :
-                                   tipo === 'item' ? 'itens' :
-                                   tipo === 'solicitacao' ? 'solicitacoes' :
-                                   tipo === 'departamento' ? 'departamentos' :
-                                   tipo === 'empresa' ? 'empresas' : tipo;
-                    
-                    const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, id.toString());
-                    await window.firebaseFunctions.deleteDoc(docRef);
-                    return true;
-                } catch (error) {
-                    console.error(`Erro ao excluir ${tipo} do Firebase:`, error);
-                    return false;
-                }
-            }
-
-            gerarNovoId(colecao) {
-                if (this.dados[colecao].length === 0) return 1;
-                return Math.max(...this.dados[colecao].map(item => parseInt(item.id) || 0)) + 1;
-            }
-
-            init() {
-                this.setupNavegacao();
-                this.setupEventListeners();
-                this.setupResponsividade();
-                this.setupDate();
-                this.atualizarSelects();
-                this.carregarDashboard();
-                this.carregarTabelas();
-                this.atualizarDashboardCharts();
-                this.atualizarFiltrosAtivos();
-                this.carregarTempoMedioItens();
-            }
-
-            setupResponsividade() {
-                const menuToggle = document.querySelector('.mobile-menu-toggle');
-                const sidebar = document.querySelector('.sidebar');
-                
-                if (window.innerWidth <= 768) {
-                    menuToggle.style.display = 'block';
-                    sidebar.classList.remove('mobile-open');
-                }
-                
-                menuToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('mobile-open');
-                });
-                
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.addEventListener('click', () => {
-                        if (window.innerWidth <= 768) {
-                            sidebar.classList.remove('mobile-open');
+            convertFirebaseIds() {
+                // Converter IDs de string para número onde possível para manter compatibilidade
+                for (const colecao in this.dados) {
+                    this.dados[colecao].forEach(item => {
+                        // Tentar converter ID para número se possível
+                        const idNum = parseInt(item.id);
+                        if (!isNaN(idNum)) {
+                            item.id = idNum;
                         }
                     });
-                });
-                
-                window.addEventListener('resize', () => {
-                    if (window.innerWidth <= 768) {
-                        menuToggle.style.display = 'block';
-                    } else {
-                        menuToggle.style.display = 'none';
-                        sidebar.classList.remove('mobile-open');
-                    }
-                    
-                    this.redesenharGraficos();
-                });
-            }
-
-            redesenharGraficos() {
-                if (this.charts.topColaboradores) {
-                    this.charts.topColaboradores.resize();
-                }
-                if (this.charts.departamentos) {
-                    this.charts.departamentos.resize();
-                }
-                if (this.charts.mensal) {
-                    this.charts.mensal.resize();
-                }
-                if (this.charts.itens) {
-                    this.charts.itens.resize();
                 }
             }
 
@@ -2456,7 +2304,7 @@
                 // Se Firebase estiver disponível, salvar também lá
                 if (this.firebaseReady && this.useFirebase) {
                     try {
-                        await this.salvarDadosFirebase();
+                        await this.sincronizarTodosDadosFirebase();
                         return true;
                     } catch (error) {
                         console.error("Erro ao salvar no Firebase:", error);
@@ -2467,308 +2315,119 @@
                 return localStorageSalvo;
             }
 
-            setupNavegacao() {
-                const navLinks = document.querySelectorAll('.nav-link');
-                const sections = document.querySelectorAll('.content-section');
-
-                navLinks.forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        
-                        navLinks.forEach(l => l.classList.remove('active'));
-                        link.classList.add('active');
-                        
-                        const sectionId = link.getAttribute('data-section');
-                        sections.forEach(section => {
-                            section.style.display = section.id === sectionId ? 'block' : 'none';
-                        });
-                        
-                        const titleElement = document.querySelector('.main-content .header h2');
-                        if (titleElement) {
-                            titleElement.textContent = link.querySelector('span').textContent;
-                        }
-                        
-                        if (sectionId === 'dashboard') {
-                            this.atualizarDashboardCharts();
-                            this.atualizarFiltrosAtivos('dashboard');
-                        } else if (sectionId === 'colaboradores') {
-                            this.atualizarFiltrosAtivos('colaboradores');
-                        } else if (sectionId === 'itens') {
-                            this.atualizarFiltrosAtivos('itens');
-                            this.carregarTempoMedioItens();
-                        } else if (sectionId === 'solicitacoes') {
-                            this.atualizarFiltrosAtivos('solicitacoes');
-                            this.filtrarSolicitacoes();
-                        } else if (sectionId === 'departamentos') {
-                            this.atualizarFiltrosAtivos('departamentos');
-                        } else if (sectionId === 'empresas') {
-                            this.atualizarFiltrosAtivos('empresas');
-                            this.carregarTabelaEmpresas();
-                        } else if (sectionId === 'relatorios') {
-                            this.atualizarFiltrosAtivos('relatorios');
-                            this.gerarRelatorio();
-                        }
-                        
-                        setTimeout(() => {
-                            this.redesenharGraficos();
-                        }, 100);
-                    });
-                });
-            }
-
-            setupEventListeners() {
-                // Botões principais
-                document.getElementById('refresh-btn')?.addEventListener('click', () => this.recarregarDados());
-                document.getElementById('export-dashboard-btn')?.addEventListener('click', () => this.exportarDashboard());
-                document.getElementById('sync-firebase-btn')?.addEventListener('click', () => this.sincronizarComFirebase());
-                
-                // Botões de adição
-                document.getElementById('novo-colaborador-btn')?.addEventListener('click', () => this.abrirModal('colaborador'));
-                document.getElementById('novo-item-btn')?.addEventListener('click', () => this.abrirModal('item'));
-                document.getElementById('nova-solicitacao-btn')?.addEventListener('click', () => this.abrirModal('solicitacao'));
-                document.getElementById('nova-solicitacao-btn2')?.addEventListener('click', () => this.abrirModal('solicitacao'));
-                document.getElementById('novo-departamento-btn')?.addEventListener('click', () => this.abrirModal('departamento'));
-                document.getElementById('nova-empresa-btn')?.addEventListener('click', () => this.abrirModal('empresa'));
-                
-                // Formulários
-                document.getElementById('form-colaborador')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.salvarColaborador();
-                });
-                
-                document.getElementById('form-item')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.salvarItem();
-                });
-                
-                document.getElementById('form-solicitacao')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.salvarSolicitacao();
-                });
-                
-                document.getElementById('form-departamento')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.salvarDepartamento();
-                });
-                
-                document.getElementById('form-empresa')?.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await this.salvarEmpresa();
-                });
-                
-                // Adicionar item dinâmico
-                document.getElementById('adicionar-item-btn')?.addEventListener('click', () => {
-                    this.adicionarItemSolicitacao();
-                });
-                
-                // Filtros do Dashboard (auto-aplicar)
-                document.getElementById('periodo-select')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.dashboard.periodo = e.target.value;
-                    this.atualizarFiltrosAtivos('dashboard');
-                    this.aplicarFiltrosDashboard();
-                });
-                
-                document.getElementById('departamento-select')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.dashboard.departamento = e.target.value;
-                    this.atualizarFiltrosAtivos('dashboard');
-                    this.aplicarFiltrosDashboard();
-                });
-                
-                document.getElementById('colaborador-select')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.dashboard.colaborador = e.target.value;
-                    this.atualizarFiltrosAtivos('dashboard');
-                    this.aplicarFiltrosDashboard();
-                });
-                
-                document.getElementById('item-select')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.dashboard.item = e.target.value;
-                    this.atualizarFiltrosAtivos('dashboard');
-                    this.aplicarFiltrosDashboard();
-                });
-                
-                document.getElementById('empresa-select')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.dashboard.empresa = e.target.value;
-                    this.atualizarFiltrosAtivos('dashboard');
-                    this.aplicarFiltrosDashboard();
-                });
-                
-                // Filtros de Colaboradores (auto-aplicar)
-                document.getElementById('buscar-colaborador')?.addEventListener('input', (e) => {
-                    this.filtrosAtivos.colaboradores.busca = e.target.value.toLowerCase();
-                    this.filtrarColaboradores();
-                });
-                
-                document.getElementById('filtro-status-colaborador')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.colaboradores.status = e.target.value;
-                    this.atualizarFiltrosAtivos('colaboradores');
-                    this.filtrarColaboradores();
-                });
-                
-                document.getElementById('filtro-departamento-colaborador')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.colaboradores.departamento = e.target.value;
-                    this.atualizarFiltrosAtivos('colaboradores');
-                    this.filtrarColaboradores();
-                });
-                
-                document.getElementById('filtro-empresa-colaborador')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.colaboradores.empresa = e.target.value;
-                    this.atualizarFiltrosAtivos('colaboradores');
-                    this.filtrarColaboradores();
-                });
-                
-                // Filtros de Itens (auto-aplicar)
-                document.getElementById('buscar-item')?.addEventListener('input', (e) => {
-                    this.filtrosAtivos.itens.busca = e.target.value.toLowerCase();
-                    this.filtrarItens();
-                });
-                
-                document.getElementById('filtro-categoria-item')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.itens.categoria = e.target.value;
-                    this.atualizarFiltrosAtivos('itens');
-                    this.filtrarItens();
-                });
-                
-                document.getElementById('filtro-status-item')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.itens.status = e.target.value;
-                    this.atualizarFiltrosAtivos('itens');
-                    this.filtrarItens();
-                });
-                
-                // Filtros de Solicitações (auto-aplicar)
-                document.getElementById('filtro-status-solicitacao')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.status = e.target.value;
-                    this.atualizarFiltrosAtivos('solicitacoes');
-                    this.filtrarSolicitacoes();
-                });
-                
-                document.getElementById('filtro-departamento-solicitacao')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.departamento = e.target.value;
-                    this.atualizarFiltrosAtivos('solicitacoes');
-                    this.filtrarSolicitacoes();
-                });
-                
-                document.getElementById('filtro-empresa-solicitacao')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.empresa = e.target.value;
-                    this.atualizarFiltrosAtivos('solicitacoes');
-                    this.filtrarSolicitacoes();
-                });
-                
-                document.getElementById('filtro-item-solicitacao')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.item = e.target.value;
-                    this.atualizarFiltrosAtivos('solicitacoes');
-                    this.filtrarSolicitacoes();
-                });
-                
-                document.getElementById('filtro-periodo-solicitacao')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.periodo = e.target.value;
-                    this.atualizarFiltrosAtivos('solicitacoes');
-                    this.filtrarSolicitacoes();
-                });
-                
-                document.getElementById('filtro-colaborador-solicitacao')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.solicitacoes.colaborador = e.target.value;
-                    this.atualizarFiltrosAtivos('solicitacoes');
-                    this.filtrarSolicitacoes();
-                });
-                
-                // Filtros de Departamentos (auto-aplicar)
-                document.getElementById('buscar-departamento')?.addEventListener('input', (e) => {
-                    this.filtrosAtivos.departamentos.busca = e.target.value.toLowerCase();
-                    this.filtrarDepartamentos();
-                });
-                
-                document.getElementById('filtro-status-departamento')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.departamentos.status = e.target.value;
-                    this.atualizarFiltrosAtivos('departamentos');
-                    this.filtrarDepartamentos();
-                });
-                
-                // Filtros de Empresas (auto-aplicar)
-                document.getElementById('buscar-empresa')?.addEventListener('input', (e) => {
-                    this.filtrosAtivos.empresas.busca = e.target.value.toLowerCase();
-                    this.filtrarEmpresas();
-                });
-                
-                document.getElementById('filtro-status-empresa')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.empresas.status = e.target.value;
-                    this.atualizarFiltrosAtivos('empresas');
-                    this.filtrarEmpresas();
-                });
-                
-                // Filtros de Relatórios (auto-aplicar)
-                document.getElementById('tipo-relatorio')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.tipo = e.target.value;
-                    this.gerarRelatorio();
-                });
-                
-                document.getElementById('periodo-relatorio')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.periodo = e.target.value;
-                    this.gerarRelatorio();
-                });
-                
-                document.getElementById('empresa-relatorio')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.empresa = e.target.value;
-                    this.gerarRelatorio();
-                });
-                
-                document.getElementById('departamento-relatorio')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.departamento = e.target.value;
-                    this.gerarRelatorio();
-                });
-                
-                document.getElementById('colaborador-relatorio')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.colaborador = e.target.value;
-                    this.gerarRelatorio();
-                });
-                
-                document.getElementById('status-relatorio')?.addEventListener('change', (e) => {
-                    this.filtrosAtivos.relatorios.status = e.target.value;
-                    this.gerarRelatorio();
-                });
-                
-                // Relatórios
-                document.getElementById('exportar-pdf-btn')?.addEventListener('click', () => this.exportarPDF());
-                document.getElementById('exportar-excel-btn')?.addEventListener('click', () => this.exportarExcel());
-                
-                // Fechar modais
-                document.querySelectorAll('.modal-close').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        this.fecharModais();
-                    });
-                });
-                
-                // Clicar fora para fechar modal
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            modal.classList.remove('active');
-                        }
-                    });
-                });
-            }
-
-            async sincronizarComFirebase() {
-                if (!this.firebaseReady) {
-                    this.mostrarToast("Firebase não disponível!", "error");
-                    return;
-                }
+            async sincronizarTodosDadosFirebase() {
+                if (!this.firebaseReady || !this.useFirebase) return false;
                 
                 try {
-                    this.mostrarToast("Sincronizando com Firebase...", "info");
+                    const colecoes = ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas'];
                     
-                    // Sincronizar todos os dados
-                    for (const colecao of ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas']) {
+                    for (const colecao of colecoes) {
                         for (const item of this.dados[colecao]) {
-                            await this.salvarItemFirebase(colecao.slice(0, -1), item);
+                            await this.salvarItemFirebase(colecao, item);
                         }
                     }
                     
-                    localStorage.setItem('firebase_migrated', 'true');
-                    this.mostrarToast("Sincronização completa!", "success");
-                    
+                    console.log("Todos os dados sincronizados com Firebase!");
+                    return true;
                 } catch (error) {
-                    console.error("Erro na sincronização:", error);
-                    this.mostrarToast("Erro na sincronização!", "error");
+                    console.error("Erro na sincronização completa:", error);
+                    throw error;
+                }
+            }
+
+            async salvarItemFirebase(colecao, item) {
+                if (!this.firebaseReady || !this.useFirebase) return null;
+                
+                try {
+                    const itemId = item.id.toString();
+                    const itemData = { ...item };
+                    delete itemData.id; // Remover id do objeto de dados
+                    
+                    const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, itemId);
+                    await window.firebaseFunctions.setDoc(docRef, itemData, { merge: true });
+                    
+                    console.log(`${colecao} salvo no Firebase com ID: ${itemId}`);
+                    return itemId;
+                } catch (error) {
+                    console.error(`Erro ao salvar ${colecao} no Firebase:`, error);
+                    throw error;
+                }
+            }
+
+            async excluirItemFirebase(colecao, id) {
+                if (!this.firebaseReady || !this.useFirebase) return false;
+                
+                try {
+                    const docRef = window.firebaseFunctions.doc(window.firebaseDB, colecao, id.toString());
+                    await window.firebaseFunctions.deleteDoc(docRef);
+                    console.log(`${colecao} excluído do Firebase: ${id}`);
+                    return true;
+                } catch (error) {
+                    console.error(`Erro ao excluir ${colecao} do Firebase:`, error);
+                    return false;
+                }
+            }
+
+            init() {
+                this.setupNavegacao();
+                this.setupEventListeners();
+                this.setupResponsividade();
+                this.setupDate();
+                
+                // Carregar interface inicialmente com dados locais
+                this.atualizarSelects();
+                this.carregarDashboard();
+                this.carregarTabelas();
+                this.atualizarDashboardCharts();
+                this.atualizarFiltrosAtivos();
+                this.carregarTempoMedioItens();
+            }
+
+            setupResponsividade() {
+                const menuToggle = document.querySelector('.mobile-menu-toggle');
+                const sidebar = document.querySelector('.sidebar');
+                
+                if (window.innerWidth <= 768) {
+                    menuToggle.style.display = 'block';
+                    sidebar.classList.remove('mobile-open');
+                }
+                
+                menuToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('mobile-open');
+                });
+                
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('mobile-open');
+                        }
+                    });
+                });
+                
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth <= 768) {
+                        menuToggle.style.display = 'block';
+                    } else {
+                        menuToggle.style.display = 'none';
+                        sidebar.classList.remove('mobile-open');
+                    }
+                    
+                    this.redesenharGraficos();
+                });
+            }
+
+            redesenharGraficos() {
+                if (this.charts.topColaboradores) {
+                    this.charts.topColaboradores.resize();
+                }
+                if (this.charts.departamentos) {
+                    this.charts.departamentos.resize();
+                }
+                if (this.charts.mensal) {
+                    this.charts.mensal.resize();
+                }
+                if (this.charts.itens) {
+                    this.charts.itens.resize();
                 }
             }
 
@@ -2789,221 +2448,125 @@
             atualizarSelects() {
                 this.ordenarDadosAlfabeticamente();
                 
-                const selectEmpresaDashboard = document.getElementById('empresa-select');
-                if (selectEmpresaDashboard) {
-                    selectEmpresaDashboard.innerHTML = '<option value="todos">Todas as Empresas</option>';
-                    this.dados.empresas.forEach(empresa => {
-                        if (empresa.status === 'ativo') {
-                            const option = document.createElement('option');
-                            option.value = empresa.id;
-                            option.textContent = empresa.nome;
-                            selectEmpresaDashboard.appendChild(option);
-                        }
-                    });
-                }
+                // Atualizar todos os selects
+                this.atualizarSelectEmpresas();
+                this.atualizarSelectDepartamentos();
+                this.atualizarSelectColaboradores();
+                this.atualizarSelectItens();
+            }
+
+            atualizarSelectEmpresas() {
+                const selects = [
+                    'empresa-select',
+                    'colaborador-empresa',
+                    'filtro-empresa-colaborador',
+                    'filtro-empresa-solicitacao',
+                    'empresa-relatorio'
+                ];
                 
-                const selectDashboardDepto = document.getElementById('departamento-select');
-                if (selectDashboardDepto) {
-                    selectDashboardDepto.innerHTML = '<option value="todos">Todos os Departamentos</option>';
-                    this.dados.departamentos.forEach(depto => {
-                        if (depto.status === 'ativo') {
-                            const option = document.createElement('option');
-                            option.value = depto.id;
-                            option.textContent = depto.nome;
-                            selectDashboardDepto.appendChild(option);
-                        }
-                    });
-                }
-                
-                const selectDashboardColab = document.getElementById('colaborador-select');
-                if (selectDashboardColab) {
-                    selectDashboardColab.innerHTML = '<option value="todos">Todos os Colaboradores</option>';
-                    this.dados.colaboradores.forEach(colab => {
-                        if (colab.status === 'ativo') {
-                            const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                            const deptoNome = depto ? depto.nome : 'N/A';
-                            const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                            const empresaNome = empresa ? empresa.nome : '';
-                            const option = document.createElement('option');
-                            option.value = colab.id;
-                            option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                            selectDashboardColab.appendChild(option);
-                        }
-                    });
-                }
-                
-                const selectItem = document.getElementById('item-select');
-                if (selectItem) {
-                    selectItem.innerHTML = '<option value="todos">Todos os Itens</option>';
-                    this.dados.itens.forEach(item => {
-                        if (item.status === 'ativo') {
-                            const option = document.createElement('option');
-                            option.value = item.id;
-                            option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
-                            selectItem.appendChild(option);
-                        }
-                    });
-                }
-                
-                const selectEmpresaColaborador = document.getElementById('colaborador-empresa');
-                const filtroEmpresaColaborador = document.getElementById('filtro-empresa-colaborador');
-                const filtroEmpresaSolicitacao = document.getElementById('filtro-empresa-solicitacao');
-                const relatorioEmpresa = document.getElementById('empresa-relatorio');
-                
-                if (selectEmpresaColaborador) {
-                    selectEmpresaColaborador.innerHTML = '<option value="">Selecione...</option>';
-                }
-                if (filtroEmpresaColaborador) {
-                    filtroEmpresaColaborador.innerHTML = '<option value="todos">Todas as Empresas</option>';
-                }
-                if (filtroEmpresaSolicitacao) {
-                    filtroEmpresaSolicitacao.innerHTML = '<option value="todos">Todas</option>';
-                }
-                if (relatorioEmpresa) {
-                    relatorioEmpresa.innerHTML = '<option value="todos">Todas</option>';
-                }
-                
-                this.dados.empresas.forEach(empresa => {
-                    if (empresa.status === 'ativo') {
-                        if (selectEmpresaColaborador) {
-                            const optionForm = document.createElement('option');
-                            optionForm.value = empresa.id;
-                            optionForm.textContent = empresa.nome;
-                            selectEmpresaColaborador.appendChild(optionForm);
-                        }
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = selectId === 'colaborador-empresa' ? 
+                            '<option value="">Selecione...</option>' : 
+                            selectId.includes('relatorio') ? '<option value="todos">Todas</option>' :
+                            selectId.includes('colaborador') ? '<option value="todos">Todas as Empresas</option>' :
+                            '<option value="todos">Todas</option>';
                         
-                        if (filtroEmpresaColaborador) {
-                            const optionFiltro1 = document.createElement('option');
-                            optionFiltro1.value = empresa.id;
-                            optionFiltro1.textContent = empresa.nome;
-                            filtroEmpresaColaborador.appendChild(optionFiltro1.cloneNode(true));
-                        }
-                        
-                        if (filtroEmpresaSolicitacao) {
-                            const optionFiltro2 = document.createElement('option');
-                            optionFiltro2.value = empresa.id;
-                            optionFiltro2.textContent = empresa.nome;
-                            filtroEmpresaSolicitacao.appendChild(optionFiltro2);
-                        }
-                        
-                        if (relatorioEmpresa) {
-                            const optionRel = document.createElement('option');
-                            optionRel.value = empresa.id;
-                            optionRel.textContent = empresa.nome;
-                            relatorioEmpresa.appendChild(optionRel);
-                        }
+                        this.dados.empresas.forEach(empresa => {
+                            if (empresa.status === 'ativo') {
+                                const option = document.createElement('option');
+                                option.value = empresa.id;
+                                option.textContent = empresa.nome;
+                                select.appendChild(option);
+                            }
+                        });
                     }
                 });
+            }
+
+            atualizarSelectDepartamentos() {
+                const selects = [
+                    'departamento-select',
+                    'colaborador-departamento',
+                    'filtro-departamento-colaborador',
+                    'filtro-departamento-solicitacao',
+                    'departamento-relatorio'
+                ];
                 
-                const selectDeptoColaborador = document.getElementById('colaborador-departamento');
-                const filtroDeptoColaborador = document.getElementById('filtro-departamento-colaborador');
-                const filtroDeptoSolicitacao = document.getElementById('filtro-departamento-solicitacao');
-                const relatorioDepto = document.getElementById('departamento-relatorio');
-                
-                if (selectDeptoColaborador) {
-                    selectDeptoColaborador.innerHTML = '<option value="">Selecione...</option>';
-                }
-                if (filtroDeptoColaborador) {
-                    filtroDeptoColaborador.innerHTML = '<option value="todos">Todos os Departamentos</option>';
-                }
-                if (filtroDeptoSolicitacao) {
-                    filtroDeptoSolicitacao.innerHTML = '<option value="todos">Todos</option>';
-                }
-                if (relatorioDepto) {
-                    relatorioDepto.innerHTML = '<option value="todos">Todos</option>';
-                }
-                
-                this.dados.departamentos.forEach(depto => {
-                    if (depto.status === 'ativo') {
-                        if (selectDeptoColaborador) {
-                            const optionForm = document.createElement('option');
-                            optionForm.value = depto.id;
-                            optionForm.textContent = depto.nome;
-                            selectDeptoColaborador.appendChild(optionForm);
-                        }
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = selectId === 'colaborador-departamento' ? 
+                            '<option value="">Selecione...</option>' : 
+                            selectId.includes('relatorio') ? '<option value="todos">Todos</option>' :
+                            selectId.includes('colaborador') ? '<option value="todos">Todos os Departamentos</option>' :
+                            '<option value="todos">Todos</option>';
                         
-                        if (filtroDeptoColaborador) {
-                            const optionFiltro1 = document.createElement('option');
-                            optionFiltro1.value = depto.id;
-                            optionFiltro1.textContent = depto.nome;
-                            filtroDeptoColaborador.appendChild(optionFiltro1.cloneNode(true));
-                        }
-                        
-                        if (filtroDeptoSolicitacao) {
-                            const optionFiltro2 = document.createElement('option');
-                            optionFiltro2.value = depto.id;
-                            optionFiltro2.textContent = depto.nome;
-                            filtroDeptoSolicitacao.appendChild(optionFiltro2);
-                        }
-                        
-                        if (relatorioDepto) {
-                            const optionRel = document.createElement('option');
-                            optionRel.value = depto.id;
-                            optionRel.textContent = depto.nome;
-                            relatorioDepto.appendChild(optionRel);
-                        }
+                        this.dados.departamentos.forEach(depto => {
+                            if (depto.status === 'ativo') {
+                                const option = document.createElement('option');
+                                option.value = depto.id;
+                                option.textContent = depto.nome;
+                                select.appendChild(option);
+                            }
+                        });
                     }
                 });
+            }
+
+            atualizarSelectColaboradores() {
+                const selects = [
+                    'colaborador-select',
+                    'solicitacao-colaborador',
+                    'filtro-colaborador-solicitacao',
+                    'colaborador-relatorio'
+                ];
                 
-                const selectColaborador = document.getElementById('solicitacao-colaborador');
-                if (selectColaborador) {
-                    selectColaborador.innerHTML = '<option value="">Selecione...</option>';
-                    this.dados.colaboradores.forEach(colab => {
-                        if (colab.status === 'ativo') {
-                            const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                            const deptoNome = depto ? depto.nome : 'N/A';
-                            const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                            const empresaNome = empresa ? empresa.nome : '';
-                            const option = document.createElement('option');
-                            option.value = colab.id;
-                            option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                            selectColaborador.appendChild(option);
-                        }
-                    });
-                }
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = selectId === 'solicitacao-colaborador' ? 
+                            '<option value="">Selecione...</option>' : 
+                            '<option value="todos">Todos</option>';
+                        
+                        this.dados.colaboradores.forEach(colab => {
+                            if (colab.status === 'ativo') {
+                                const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
+                                const deptoNome = depto ? depto.nome : 'N/A';
+                                const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
+                                const empresaNome = empresa ? empresa.nome : '';
+                                const option = document.createElement('option');
+                                option.value = colab.id;
+                                option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
+                                select.appendChild(option);
+                            }
+                        });
+                    }
+                });
+            }
+
+            atualizarSelectItens() {
+                const selects = [
+                    'item-select',
+                    'filtro-item-solicitacao'
+                ];
                 
-                const filtroColaborador = document.getElementById('filtro-colaborador-solicitacao');
-                if (filtroColaborador) {
-                    filtroColaborador.innerHTML = '<option value="todos">Todos</option>';
-                    this.dados.colaboradores.forEach(colab => {
-                        const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                        const deptoNome = depto ? depto.nome : 'N/A';
-                        const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                        const empresaNome = empresa ? empresa.nome : '';
-                        const option = document.createElement('option');
-                        option.value = colab.id;
-                        option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                        filtroColaborador.appendChild(option);
-                    });
-                }
-                
-                const relatorioColaborador = document.getElementById('colaborador-relatorio');
-                if (relatorioColaborador) {
-                    relatorioColaborador.innerHTML = '<option value="todos">Todos</option>';
-                    this.dados.colaboradores.forEach(colab => {
-                        const depto = this.dados.departamentos.find(d => d.id === colab.departamentoId);
-                        const deptoNome = depto ? depto.nome : 'N/A';
-                        const empresa = this.dados.empresas.find(e => e.id === colab.empresaId);
-                        const empresaNome = empresa ? empresa.nome : '';
-                        const option = document.createElement('option');
-                        option.value = colab.id;
-                        option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
-                        relatorioColaborador.appendChild(option);
-                    });
-                }
-                
-                const filtroItemSolicitacao = document.getElementById('filtro-item-solicitacao');
-                if (filtroItemSolicitacao) {
-                    filtroItemSolicitacao.innerHTML = '<option value="todos">Todos</option>';
-                    this.dados.itens.forEach(item => {
-                        if (item.status === 'ativo') {
-                            const option = document.createElement('option');
-                            option.value = item.id;
-                            option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
-                            filtroItemSolicitacao.appendChild(option);
-                        }
-                    });
-                }
+                selects.forEach(selectId => {
+                    const select = document.getElementById(selectId);
+                    if (select) {
+                        select.innerHTML = '<option value="todos">Todos</option>';
+                        
+                        this.dados.itens.forEach(item => {
+                            if (item.status === 'ativo') {
+                                const option = document.createElement('option');
+                                option.value = item.id;
+                                option.textContent = `${item.nome} (${this.formatarCategoria(item.categoria)})`;
+                                select.appendChild(option);
+                            }
+                        });
+                    }
+                });
             }
 
             ordenarDadosAlfabeticamente() {
@@ -4094,7 +3657,7 @@
                     // Salvar no Firebase se disponível
                     if (this.useFirebase) {
                         try {
-                            await this.salvarItemFirebase('solicitacao', solicitacao);
+                            await this.salvarItemFirebase('solicitacoes', solicitacao);
                         } catch (error) {
                             console.error("Erro ao salvar no Firebase:", error);
                         }
@@ -4280,7 +3843,7 @@
                 if (this.useFirebase) {
                     try {
                         const colaborador = this.dados.colaboradores.find(c => c.id == colaboradorId);
-                        await this.salvarItemFirebase('colaborador', colaborador);
+                        await this.salvarItemFirebase('colaboradores', colaborador);
                     } catch (error) {
                         console.error("Erro ao salvar no Firebase:", error);
                     }
@@ -4306,7 +3869,7 @@
                     // Excluir do Firebase se disponível
                     if (this.useFirebase) {
                         try {
-                            await this.excluirItemFirebase('colaborador', id);
+                            await this.excluirItemFirebase('colaboradores', id);
                         } catch (error) {
                             console.error("Erro ao excluir do Firebase:", error);
                         }
@@ -4366,7 +3929,7 @@
                 if (this.useFirebase) {
                     try {
                         const item = this.dados.itens.find(i => i.id == itemId);
-                        await this.salvarItemFirebase('item', item);
+                        await this.salvarItemFirebase('itens', item);
                     } catch (error) {
                         console.error("Erro ao salvar no Firebase:", error);
                     }
@@ -4392,7 +3955,7 @@
                     // Excluir do Firebase se disponível
                     if (this.useFirebase) {
                         try {
-                            await this.excluirItemFirebase('item', id);
+                            await this.excluirItemFirebase('itens', id);
                         } catch (error) {
                             console.error("Erro ao excluir do Firebase:", error);
                         }
@@ -4447,7 +4010,7 @@
                 if (this.useFirebase) {
                     try {
                         const departamento = this.dados.departamentos.find(d => d.id == departamentoId);
-                        await this.salvarItemFirebase('departamento', departamento);
+                        await this.salvarItemFirebase('departamentos', departamento);
                     } catch (error) {
                         console.error("Erro ao salvar no Firebase:", error);
                     }
@@ -4479,7 +4042,7 @@
                     // Excluir do Firebase se disponível
                     if (this.useFirebase) {
                         try {
-                            await this.excluirItemFirebase('departamento', id);
+                            await this.excluirItemFirebase('departamentos', id);
                         } catch (error) {
                             console.error("Erro ao excluir do Firebase:", error);
                         }
@@ -4541,7 +4104,7 @@
                 if (this.useFirebase) {
                     try {
                         const empresa = this.dados.empresas.find(e => e.id == empresaId);
-                        await this.salvarItemFirebase('empresa', empresa);
+                        await this.salvarItemFirebase('empresas', empresa);
                     } catch (error) {
                         console.error("Erro ao salvar no Firebase:", error);
                     }
@@ -4573,7 +4136,7 @@
                     // Excluir do Firebase se disponível
                     if (this.useFirebase) {
                         try {
-                            await this.excluirItemFirebase('empresa', id);
+                            await this.excluirItemFirebase('empresas', id);
                         } catch (error) {
                             console.error("Erro ao excluir do Firebase:", error);
                         }
@@ -4771,23 +4334,23 @@
                 if (this.useFirebase) {
                     try {
                         const solicitacao = this.dados.solicitacoes.find(s => s.id == solicitacaoId);
-                        await this.salvarItemFirebase('solicitacao', solicitacao);
+                        await this.salvarItemFirebase('solicitacoes', solicitacao);
                         
                         // Atualizar também o colaborador no Firebase
-                        await this.salvarItemFirebase('colaborador', colaborador);
+                        await this.salvarItemFirebase('colaboradores', colaborador);
                         
                         // Atualizar departamento e empresa se necessário
                         if (departamento) {
-                            await this.salvarItemFirebase('departamento', departamento);
+                            await this.salvarItemFirebase('departamentos', departamento);
                         }
                         
                         if (empresa) {
-                            await this.salvarItemFirebase('empresa', empresa);
+                            await this.salvarItemFirebase('empresas', empresa);
                         }
                         
                         // Atualizar itens
                         for (const item of itensParaAtualizar) {
-                            await this.salvarItemFirebase('item', item);
+                            await this.salvarItemFirebase('itens', item);
                         }
                     } catch (error) {
                         console.error("Erro ao salvar no Firebase:", error);
@@ -4851,19 +4414,19 @@
                         // Excluir do Firebase se disponível
                         if (this.useFirebase) {
                             try {
-                                await this.excluirItemFirebase('solicitacao', id);
+                                await this.excluirItemFirebase('solicitacoes', id);
                                 
                                 // Atualizar outros documentos no Firebase
                                 if (colaborador) {
-                                    await this.salvarItemFirebase('colaborador', colaborador);
+                                    await this.salvarItemFirebase('colaboradores', colaborador);
                                 }
                                 
                                 if (departamento) {
-                                    await this.salvarItemFirebase('departamento', departamento);
+                                    await this.salvarItemFirebase('departamentos', departamento);
                                 }
                                 
                                 if (empresa) {
-                                    await this.salvarItemFirebase('empresa', empresa);
+                                    await this.salvarItemFirebase('empresas', empresa);
                                 }
                             } catch (error) {
                                 console.error("Erro ao excluir do Firebase:", error);
@@ -4883,6 +4446,7 @@
                 }
             }
 
+            // Filtros
             aplicarFiltrosDashboard() {
                 this.atualizarEstatisticasDashboard();
                 this.atualizarDashboardCharts();
@@ -4890,6 +4454,7 @@
                 this.carregarTopDepartamentos();
                 this.carregarTopItens();
                 this.carregarUltimasSolicitacoes();
+                this.atualizarFiltrosAtivos('dashboard');
             }
 
             filtrarColaboradores() {
@@ -4918,6 +4483,7 @@
                     
                     linha.style.display = buscaMatch && statusMatch && departamentoMatch && empresaMatch ? '' : 'none';
                 });
+                this.atualizarFiltrosAtivos('colaboradores');
             }
 
             filtrarItens() {
@@ -4937,6 +4503,7 @@
                     
                     linha.style.display = buscaMatch && categoriaMatch && statusMatch ? '' : 'none';
                 });
+                this.atualizarFiltrosAtivos('itens');
             }
 
             filtrarSolicitacoes() {
@@ -5012,6 +4579,7 @@
                         </td>
                     `;
                     tbody.appendChild(tr);
+                    this.atualizarFiltrosAtivos('solicitacoes');
                     return;
                 }
                 
@@ -5061,6 +4629,7 @@
                     `;
                     tbody.appendChild(tr);
                 });
+                this.atualizarFiltrosAtivos('solicitacoes');
             }
 
             filtrarDepartamentos() {
@@ -5077,6 +4646,7 @@
                     
                     linha.style.display = buscaMatch && statusMatch ? '' : 'none';
                 });
+                this.atualizarFiltrosAtivos('departamentos');
             }
 
             filtrarEmpresas() {
@@ -5093,12 +4663,7 @@
                     
                     linha.style.display = buscaMatch && statusMatch ? '' : 'none';
                 });
-            }
-
-            getColaboradorNome(id) {
-                if (id === 'todos') return 'todos';
-                const colaborador = this.dados.colaboradores.find(c => c.id === parseInt(id));
-                return colaborador ? colaborador.nome : '';
+                this.atualizarFiltrosAtivos('empresas');
             }
 
             getDepartamentoNome(id) {
@@ -5113,13 +4678,7 @@
                 return empresa ? empresa.nome : 'N/A';
             }
 
-            parseDataPtBr(dataStr) {
-                if (!dataStr || dataStr === 'N/A') return null;
-                const partes = dataStr.split('/');
-                if (partes.length !== 3) return null;
-                return new Date(partes[2], partes[1] - 1, partes[0]);
-            }
-
+            // Métodos de utilidade
             atualizarFiltrosAtivos(secao = 'dashboard') {
                 const container = document.getElementById('filtros-ativos');
                 if (!container) return;
@@ -5239,574 +4798,166 @@
                 
                 this.filtrosAtivos[secao][chave] = valorPadrao;
                 
+                // Atualizar o select correspondente
+                const selectMap = {
+                    'periodo': 'periodo-select',
+                    'departamento': 'departamento-select',
+                    'colaborador': 'colaborador-select',
+                    'item': 'item-select',
+                    'empresa': 'empresa-select'
+                };
+                
+                if (selectMap[chave]) {
+                    const select = document.getElementById(selectMap[chave]);
+                    if (select) select.value = valorPadrao;
+                }
+                
+                // Aplicar filtros novamente
                 switch(secao) {
                     case 'dashboard':
-                        if (chave === 'periodo') document.getElementById('periodo-select').value = valorPadrao;
-                        if (chave === 'departamento') document.getElementById('departamento-select').value = valorPadrao;
-                        if (chave === 'colaborador') document.getElementById('colaborador-select').value = valorPadrao;
-                        if (chave === 'item') document.getElementById('item-select').value = valorPadrao;
-                        if (chave === 'empresa') document.getElementById('empresa-select').value = valorPadrao;
                         this.aplicarFiltrosDashboard();
-                        break;
-                    case 'colaboradores':
-                        if (chave === 'busca') document.getElementById('buscar-colaborador').value = '';
-                        if (chave === 'status') document.getElementById('filtro-status-colaborador').value = valorPadrao;
-                        if (chave === 'departamento') document.getElementById('filtro-departamento-colaborador').value = valorPadrao;
-                        if (chave === 'empresa') document.getElementById('filtro-empresa-colaborador').value = valorPadrao;
-                        this.filtrarColaboradores();
-                        break;
-                    case 'itens':
-                        if (chave === 'busca') document.getElementById('buscar-item').value = '';
-                        if (chave === 'categoria') document.getElementById('filtro-categoria-item').value = valorPadrao;
-                        if (chave === 'status') document.getElementById('filtro-status-item').value = valorPadrao;
-                        this.filtrarItens();
-                        break;
-                    case 'solicitacoes':
-                        if (chave === 'status') document.getElementById('filtro-status-solicitacao').value = valorPadrao;
-                        if (chave === 'departamento') document.getElementById('filtro-departamento-solicitacao').value = valorPadrao;
-                        if (chave === 'empresa') document.getElementById('filtro-empresa-solicitacao').value = valorPadrao;
-                        if (chave === 'item') document.getElementById('filtro-item-solicitacao').value = valorPadrao;
-                        if (chave === 'periodo') document.getElementById('filtro-periodo-solicitacao').value = valorPadrao;
-                        if (chave === 'colaborador') document.getElementById('filtro-colaborador-solicitacao').value = valorPadrao;
-                        this.filtrarSolicitacoes();
-                        break;
-                    case 'departamentos':
-                        if (chave === 'busca') document.getElementById('buscar-departamento').value = '';
-                        if (chave === 'status') document.getElementById('filtro-status-departamento').value = valorPadrao;
-                        this.filtrarDepartamentos();
-                        break;
-                    case 'empresas':
-                        if (chave === 'busca') document.getElementById('buscar-empresa').value = '';
-                        if (chave === 'status') document.getElementById('filtro-status-empresa').value = valorPadrao;
-                        this.filtrarEmpresas();
-                        break;
-                    case 'relatorios':
-                        if (chave === 'tipo') document.getElementById('tipo-relatorio').value = valorPadrao;
-                        if (chave === 'periodo') document.getElementById('periodo-relatorio').value = valorPadrao;
-                        if (chave === 'empresa') document.getElementById('empresa-relatorio').value = valorPadrao;
-                        if (chave === 'departamento') document.getElementById('departamento-relatorio').value = valorPadrao;
-                        if (chave === 'colaborador') document.getElementById('colaborador-relatorio').value = valorPadrao;
-                        if (chave === 'status') document.getElementById('status-relatorio').value = valorPadrao;
-                        this.gerarRelatorio();
                         break;
                 }
                 
                 this.atualizarFiltrosAtivos(secao);
             }
 
-            // Relatórios
-            gerarRelatorio() {
-                const tipo = this.filtrosAtivos.relatorios.tipo || document.getElementById('tipo-relatorio').value;
-                const periodo = this.filtrosAtivos.relatorios.periodo || document.getElementById('periodo-relatorio').value;
-                const empresa = this.filtrosAtivos.relatorios.empresa || document.getElementById('empresa-relatorio').value;
-                const departamento = this.filtrosAtivos.relatorios.departamento || document.getElementById('departamento-relatorio').value;
-                const colaborador = this.filtrosAtivos.relatorios.colaborador || document.getElementById('colaborador-relatorio').value;
-                const status = this.filtrosAtivos.relatorios.status || document.getElementById('status-relatorio').value;
+            setupEventListeners() {
+                // Botões principais
+                document.getElementById('refresh-btn')?.addEventListener('click', () => this.recarregarDados());
+                document.getElementById('export-dashboard-btn')?.addEventListener('click', () => this.exportarDashboard());
+                document.getElementById('sync-firebase-btn')?.addEventListener('click', () => this.sincronizarComFirebase());
                 
-                const container = document.getElementById('relatorio-container');
-                const cabecalho = document.getElementById('relatorio-cabecalho');
-                const corpo = document.getElementById('relatorio-corpo');
+                // Botões de adição
+                document.getElementById('novo-colaborador-btn')?.addEventListener('click', () => this.abrirModal('colaborador'));
+                document.getElementById('novo-item-btn')?.addEventListener('click', () => this.abrirModal('item'));
+                document.getElementById('nova-solicitacao-btn')?.addEventListener('click', () => this.abrirModal('solicitacao'));
+                document.getElementById('nova-solicitacao-btn2')?.addEventListener('click', () => this.abrirModal('solicitacao'));
+                document.getElementById('novo-departamento-btn')?.addEventListener('click', () => this.abrirModal('departamento'));
+                document.getElementById('nova-empresa-btn')?.addEventListener('click', () => this.abrirModal('empresa'));
                 
-                if (!container || !cabecalho || !corpo) return;
-                
-                container.style.display = 'block';
-                
-                switch(tipo) {
-                    case 'solicitacoes':
-                        this.gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, empresa, departamento, colaborador, status);
-                        break;
-                    case 'colaboradores':
-                        this.gerarRelatorioColaboradores(cabecalho, corpo, empresa, departamento);
-                        break;
-                    case 'itens':
-                        this.gerarRelatorioItens(cabecalho, corpo);
-                        break;
-                    case 'departamentos':
-                        this.gerarRelatorioDepartamentos(cabecalho, corpo);
-                        break;
-                    case 'empresas':
-                        this.gerarRelatorioEmpresas(cabecalho, corpo);
-                        break;
-                }
-            }
-
-            gerarRelatorioSolicitacoes(cabecalho, corpo, periodo, empresa, departamento, colaborador, status) {
-                cabecalho.innerHTML = `
-                    <tr>
-                        <th>Colaborador</th>
-                        <th>Departamento</th>
-                        <th>Empresa</th>
-                        <th>Itens</th>
-                        <th>Data</th>
-                        <th>Status</th>
-                    </tr>
-                `;
-                
-                corpo.innerHTML = '';
-                
-                let solicitacoes = [...this.dados.solicitacoes];
-                
-                if (empresa !== 'todos') {
-                    solicitacoes = solicitacoes.filter(s => s.empresaId === parseInt(empresa));
-                }
-                
-                if (departamento !== 'todos') {
-                    solicitacoes = solicitacoes.filter(s => s.departamentoId === parseInt(departamento));
-                }
-                
-                if (colaborador !== 'todos') {
-                    solicitacoes = solicitacoes.filter(s => s.colaboradorId === parseInt(colaborador));
-                }
-                
-                if (status !== 'todos') {
-                    solicitacoes = solicitacoes.filter(s => s.status === status);
-                }
-                
-                if (periodo !== 'todos') {
-                    const hoje = new Date();
-                    solicitacoes = solicitacoes.filter(solic => {
-                        const dataSolicitacao = new Date(solic.data);
-                        const diffDias = Math.floor((hoje - dataSolicitacao) / (1000 * 60 * 60 * 24));
-                        
-                        if (periodo === '7dias') return diffDias <= 7;
-                        if (periodo === '30dias') return diffDias <= 30;
-                        if (periodo === 'mes_atual') {
-                            return dataSolicitacao.getMonth() === hoje.getMonth() && 
-                                   dataSolicitacao.getFullYear() === hoje.getFullYear();
-                        }
-                        return true;
-                    });
-                }
-                
-                if (solicitacoes.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="6" class="text-center text-muted">
-                            Nenhuma solicitação encontrada com os filtros selecionados
-                        </td>
-                    `;
-                    corpo.appendChild(tr);
-                    return;
-                }
-                
-                solicitacoes.forEach(solic => {
-                    const tr = document.createElement('tr');
-                    const departamentoNome = this.getDepartamentoNome(solic.departamentoId);
-                    const empresaNome = this.getEmpresaNome(solic.empresaId);
-                    
-                    const itensHTML = solic.itens.map(item => {
-                        return `<div class="item-list-row">${item}</div>`;
-                    }).join('<br>');
-                    
-                    tr.innerHTML = `
-                        <td>${solic.colaboradorNome}</td>
-                        <td>${departamentoNome}</td>
-                        <td>${empresaNome}</td>
-                        <td>${itensHTML}</td>
-                        <td>${this.formatarData(solic.data)}</td>
-                        <td><span class="badge ${this.getStatusClass(solic.status)}">${this.formatarStatus(solic.status)}</span></td>
-                    `;
-                    corpo.appendChild(tr);
+                // Formulários
+                document.getElementById('form-colaborador')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.salvarColaborador();
                 });
-            }
-
-            gerarRelatorioColaboradores(cabecalho, corpo, empresa, departamento) {
-                cabecalho.innerHTML = `
-                    <tr>
-                        <th>Nome</th>
-                        <th>Departamento</th>
-                        <th>Empresa</th>
-                        <th>Admissão</th>
-                        <th>Solicitações</th>
-                        <th>Última Solicitação</th>
-                        <th>Status</th>
-                    </tr>
-                `;
                 
-                corpo.innerHTML = '';
-                
-                let colaboradores = [...this.dados.colaboradores];
-                
-                if (empresa !== 'todos') {
-                    colaboradores = colaboradores.filter(c => c.empresaId === parseInt(empresa));
-                }
-                
-                if (departamento !== 'todos') {
-                    colaboradores = colaboradores.filter(c => c.departamentoId === parseInt(departamento));
-                }
-                
-                if (colaboradores.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="7" class="text-center text-muted">
-                            Nenhum colaborador encontrado com os filtros selecionados
-                        </td>
-                    `;
-                    corpo.appendChild(tr);
-                    return;
-                }
-                
-                colaboradores.forEach(colab => {
-                    const tr = document.createElement('tr');
-                    const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
-                    const empresaNome = this.getEmpresaNome(colab.empresaId);
-                    tr.innerHTML = `
-                        <td>${colab.nome}</td>
-                        <td>${departamentoNome}</td>
-                        <td>${empresaNome}</td>
-                        <td>${this.formatarData(colab.admissao)}</td>
-                        <td>${colab.solicitacoes}</td>
-                        <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
-                        <td><span class="badge ${colab.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${colab.status}</span></td>
-                    `;
-                    corpo.appendChild(tr);
+                document.getElementById('form-item')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.salvarItem();
                 });
-            }
-
-            gerarRelatorioItens(cabecalho, corpo) {
-                cabecalho.innerHTML = `
-                    <tr>
-                        <th>Item</th>
-                        <th>Categoria</th>
-                        <th>Tamanhos</th>
-                        <th>Solicitações</th>
-                        <th>Tempo Médio</th>
-                        <th>Status</th>
-                    </tr>
-                `;
                 
-                corpo.innerHTML = '';
-                
-                if (this.dados.itens.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="6" class="text-center text-muted">
-                            Nenhum item cadastrado
-                        </td>
-                    `;
-                    corpo.appendChild(tr);
-                    return;
-                }
-                
-                this.dados.itens.forEach(item => {
-                    const tempoMedio = this.calcularTempoMedioItem(item.id);
-                    
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${item.nome}</td>
-                        <td>${this.formatarCategoria(item.categoria)}</td>
-                        <td>${item.tamanhos}</td>
-                        <td>${item.solicitacoes}</td>
-                        <td>
-                            ${tempoMedio ? `
-                                <span class="badge ${this.getClassTempoMedio(tempoMedio.dias)}">
-                                    ${tempoMedio.texto}
-                                </span>
-                            ` : '<span class="text-muted">Sem dados</span>'}
-                        </td>
-                        <td><span class="badge ${item.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${item.status}</span></td>
-                    `;
-                    corpo.appendChild(tr);
+                document.getElementById('form-solicitacao')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.salvarSolicitacao();
                 });
-            }
-
-            gerarRelatorioDepartamentos(cabecalho, corpo) {
-                cabecalho.innerHTML = `
-                    <tr>
-                        <th>Departamento</th>
-                        <th>Colaboradores</th>
-                        <th>Solicitações</th>
-                        <th>Média por Colaborador</th>
-                        <th>Item Mais Solicitado</th>
-                    </tr>
-                `;
                 
-                corpo.innerHTML = '';
-                
-                if (this.dados.departamentos.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="5" class="text-center text-muted">
-                            Nenhum departamento cadastrado
-                        </td>
-                    `;
-                    corpo.appendChild(tr);
-                    return;
-                }
-                
-                this.dados.departamentos.forEach(depto => {
-                    const colaboradoresDepartamento = this.dados.colaboradores.filter(c => c.departamentoId === depto.id && c.status === 'ativo');
-                    const solicitacoesDepartamento = this.dados.solicitacoes.filter(s => s.departamentoId === depto.id);
-                    
-                    if (colaboradoresDepartamento.length > 0) {
-                        const media = colaboradoresDepartamento.length > 0 ? 
-                            (solicitacoesDepartamento.length / colaboradoresDepartamento.length).toFixed(1) : '0.0';
-                        
-                        const itensContagem = {};
-                        solicitacoesDepartamento.forEach(solic => {
-                            solic.itens.forEach(item => {
-                                const itemNome = item.split(' (')[0];
-                                const match = item.match(/- (\d+)$/);
-                                const quantidade = match ? parseInt(match[1]) : 1;
-                                itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                            });
-                        });
-                        
-                        const itemMaisSolicitado = Object.entries(itensContagem)
-                            .sort((a, b) => b[1] - a[1])[0];
-                        
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${depto.nome}</td>
-                            <td>${colaboradoresDepartamento.length}</td>
-                            <td>${solicitacoesDepartamento.length}</td>
-                            <td>${media}</td>
-                            <td>${itemMaisSolicitado ? `${itemMaisSolicitado[0]} (${itemMaisSolicitado[1]})` : 'Nenhum'}</td>
-                        `;
-                        corpo.appendChild(tr);
-                    }
+                document.getElementById('form-departamento')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.salvarDepartamento();
                 });
-            }
-
-            gerarRelatorioEmpresas(cabecalho, corpo) {
-                cabecalho.innerHTML = `
-                    <tr>
-                        <th>Empresa</th>
-                        <th>Departamentos</th>
-                        <th>Colaboradores</th>
-                        <th>Solicitações</th>
-                        <th>Média por Colaborador</th>
-                        <th>Departamento com Mais Solicitações</th>
-                    </tr>
-                `;
                 
-                corpo.innerHTML = '';
-                
-                if (this.dados.empresas.length === 0) {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td colspan="6" class="text-center text-muted">
-                            Nenhuma empresa cadastrada
-                        </td>
-                    `;
-                    corpo.appendChild(tr);
-                    return;
-                }
-                
-                this.dados.empresas.forEach(empresa => {
-                    const departamentosAtivos = this.dados.departamentos.filter(d => d.status === 'ativo').length;
-                    
-                    if (departamentosAtivos > 0) {
-                        const colaboradoresAtivos = this.dados.colaboradores.filter(
-                            c => c.empresaId === empresa.id && c.status === 'ativo'
-                        ).length;
-                        
-                        const solicitacoesEmpresa = this.dados.solicitacoes.filter(s => s.empresaId === empresa.id).length;
-                        
-                        const media = colaboradoresAtivos > 0 ? 
-                            (solicitacoesEmpresa / colaboradoresAtivos).toFixed(1) : '0.0';
-                        
-                        const solicitacoesPorDepartamento = {};
-                        this.dados.solicitacoes.forEach(solic => {
-                            if (solic.empresaId === empresa.id) {
-                                solicitacoesPorDepartamento[solic.departamentoId] = (solicitacoesPorDepartamento[solic.departamentoId] || 0) + 1;
-                            }
-                        });
-                        
-                        const departamentoMaisSolicitado = Object.entries(solicitacoesPorDepartamento)
-                            .sort((a, b) => b[1] - a[1])[0];
-                        
-                        const departamentoNome = departamentoMaisSolicitado ? 
-                            this.getDepartamentoNome(parseInt(departamentoMaisSolicitado[0])) : 'Nenhum';
-                        
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${empresa.nome}</td>
-                            <td>${departamentosAtivos}</td>
-                            <td>${colaboradoresAtivos}</td>
-                            <td>${solicitacoesEmpresa}</td>
-                            <td>${media}</td>
-                            <td>${departamentoNome} ${departamentoMaisSolicitado ? `(${departamentoMaisSolicitado[1]})` : ''}</td>
-                        `;
-                        corpo.appendChild(tr);
-                    }
+                document.getElementById('form-empresa')?.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await this.salvarEmpresa();
                 });
-            }
-
-            // Exportação
-            exportarDashboard() {
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-                    
-                    doc.setFontSize(18);
-                    doc.text('Relatório do Dashboard - Gestão Operacional', 20, 20);
-                    
-                    doc.setFontSize(12);
-                    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
-                    
-                    const statsY = 50;
-                    doc.setFontSize(14);
-                    doc.text('Estatísticas Gerais:', 20, statsY);
-                    
-                    doc.setFontSize(12);
-                    const mediaTempo = this.calcularMediaTempoTrocaDashboard();
-                    const stats = [
-                        `Colaboradores Ativos: ${document.getElementById('total-colaboradores').textContent}`,
-                        `Solicitações Pendentes: ${document.getElementById('solicitacoes-pendentes').textContent}`,
-                        `Total de Solicitações: ${document.getElementById('total-solicitacoes').textContent}`,
-                        `Média de Tempo de Troca: ${mediaTempo.texto}`
-                    ];
-                    
-                    stats.forEach((stat, index) => {
-                        doc.text(stat, 30, statsY + 15 + (index * 10));
+                
+                // Adicionar item dinâmico
+                document.getElementById('adicionar-item-btn')?.addEventListener('click', () => {
+                    this.adicionarItemSolicitacao();
+                });
+                
+                // Filtros do Dashboard
+                document.getElementById('periodo-select')?.addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.periodo = e.target.value;
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('departamento-select')?.addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.departamento = e.target.value;
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('colaborador-select')?.addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.colaborador = e.target.value;
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('item-select')?.addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.item = e.target.value;
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                document.getElementById('empresa-select')?.addEventListener('change', (e) => {
+                    this.filtrosAtivos.dashboard.empresa = e.target.value;
+                    this.aplicarFiltrosDashboard();
+                });
+                
+                // Outros listeners de filtros...
+                
+                // Fechar modais
+                document.querySelectorAll('.modal-close').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        this.fecharModais();
                     });
-                    
-                    const topColabY = statsY + 70;
-                    doc.setFontSize(14);
-                    doc.text('Top Colaboradores que Mais Trocam:', 20, topColabY);
-                    
-                    doc.setFontSize(10);
-                    const solicitacoesFiltradas = this.getSolicitacoesComFiltrosDashboard();
-                    const colaboradoresComSolicitacoes = this.dados.colaboradores.map(colab => {
-                        const solicitacoesTotal = solicitacoesFiltradas.filter(
-                            s => s.colaboradorId === colab.id
-                        ).length;
-                        return {
-                            ...colab,
-                            solicitacoesTotal: solicitacoesTotal
-                        };
-                    });
-                    
-                    const topColaboradores = colaboradoresComSolicitacoes
-                        .filter(c => c.status === 'ativo')
-                        .sort((a, b) => b.solicitacoesTotal - a.solicitacoesTotal)
-                        .slice(0, 5);
-                    
-                    topColaboradores.forEach((colab, index) => {
-                        const yPos = topColabY + 15 + (index * 8);
-                        doc.text(`${index + 1}. ${colab.nome}: ${colab.solicitacoesTotal} solicitações`, 30, yPos);
-                    });
-                    
-                    const topItensY = topColabY + 15 + (topColaboradores.length * 8) + 20;
-                    doc.setFontSize(14);
-                    doc.text('Itens Mais Solicitados:', 20, topItensY);
-                    
-                    const itensContagem = {};
-                    this.dados.solicitacoes.forEach(solic => {
-                        solic.itens.forEach(item => {
-                            const itemNome = item.split(' (')[0];
-                            const match = item.match(/- (\d+)$/);
-                            const quantidade = match ? parseInt(match[1]) : 1;
-                            itensContagem[itemNome] = (itensContagem[itemNome] || 0) + quantidade;
-                        });
-                    });
-                    
-                    const topItens = Object.entries(itensContagem)
-                        .sort((a, b) => b[1] - a[1])
-                        .slice(0, 5);
-                    
-                    doc.setFontSize(10);
-                    topItens.forEach((item, index) => {
-                        const yPos = topItensY + 15 + (index * 8);
-                        doc.text(`${index + 1}. ${item[0]}: ${item[1]} unidades`, 30, yPos);
-                    });
-                    
-                    doc.save(`dashboard_gestao_operacional_${new Date().getTime()}.pdf`);
-                    this.mostrarToast('Dashboard exportado para PDF!');
-                } catch (error) {
-                    console.error('Erro ao exportar dashboard para PDF:', error);
-                    this.mostrarToast('Erro ao exportar dashboard para PDF!', 'error');
-                }
-            }
-
-            exportarPDF() {
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const doc = new jsPDF();
-                    
-                    const tabela = document.getElementById('relatorio-tabela');
-                    
-                    if (!tabela) {
-                        this.mostrarToast('Gere um relatório antes de exportar!', 'error');
-                        return;
-                    }
-                    
-                    doc.setFontSize(18);
-                    doc.text('Relatório - Gestão Operacional', 20, 20);
-                    
-                    doc.setFontSize(12);
-                    doc.text(`Data: ${new Date().toLocaleDateString('pt-BR')}`, 20, 30);
-                    
-                    const tipoRelatorio = document.getElementById('tipo-relatorio').value;
-                    let tituloRelatorio = '';
-                    
-                    switch(tipoRelatorio) {
-                        case 'solicitacoes':
-                            tituloRelatorio = 'Relatório de Solicitações';
-                            break;
-                        case 'colaboradores':
-                            tituloRelatorio = 'Relatório de Colaboradores';
-                            break;
-                        case 'itens':
-                            tituloRelatorio = 'Relatório de Itens';
-                            break;
-                        case 'departamentos':
-                            tituloRelatorio = 'Relatório de Departamentos';
-                            break;
-                        case 'empresas':
-                            tituloRelatorio = 'Relatório de Empresas';
-                            break;
-                    }
-                    
-                    doc.setFontSize(14);
-                    doc.text(tituloRelatorio, 20, 45);
-                    
-                    // Usando autoTable para criar a tabela
-                    doc.autoTable({
-                        html: tabela,
-                        startY: 55,
-                        theme: 'grid',
-                        headStyles: { fillColor: [37, 99, 235] },
-                        styles: { fontSize: 9 },
-                        columnStyles: {
-                            0: { cellWidth: 'auto' },
-                            1: { cellWidth: 'auto' },
-                            2: { cellWidth: 'auto' },
-                            3: { cellWidth: 'auto' },
-                            4: { cellWidth: 'auto' },
-                            5: { cellWidth: 'auto' }
+                });
+                
+                // Clicar fora para fechar modal
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.classList.remove('active');
                         }
                     });
-                    
-                    doc.save(`relatorio_${tipoRelatorio}_${new Date().getTime()}.pdf`);
-                    this.mostrarToast('Relatório exportado para PDF!');
-                } catch (error) {
-                    console.error('Erro ao exportar para PDF:', error);
-                    this.mostrarToast('Erro ao exportar para PDF!', 'error');
-                }
+                });
             }
 
-            exportarExcel() {
+            setupNavegacao() {
+                const navLinks = document.querySelectorAll('.nav-link');
+                const sections = document.querySelectorAll('.content-section');
+
+                navLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        link.classList.add('active');
+                        
+                        const sectionId = link.getAttribute('data-section');
+                        sections.forEach(section => {
+                            section.style.display = section.id === sectionId ? 'block' : 'none';
+                        });
+                        
+                        if (sectionId === 'dashboard') {
+                            this.atualizarDashboardCharts();
+                        } else if (sectionId === 'itens') {
+                            this.carregarTempoMedioItens();
+                        }
+                        
+                        setTimeout(() => {
+                            this.redesenharGraficos();
+                        }, 100);
+                    });
+                });
+            }
+
+            async sincronizarComFirebase() {
+                if (!this.firebaseReady) {
+                    this.mostrarToast("Firebase não disponível!", "error");
+                    return;
+                }
+                
                 try {
-                    const tabela = document.getElementById('relatorio-tabela');
-                    if (!tabela) {
-                        this.mostrarToast('Gere um relatório antes de exportar!', 'error');
-                        return;
-                    }
+                    this.mostrarToast("Sincronizando com Firebase...", "info");
+                    await this.sincronizarTodosDadosFirebase();
+                    this.mostrarToast("Sincronização completa!", "success");
                     
-                    const ws = XLSX.utils.table_to_sheet(tabela);
-                    const wb = XLSX.utils.book_new();
-                    XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-                    XLSX.writeFile(wb, `relatorio_gestao_operacional_${new Date().getTime()}.xlsx`);
-                    this.mostrarToast('Relatório exportado para Excel!');
                 } catch (error) {
-                    console.error('Erro ao exportar para Excel:', error);
-                    this.mostrarToast('Erro ao exportar para Excel!', 'error');
+                    console.error("Erro na sincronização:", error);
+                    this.mostrarToast("Erro na sincronização!", "error");
                 }
             }
 
-            // Utilitários
             fecharModais() {
                 document.querySelectorAll('.modal').forEach(modal => {
                     modal.classList.remove('active');
