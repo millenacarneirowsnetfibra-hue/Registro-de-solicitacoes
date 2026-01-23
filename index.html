@@ -214,6 +214,24 @@
         }
 
         /* D */
+        .danger-zone {
+            background-color: #fee2e2;
+            border: 2px solid var(--danger);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-top: 30px;
+        }
+
+        .danger-zone h4 {
+            color: var(--danger);
+            margin-bottom: 15px;
+        }
+
+        .danger-zone p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
         .dashboard-filters {
             background: white;
             border-radius: var(--radius);
@@ -1236,9 +1254,9 @@
                 </div>
                 
                 <div class="nav-item">
-                    <a href="#relatorios" class="nav-link" data-section="relatorios">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Relatórios</span>
+                    <a href="#configuracoes" class="nav-link" data-section="configuracoes">
+                        <i class="fas fa-cog"></i>
+                        <span>Configurações</span>
                     </a>
                 </div>
             </div>
@@ -1775,86 +1793,92 @@
                 </div>
             </section>
 
-            <!-- Relatórios -->
-            <section id="relatorios" class="content-section" style="display: none;">
+            <!-- Configurações -->
+            <section id="configuracoes" class="content-section" style="display: none;">
                 <div class="section-header">
                     <h3 class="section-title">
-                        <i class="fas fa-file-alt"></i>
-                        Relatórios
+                        <i class="fas fa-cog"></i>
+                        Configurações
                     </h3>
                 </div>
 
-                <div class="filters-row mb-4">
-                    <div class="filter-group">
-                        <label>Tipo de Relatório</label>
-                        <select id="tipo-relatorio">
-                            <option value="solicitacoes">Solicitações</option>
-                            <option value="colaboradores">Colaboradores</option>
-                            <option value="itens">Itens</option>
-                            <option value="departamentos">Departamentos</option>
-                            <option value="empresas">Empresas</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Período</label>
-                        <select id="periodo-relatorio">
-                            <option value="todos">Todos</option>
-                            <option value="7dias">Últimos 7 dias</option>
-                            <option value="30dias">Últimos 30 dias</option>
-                            <option value="mes_atual">Mês atual</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Empresa</label>
-                        <select id="empresa-relatorio">
-                            <option value="todos">Todas</option>
-                            <!-- Preenchido por JS -->
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Departamento</label>
-                        <select id="departamento-relatorio">
-                            <option value="todos">Todos</option>
-                            <!-- Preenchido por JS -->
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Colaborador</label>
-                        <select id="colaborador-relatorio">
-                            <option value="todos">Todos</option>
-                            <!-- Preenchido por JS -->
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Status</label>
-                        <select id="status-relatorio">
-                            <option value="todos">Todos</option>
-                            <option value="pendente">Pendente</option>
-                            <option value="nao_precisa">Não precisa</option>
-                            <option value="realizado">Realizado</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <div style="display: flex; gap: 10px; margin-top: 25px;">
-                            <button class="btn btn-success btn-sm" id="exportar-pdf-btn">
-                                <i class="fas fa-file-pdf"></i> PDF
+                <div class="content-section">
+                    <h4>Limpar Dados do Sistema</h4>
+                    <p>Esta ação removerá TODOS os dados do sistema, incluindo:</p>
+                    <ul>
+                        <li>Todos os colaboradores cadastrados</li>
+                        <li>Todos os itens cadastrados</li>
+                        <li>Todas as solicitações registradas</li>
+                        <li>Todos os departamentos</li>
+                        <li>Todas as empresas</li>
+                        <li>Dados do localStorage e do Firebase</li>
+                    </ul>
+                    
+                    <div class="danger-zone">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Zona de Perigo</h4>
+                        <p>Esta ação é <strong>IRREVERSÍVEL</strong>. Todos os dados serão perdidos permanentemente.</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Digite "LIMPAR TUDO" para confirmar:</label>
+                            <input type="text" class="form-control" id="confirmacao-limpeza" placeholder="LIMPAR TUDO">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button class="btn btn-secondary" onclick="sistema.resetarFormularioLimpeza()">
+                                <i class="fas fa-times"></i> Cancelar
                             </button>
-                            <button class="btn btn-success btn-sm" id="exportar-excel-btn">
-                                <i class="fas fa-file-excel"></i> Excel
+                            <button class="btn btn-danger" id="limpar-tudo-btn" disabled>
+                                <i class="fas fa-broom"></i> Limpar Todos os Dados
                             </button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="table-container" id="relatorio-container" style="display: none;">
-                    <table class="table" id="relatorio-tabela">
-                        <thead id="relatorio-cabecalho">
-                            <!-- Preenchido dinamicamente -->
-                        </thead>
-                        <tbody id="relatorio-corpo">
-                            <!-- Preenchido dinamicamente -->
-                        </tbody>
-                    </table>
+
+                <div class="content-section">
+                    <h4>Exportar/Importar Dados</h4>
+                    <p>Faça backup ou restaure os dados do sistema.</p>
+                    
+                    <div class="filters-row">
+                        <div class="filter-group">
+                            <button class="btn btn-success" id="exportar-backup-btn">
+                                <i class="fas fa-file-export"></i> Exportar Backup
+                            </button>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label for="importar-backup">Importar Backup</label>
+                            <input type="file" id="importar-backup" accept=".json" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-section">
+                    <h4>Status do Sistema</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="status-localstorage">Verificando...</div>
+                                    <div class="stat-label">LocalStorage</div>
+                                </div>
+                                <div class="stat-icon blue">
+                                    <i class="fas fa-database"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div>
+                                    <div class="stat-value" id="status-firebase">Verificando...</div>
+                                    <div class="stat-label">Firebase</div>
+                                </div>
+                                <div class="stat-icon green">
+                                    <i class="fas fa-cloud"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -2069,7 +2093,7 @@
             constructor() {
                 this.useFirebase = true;
                 this.firebaseReady = false;
-                this.dados = this.getDadosPadrao();
+                this.dados = this.getDadosVazios();
                 this.charts = {};
                 this.filtrosAtivos = {
                     dashboard: { periodo: 'todos', departamento: 'todos', colaborador: 'todos', item: 'todos', empresa: 'todos' },
@@ -2077,8 +2101,7 @@
                     itens: { busca: '', categoria: 'todos', status: 'todos' },
                     solicitacoes: { status: 'todos', departamento: 'todos', empresa: 'todos', periodo: 'todos', colaborador: 'todos', item: 'todos' },
                     departamentos: { busca: '', status: 'todos' },
-                    empresas: { busca: '', status: 'todos' },
-                    relatorios: { tipo: 'solicitacoes', periodo: 'todos', empresa: 'todos', departamento: 'todos', colaborador: 'todos', status: 'todos' }
+                    empresas: { busca: '', status: 'todos' }
                 };
                 this.visualizacaoSolicitacoes = {
                     dashboard: { limite: 5, offset: 0 }
@@ -2086,6 +2109,16 @@
                 
                 this.checkFirebase();
                 this.init();
+            }
+
+            getDadosVazios() {
+                return {
+                    colaboradores: [],
+                    itens: [],
+                    departamentos: [],
+                    solicitacoes: [],
+                    empresas: []
+                };
             }
 
             async checkFirebase() {
@@ -2127,6 +2160,7 @@
                 this.carregarTabelas();
                 this.atualizarDashboardCharts();
                 this.carregarTempoMedioItens();
+                this.verificarStatusSistema();
             }
 
             async carregarDadosFirebase() {
@@ -2170,6 +2204,7 @@
                     this.carregarTabelas();
                     this.atualizarDashboardCharts();
                     this.carregarTempoMedioItens();
+                    this.verificarStatusSistema();
                     
                 } catch (error) {
                     console.error("Erro ao carregar dados do Firebase:", error);
@@ -2195,7 +2230,7 @@
                 // Primeiro tentar carregar do localStorage
                 if (typeof(Storage) === "undefined") {
                     console.error("LocalStorage não suportado.");
-                    return this.getDadosPadrao();
+                    return this.getDadosVazios();
                 }
 
                 try {
@@ -2207,74 +2242,271 @@
                         empresas: JSON.parse(localStorage.getItem('uniformes_empresas'))
                     };
 
-                    // Se não houver dados salvos, usar dados padrão
-                    if (!dadosSalvos.colaboradores || !dadosSalvos.itens || !dadosSalvos.departamentos || !dadosSalvos.solicitacoes || !dadosSalvos.empresas) {
-                        console.log("Nenhum dado salvo encontrado. Carregando dados padrão.");
-                        return this.getDadosPadrao();
+                    // Se não houver dados salvos, usar dados vazios
+                    const dadosVazios = this.getDadosVazios();
+                    for (const key in dadosSalvos) {
+                        if (!dadosSalvos[key]) {
+                            dadosSalvos[key] = dadosVazios[key];
+                        }
                     }
 
                     console.log("Dados carregados do localStorage com sucesso!");
                     return dadosSalvos;
                 } catch (error) {
                     console.error("Erro ao carregar dados do localStorage:", error);
-                    return this.getDadosPadrao();
+                    return this.getDadosVazios();
                 }
             }
 
-            getDadosPadrao() {
-                const hoje = new Date();
-                const umaSemanaAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
-                const duasSemanasAtras = new Date(hoje.getTime() - 14 * 24 * 60 * 60 * 1000);
-                const umMesAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
-                const doisMesesAtras = new Date(hoje.getTime() - 60 * 24 * 60 * 60 * 1000);
-                const tresMesesAtras = new Date(hoje.getTime() - 90 * 24 * 60 * 60 * 1000);
-                const seisMesesAtras = new Date(hoje.getTime() - 180 * 24 * 60 * 60 * 1000);
-                const umAnoAtras = new Date(hoje.getTime() - 365 * 24 * 60 * 60 * 1000);
+            async limparTodosDados() {
+                const confirmacao = document.getElementById('confirmacao-limpeza').value;
+                if (confirmacao !== "LIMPAR TUDO") {
+                    this.mostrarToast("Digite 'LIMPAR TUDO' para confirmar!", "error");
+                    return;
+                }
                 
-                return {
-                    colaboradores: [
-                        { id: 1, nome: "João Silva", empresaId: 1, departamentoId: 1, admissao: "2023-01-15", status: "ativo", solicitacoes: 5, ultimaSolicitacao: "2024-01-15" },
-                        { id: 2, nome: "Maria Santos", empresaId: 1, departamentoId: 2, admissao: "2023-03-20", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2024-01-10" },
-                        { id: 3, nome: "Pedro Oliveira", empresaId: 2, departamentoId: 1, admissao: "2023-06-10", status: "ativo", solicitacoes: 7, ultimaSolicitacao: "2024-01-12" },
-                        { id: 4, nome: "Ana Costa", empresaId: 1, departamentoId: 3, admissao: "2023-08-05", status: "ativo", solicitacoes: 2, ultimaSolicitacao: "2023-12-20" },
-                        { id: 5, nome: "Carlos Rodrigues", empresaId: 2, departamentoId: 2, admissao: "2023-11-15", status: "ativo", solicitacoes: 4, ultimaSolicitacao: "2024-01-05" },
-                        { id: 6, nome: "Fernanda Lima", empresaId: 1, departamentoId: 1, admissao: "2023-02-10", status: "ativo", solicitacoes: 6, ultimaSolicitacao: "2024-01-18" },
-                        { id: 7, nome: "Ricardo Alves", empresaId: 2, departamentoId: 3, admissao: "2023-04-25", status: "ativo", solicitacoes: 3, ultimaSolicitacao: "2023-12-15" }
-                    ],
-                    itens: [
-                        { id: 1, nome: "Camisa Polo", categoria: "uniforme", tamanhos: "P,M,G,GG", status: "ativo", solicitacoes: 15 },
-                        { id: 2, nome: "Calça Social", categoria: "uniforme", tamanhos: "38,40,42,44,46", status: "ativo", solicitacoes: 10 },
-                        { id: 3, nome: "Capacete", categoria: "epi", tamanhos: "Único", status: "ativo", solicitacoes: 8 },
-                        { id: 4, nome: "Luva de Proteção", categoria: "epi", tamanhos: "P,M,G", status: "ativo", solicitacoes: 12 },
-                        { id: 5, nome: "Caderno", categoria: "materiais", tamanhos: "Único", status: "ativo", solicitacoes: 5 },
-                        { id: 6, nome: "Caneta", categoria: "materiais", tamanhos: "Único", status: "ativo", solicitacoes: 20 }
-                    ],
-                    departamentos: [
-                        { id: 1, nome: "Produção", status: "ativo", colaboradores: 0, solicitacoes: 0 },
-                        { id: 2, nome: "Administrativo", status: "ativo", colaboradores: 0, solicitacoes: 0 },
-                        { id: 3, nome: "RH", status: "ativo", colaboradores: 0, solicitacoes: 0 },
-                        { id: 4, nome: "TI", status: "ativo", colaboradores: 0, solicitacoes: 0 }
-                    ],
-                    empresas: [
-                        { id: 1, nome: "Empresa A", status: "ativo", departamentos: 0, colaboradores: 0, solicitacoes: 0 },
-                        { id: 2, nome: "Empresa B", status: "ativo", departamentos: 0, colaboradores: 0, solicitacoes: 0 },
-                        { id: 3, nome: "Empresa C", status: "inativo", departamentos: 0, colaboradores: 0, solicitacoes: 0 }
-                    ],
-                    solicitacoes: [
-                        { id: 1, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (M) - 2", "Calça Social (42) - 1"], data: umaSemanaAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 2, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 2, empresaId: 1, itens: ["Caderno (Único) - 1", "Caneta (Único) - 3"], data: umMesAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 3, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1", "Luva de Proteção (M) - 2"], data: doisMesesAtras.toISOString().split('T')[0], status: "pendente" },
-                        { id: 4, colaboradorId: 4, colaboradorNome: "Ana Costa", departamentoId: 3, empresaId: 1, itens: ["Camisa Polo (P) - 1"], data: tresMesesAtras.toISOString().split('T')[0], status: "nao_precisa" },
-                        { id: 5, colaboradorId: 5, colaboradorNome: "Carlos Rodrigues", departamentoId: 2, empresaId: 2, itens: ["Calça Social (40) - 1", "Camisa Polo (G) - 1"], data: hoje.toISOString().split('T')[0], status: "pendente" },
-                        { id: 6, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Luva de Proteção (G) - 1"], data: duasSemanasAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 7, colaboradorId: 3, colaboradorNome: "Pedro Oliveira", departamentoId: 1, empresaId: 2, itens: ["Capacete (Único) - 1"], data: seisMesesAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 8, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (G) - 2"], data: umAnoAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 9, colaboradorId: 6, colaboradorNome: "Fernanda Lima", departamentoId: 1, empresaId: 1, itens: ["Camisa Polo (G) - 1"], data: umMesAtras.toISOString().split('T')[0], status: "nao_precisa" },
-                        { id: 10, colaboradorId: 7, colaboradorNome: "Ricardo Alves", departamentoId: 3, empresaId: 2, itens: ["Caneta (Único) - 5"], data: doisMesesAtras.toISOString().split('T')[0], status: "realizado" },
-                        { id: 11, colaboradorId: 2, colaboradorNome: "Maria Santos", departamentoId: 2, empresaId: 1, itens: ["Camisa Polo (M) - 1"], data: new Date(hoje.getTime() - 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "pendente" },
-                        { id: 12, colaboradorId: 1, colaboradorNome: "João Silva", departamentoId: 1, empresaId: 1, itens: ["Calça Social (44) - 1"], data: new Date(hoje.getTime() - 120 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], status: "realizado" }
-                    ]
-                };
+                if (!confirm("⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nTodos os dados serão perdidos permanentemente.\n\nTem certeza que deseja continuar?")) {
+                    this.mostrarToast("Operação cancelada.", "info");
+                    return;
+                }
+                
+                try {
+                    this.mostrarToast("Limpando todos os dados...", "info");
+                    
+                    // Limpar localStorage
+                    this.limparLocalStorage();
+                    
+                    // Limpar Firebase se estiver conectado
+                    if (this.firebaseReady && this.useFirebase) {
+                        await this.limparFirebase();
+                    }
+                    
+                    // Reiniciar dados
+                    this.dados = this.getDadosVazios();
+                    
+                    // Atualizar interface
+                    this.atualizarSelects();
+                    this.carregarDashboard();
+                    this.carregarTabelas();
+                    this.atualizarDashboardCharts();
+                    this.carregarTempoMedioItens();
+                    this.verificarStatusSistema();
+                    
+                    // Resetar formulário de limpeza
+                    this.resetarFormularioLimpeza();
+                    
+                    this.mostrarToast("Todos os dados foram removidos com sucesso!", "success");
+                    
+                } catch (error) {
+                    console.error("Erro ao limpar dados:", error);
+                    this.mostrarToast("Erro ao limpar dados!", "error");
+                }
+            }
+
+            limparLocalStorage() {
+                if (typeof(Storage) === "undefined") {
+                    console.error("LocalStorage não suportado.");
+                    return false;
+                }
+
+                try {
+                    localStorage.removeItem('uniformes_colaboradores');
+                    localStorage.removeItem('uniformes_itens');
+                    localStorage.removeItem('uniformes_departamentos');
+                    localStorage.removeItem('uniformes_solicitacoes');
+                    localStorage.removeItem('uniformes_empresas');
+                    console.log("Dados removidos do localStorage com sucesso!");
+                    return true;
+                } catch (error) {
+                    console.error("Erro ao remover dados do localStorage:", error);
+                    return false;
+                }
+            }
+
+            async limparFirebase() {
+                if (!this.firebaseReady || !this.useFirebase) {
+                    console.log("Firebase não disponível para limpeza.");
+                    return false;
+                }
+                
+                try {
+                    const colecoes = ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas'];
+                    
+                    for (const colecao of colecoes) {
+                        // Obter todos os documentos
+                        const querySnapshot = await window.firebaseFunctions.getDocs(
+                            window.firebaseFunctions.collection(window.firebaseDB, colecao)
+                        );
+                        
+                        // Excluir cada documento
+                        const deletePromises = [];
+                        querySnapshot.forEach((doc) => {
+                            deletePromises.push(
+                                window.firebaseFunctions.deleteDoc(
+                                    window.firebaseFunctions.doc(window.firebaseDB, colecao, doc.id)
+                                )
+                            );
+                        });
+                        
+                        // Aguardar todas as exclusões
+                        await Promise.all(deletePromises);
+                        console.log(`Coleção ${colecao} limpa do Firebase.`);
+                    }
+                    
+                    return true;
+                } catch (error) {
+                    console.error("Erro ao limpar Firebase:", error);
+                    throw error;
+                }
+            }
+
+            resetarFormularioLimpeza() {
+                document.getElementById('confirmacao-limpeza').value = '';
+                document.getElementById('limpar-tudo-btn').disabled = true;
+            }
+
+            async exportarBackup() {
+                try {
+                    const dadosCompletos = {
+                        colaboradores: this.dados.colaboradores,
+                        itens: this.dados.itens,
+                        departamentos: this.dados.departamentos,
+                        solicitacoes: this.dados.solicitacoes,
+                        empresas: this.dados.empresas,
+                        dataBackup: new Date().toISOString(),
+                        versao: '1.0'
+                    };
+                    
+                    const dadosJSON = JSON.stringify(dadosCompletos, null, 2);
+                    const blob = new Blob([dadosJSON], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `backup_uniformes_${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    URL.revokeObjectURL(url);
+                    
+                    this.mostrarToast("Backup exportado com sucesso!", "success");
+                } catch (error) {
+                    console.error("Erro ao exportar backup:", error);
+                    this.mostrarToast("Erro ao exportar backup!", "error");
+                }
+            }
+
+            async importarBackup(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                if (!confirm("⚠️ ATENÇÃO: Esta ação substituirá TODOS os dados atuais!\n\nTem certeza que deseja importar o backup?")) {
+                    event.target.value = '';
+                    return;
+                }
+                
+                try {
+                    const reader = new FileReader();
+                    
+                    reader.onload = async (e) => {
+                        try {
+                            const dadosImportados = JSON.parse(e.target.result);
+                            
+                            // Validar estrutura dos dados
+                            const colecoesEsperadas = ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas'];
+                            for (const colecao of colecoesEsperadas) {
+                                if (!Array.isArray(dadosImportados[colecao])) {
+                                    throw new Error(`Estrutura inválida: ${colecao} não é um array`);
+                                }
+                            }
+                            
+                            // Atualizar dados
+                            this.dados = {
+                                colaboradores: dadosImportados.colaboradores,
+                                itens: dadosImportados.itens,
+                                departamentos: dadosImportados.departamentos,
+                                solicitacoes: dadosImportados.solicitacoes,
+                                empresas: dadosImportados.empresas
+                            };
+                            
+                            // Salvar no localStorage
+                            this.salvarDadosLocalStorage();
+                            
+                            // Salvar no Firebase se disponível
+                            if (this.firebaseReady && this.useFirebase) {
+                                await this.sincronizarTodosDadosFirebase();
+                            }
+                            
+                            // Atualizar interface
+                            this.atualizarSelects();
+                            this.carregarDashboard();
+                            this.carregarTabelas();
+                            this.atualizarDashboardCharts();
+                            this.carregarTempoMedioItens();
+                            this.verificarStatusSistema();
+                            
+                            this.mostrarToast("Backup importado com sucesso!", "success");
+                            
+                        } catch (error) {
+                            console.error("Erro ao processar arquivo de backup:", error);
+                            this.mostrarToast("Erro ao importar backup: arquivo inválido!", "error");
+                        }
+                    };
+                    
+                    reader.onerror = () => {
+                        this.mostrarToast("Erro ao ler arquivo!", "error");
+                    };
+                    
+                    reader.readAsText(file);
+                    
+                } catch (error) {
+                    console.error("Erro ao importar backup:", error);
+                    this.mostrarToast("Erro ao importar backup!", "error");
+                }
+                
+                // Limpar input
+                event.target.value = '';
+            }
+
+            verificarStatusSistema() {
+                // Verificar localStorage
+                const localStorageEl = document.getElementById('status-localstorage');
+                if (localStorageEl) {
+                    try {
+                        const temDados = localStorage.getItem('uniformes_colaboradores') !== null ||
+                                        localStorage.getItem('uniformes_itens') !== null ||
+                                        localStorage.getItem('uniformes_departamentos') !== null ||
+                                        localStorage.getItem('uniformes_solicitacoes') !== null ||
+                                        localStorage.getItem('uniformes_empresas') !== null;
+                        
+                        if (temDados) {
+                            const totalColabs = this.dados.colaboradores.length;
+                            const totalItens = this.dados.itens.length;
+                            const totalSolic = this.dados.solicitacoes.length;
+                            localStorageEl.textContent = `${totalColabs} colabs, ${totalItens} itens, ${totalSolic} solic`;
+                            localStorageEl.style.color = 'var(--secondary)';
+                        } else {
+                            localStorageEl.textContent = 'Vazio';
+                            localStorageEl.style.color = 'var(--gray)';
+                        }
+                    } catch (error) {
+                        localStorageEl.textContent = 'Erro';
+                        localStorageEl.style.color = 'var(--danger)';
+                    }
+                }
+                
+                // Verificar Firebase
+                const firebaseEl = document.getElementById('status-firebase');
+                if (firebaseEl) {
+                    if (this.firebaseReady && this.useFirebase) {
+                        firebaseEl.textContent = 'Conectado';
+                        firebaseEl.style.color = 'var(--secondary)';
+                    } else {
+                        firebaseEl.textContent = 'Não conectado';
+                        firebaseEl.style.color = 'var(--warning)';
+                    }
+                }
             }
 
             salvarDadosLocalStorage() {
@@ -2381,6 +2613,7 @@
                 this.atualizarDashboardCharts();
                 this.atualizarFiltrosAtivos();
                 this.carregarTempoMedioItens();
+                this.verificarStatusSistema();
             }
 
             setupResponsividade() {
@@ -2460,8 +2693,7 @@
                     'empresa-select',
                     'colaborador-empresa',
                     'filtro-empresa-colaborador',
-                    'filtro-empresa-solicitacao',
-                    'empresa-relatorio'
+                    'filtro-empresa-solicitacao'
                 ];
                 
                 selects.forEach(selectId => {
@@ -2469,7 +2701,6 @@
                     if (select) {
                         select.innerHTML = selectId === 'colaborador-empresa' ? 
                             '<option value="">Selecione...</option>' : 
-                            selectId.includes('relatorio') ? '<option value="todos">Todas</option>' :
                             selectId.includes('colaborador') ? '<option value="todos">Todas as Empresas</option>' :
                             '<option value="todos">Todas</option>';
                         
@@ -2490,8 +2721,7 @@
                     'departamento-select',
                     'colaborador-departamento',
                     'filtro-departamento-colaborador',
-                    'filtro-departamento-solicitacao',
-                    'departamento-relatorio'
+                    'filtro-departamento-solicitacao'
                 ];
                 
                 selects.forEach(selectId => {
@@ -2499,7 +2729,6 @@
                     if (select) {
                         select.innerHTML = selectId === 'colaborador-departamento' ? 
                             '<option value="">Selecione...</option>' : 
-                            selectId.includes('relatorio') ? '<option value="todos">Todos</option>' :
                             selectId.includes('colaborador') ? '<option value="todos">Todos os Departamentos</option>' :
                             '<option value="todos">Todos</option>';
                         
@@ -2519,8 +2748,7 @@
                 const selects = [
                     'colaborador-select',
                     'solicitacao-colaborador',
-                    'filtro-colaborador-solicitacao',
-                    'colaborador-relatorio'
+                    'filtro-colaborador-solicitacao'
                 ];
                 
                 selects.forEach(selectId => {
@@ -3669,6 +3897,7 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.carregarTempoMedioItens();
+                        this.verificarStatusSistema();
                         this.mostrarToast(`Status da solicitação #${solicitacao.id} atualizado para ${this.formatarStatus(novoStatus)}`);
                     }
                 }
@@ -3856,6 +4085,7 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
+                    this.verificarStatusSistema();
                     this.mostrarToast('Colaborador salvo com sucesso!');
                 }
             }
@@ -3882,6 +4112,7 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
+                        this.verificarStatusSistema();
                         this.mostrarToast('Colaborador excluído com sucesso!');
                     }
                 }
@@ -3942,6 +4173,7 @@
                     this.carregarTempoMedioItens();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
+                    this.verificarStatusSistema();
                     this.mostrarToast('Item salvo com sucesso!');
                 }
             }
@@ -3968,6 +4200,7 @@
                         this.carregarTempoMedioItens();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
+                        this.verificarStatusSistema();
                         this.mostrarToast('Item excluído com sucesso!');
                     }
                 }
@@ -4023,6 +4256,7 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
+                    this.verificarStatusSistema();
                     this.mostrarToast('Departamento salvo com sucesso!');
                 }
             }
@@ -4055,6 +4289,7 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
+                        this.verificarStatusSistema();
                         this.mostrarToast('Departamento excluído com sucesso!');
                     }
                 }
@@ -4117,6 +4352,7 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
+                    this.verificarStatusSistema();
                     this.mostrarToast('Empresa salva com sucesso!');
                 }
             }
@@ -4149,6 +4385,7 @@
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
                         this.atualizarSelects();
+                        this.verificarStatusSistema();
                         this.mostrarToast('Empresa excluída com sucesso!');
                     }
                 }
@@ -4365,6 +4602,7 @@
                     this.carregarDashboard();
                     this.atualizarDashboardCharts();
                     this.atualizarSelects();
+                    this.verificarStatusSistema();
                     this.mostrarToast('Solicitação salva com sucesso!');
                 }
             }
@@ -4441,6 +4679,7 @@
                         this.carregarTempoMedioItens();
                         this.carregarDashboard();
                         this.atualizarDashboardCharts();
+                        this.verificarStatusSistema();
                         this.mostrarToast('Solicitação excluída com sucesso!');
                     }
                 }
@@ -4745,16 +4984,6 @@
                                     valorExibido = item ? item.nome : valor;
                                 }
                                 break;
-                            case 'tipo':
-                                label = 'Tipo: ';
-                                switch(valor) {
-                                    case 'solicitacoes': valorExibido = 'Solicitações'; break;
-                                    case 'colaboradores': valorExibido = 'Colaboradores'; break;
-                                    case 'itens': valorExibido = 'Itens'; break;
-                                    case 'departamentos': valorExibido = 'Departamentos'; break;
-                                    case 'empresas': valorExibido = 'Empresas'; break;
-                                }
-                                break;
                             case 'busca':
                                 label = 'Busca: ';
                                 break;
@@ -4787,7 +5016,6 @@
                     case 'categoria':
                     case 'colaborador':
                     case 'item':
-                    case 'tipo':
                     case 'empresa':
                         valorPadrao = 'todos';
                         break;
@@ -4825,7 +5053,6 @@
             setupEventListeners() {
                 // Botões principais
                 document.getElementById('refresh-btn')?.addEventListener('click', () => this.recarregarDados());
-                document.getElementById('export-dashboard-btn')?.addEventListener('click', () => this.exportarDashboard());
                 document.getElementById('sync-firebase-btn')?.addEventListener('click', () => this.sincronizarComFirebase());
                 
                 // Botões de adição
@@ -4893,7 +5120,23 @@
                     this.aplicarFiltrosDashboard();
                 });
                 
-                // Outros listeners de filtros...
+                // Configurações
+                document.getElementById('limpar-tudo-btn')?.addEventListener('click', () => {
+                    this.limparTodosDados();
+                });
+                
+                document.getElementById('confirmacao-limpeza')?.addEventListener('input', (e) => {
+                    const botao = document.getElementById('limpar-tudo-btn');
+                    botao.disabled = e.target.value !== "LIMPAR TUDO";
+                });
+                
+                document.getElementById('exportar-backup-btn')?.addEventListener('click', () => {
+                    this.exportarBackup();
+                });
+                
+                document.getElementById('importar-backup')?.addEventListener('change', (e) => {
+                    this.importarBackup(e);
+                });
                 
                 // Fechar modais
                 document.querySelectorAll('.modal-close').forEach(btn => {
@@ -4932,6 +5175,8 @@
                             this.atualizarDashboardCharts();
                         } else if (sectionId === 'itens') {
                             this.carregarTempoMedioItens();
+                        } else if (sectionId === 'configuracoes') {
+                            this.verificarStatusSistema();
                         }
                         
                         setTimeout(() => {
@@ -4994,6 +5239,7 @@
                 this.atualizarDashboardCharts();
                 this.atualizarSelects();
                 this.atualizarFiltrosAtivos();
+                this.verificarStatusSistema();
                 this.mostrarToast('Dados atualizados!', 'info');
             }
 
