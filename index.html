@@ -26,7 +26,7 @@
             updateDoc
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Configuração do Firebase - SUBSTITUA COM SUAS CREDENCIAIS
+        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyD3tWszcQHgbvIdy-0vPJngZ5oM-iK7fU8",
             authDomain: "gestao-uniformes-7dda8.firebaseapp.com",
@@ -36,26 +36,32 @@
             appId: "1:1094790093649:web:04dcdc01d2207ed2885f15"
         };
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        try {
+            // Inicializar Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
 
-        // Funções para exportar para uso global
-        window.firebaseDB = db;
-        window.firebaseFunctions = {
-            collection,
-            getDocs,
-            addDoc,
-            doc,
-            setDoc,
-            deleteDoc,
-            onSnapshot,
-            query,
-            where,
-            updateDoc
-        };
+            // Funções para exportar para uso global
+            window.firebaseDB = db;
+            window.firebaseFunctions = {
+                collection,
+                getDocs,
+                addDoc,
+                doc,
+                setDoc,
+                deleteDoc,
+                onSnapshot,
+                query,
+                where,
+                updateDoc
+            };
 
-        console.log("Firebase inicializado com sucesso!");
+            console.log("Firebase inicializado com sucesso!");
+        } catch (error) {
+            console.error("Erro ao inicializar Firebase:", error);
+            window.firebaseDB = null;
+            window.firebaseFunctions = null;
+        }
     </script>
     <style>
         /* A */
@@ -2107,8 +2113,8 @@
                     dashboard: { limite: 5, offset: 0 }
                 };
                 
-                this.checkFirebase();
                 this.init();
+                this.checkFirebase();
             }
 
             getDadosVazios() {
@@ -2141,7 +2147,8 @@
                         } else if (attempts >= maxAttempts) {
                             clearInterval(checkInterval);
                             console.log("Firebase não disponível, usando localStorage");
-                            this.mostrarToast("Usando armazenamento local", "info");
+                            this.firebaseReady = false;
+                            this.useFirebase = false;
                             this.loadLocalStorageData();
                         }
                     }, 500);
@@ -2154,13 +2161,78 @@
             }
 
             loadLocalStorageData() {
-                this.dados = this.carregarDados();
+                const dadosCarregados = this.carregarDados();
+                
+                // Se não houver dados no localStorage, usar dados vazios
+                if (dadosCarregados.colaboradores.length === 0 && 
+                    dadosCarregados.itens.length === 0 &&
+                    dadosCarregados.departamentos.length === 0 &&
+                    dadosCarregados.empresas.length === 0) {
+                    
+                    console.log("Nenhum dado encontrado no localStorage. Inicializando com dados vazios.");
+                    this.dados = this.getDadosVazios();
+                    
+                    // Criar alguns dados de exemplo se estiver em desenvolvimento
+                    this.criarDadosExemplo();
+                } else {
+                    this.dados = dadosCarregados;
+                }
+                
                 this.atualizarSelects();
                 this.carregarDashboard();
                 this.carregarTabelas();
                 this.atualizarDashboardCharts();
                 this.carregarTempoMedioItens();
                 this.verificarStatusSistema();
+            }
+
+            criarDadosExemplo() {
+                // Criar uma empresa exemplo
+                const empresaExemplo = {
+                    id: 1,
+                    nome: "Empresa Exemplo",
+                    status: "ativo"
+                };
+                this.dados.empresas.push(empresaExemplo);
+                
+                // Criar um departamento exemplo
+                const departamentoExemplo = {
+                    id: 1,
+                    nome: "Operações",
+                    status: "ativo"
+                };
+                this.dados.departamentos.push(departamentoExemplo);
+                
+                // Criar alguns itens exemplo
+                const itensExemplo = [
+                    {
+                        id: 1,
+                        nome: "Camiseta",
+                        categoria: "uniforme",
+                        tamanhos: "P, M, G, GG",
+                        status: "ativo",
+                        solicitacoes: 0
+                    },
+                    {
+                        id: 2,
+                        nome: "Calça",
+                        categoria: "uniforme",
+                        tamanhos: "38, 40, 42, 44",
+                        status: "ativo",
+                        solicitacoes: 0
+                    },
+                    {
+                        id: 3,
+                        nome: "Luva de Proteção",
+                        categoria: "epi",
+                        tamanhos: "P, M, G",
+                        status: "ativo",
+                        solicitacoes: 0
+                    }
+                ];
+                itensExemplo.forEach(item => this.dados.itens.push(item));
+                
+                console.log("Dados de exemplo criados com sucesso!");
             }
 
             async carregarDadosFirebase() {
@@ -2174,6 +2246,7 @@
                     this.mostrarToast("Carregando dados do Firebase...", "info");
                     
                     const colecoes = ['colaboradores', 'itens', 'departamentos', 'solicitacoes', 'empresas'];
+                    let temDadosFirebase = false;
                     
                     for (const colecao of colecoes) {
                         const querySnapshot = await window.firebaseFunctions.getDocs(
@@ -2185,9 +2258,16 @@
                             const data = doc.data();
                             // Manter o ID do documento como string para Firebase
                             this.dados[colecao].push({ id: doc.id, ...data });
+                            temDadosFirebase = true;
                         });
                         
                         console.log(`Carregados ${this.dados[colecao].length} registros de ${colecao} do Firebase`);
+                    }
+                    
+                    if (!temDadosFirebase) {
+                        this.mostrarToast("Firebase vazio. Usando dados locais.", "info");
+                        this.loadLocalStorageData();
+                        return;
                     }
                     
                     // Converter IDs numéricos para compatibilidade
@@ -2234,24 +2314,19 @@
                 }
 
                 try {
-                    const dadosSalvos = {
-                        colaboradores: JSON.parse(localStorage.getItem('uniformes_colaboradores')),
-                        itens: JSON.parse(localStorage.getItem('uniformes_itens')),
-                        departamentos: JSON.parse(localStorage.getItem('uniformes_departamentos')),
-                        solicitacoes: JSON.parse(localStorage.getItem('uniformes_solicitacoes')),
-                        empresas: JSON.parse(localStorage.getItem('uniformes_empresas'))
+                    const colaboradores = JSON.parse(localStorage.getItem('uniformes_colaboradores') || "[]");
+                    const itens = JSON.parse(localStorage.getItem('uniformes_itens') || "[]");
+                    const departamentos = JSON.parse(localStorage.getItem('uniformes_departamentos') || "[]");
+                    const solicitacoes = JSON.parse(localStorage.getItem('uniformes_solicitacoes') || "[]");
+                    const empresas = JSON.parse(localStorage.getItem('uniformes_empresas') || "[]");
+
+                    return {
+                        colaboradores: Array.isArray(colaboradores) ? colaboradores : [],
+                        itens: Array.isArray(itens) ? itens : [],
+                        departamentos: Array.isArray(departamentos) ? departamentos : [],
+                        solicitacoes: Array.isArray(solicitacoes) ? solicitacoes : [],
+                        empresas: Array.isArray(empresas) ? empresas : []
                     };
-
-                    // Se não houver dados salvos, usar dados vazios
-                    const dadosVazios = this.getDadosVazios();
-                    for (const key in dadosSalvos) {
-                        if (!dadosSalvos[key]) {
-                            dadosSalvos[key] = dadosVazios[key];
-                        }
-                    }
-
-                    console.log("Dados carregados do localStorage com sucesso!");
-                    return dadosSalvos;
                 } catch (error) {
                     console.error("Erro ao carregar dados do localStorage:", error);
                     return this.getDadosVazios();
@@ -2607,13 +2682,7 @@
                 this.setupDate();
                 
                 // Carregar interface inicialmente com dados locais
-                this.atualizarSelects();
-                this.carregarDashboard();
-                this.carregarTabelas();
-                this.atualizarDashboardCharts();
-                this.atualizarFiltrosAtivos();
-                this.carregarTempoMedioItens();
-                this.verificarStatusSistema();
+                this.loadLocalStorageData();
             }
 
             setupResponsividade() {
@@ -2766,7 +2835,7 @@
                                 const empresaNome = empresa ? empresa.nome : '';
                                 const option = document.createElement('option');
                                 option.value = colab.id;
-                                option.textContent = `${colab.nome} (${deptoNome} - ${empresaNome})`;
+                                option.textContent = `${colab.nome} (${deptoNome}${empresaNome ? ` - ${empresaNome}` : ''})`;
                                 select.appendChild(option);
                             }
                         });
@@ -3550,13 +3619,18 @@
                     const tr = document.createElement('tr');
                     const departamentoNome = this.getDepartamentoNome(colab.departamentoId);
                     const empresaNome = this.getEmpresaNome(colab.empresaId);
+                    const solicitacoesColab = this.dados.solicitacoes.filter(s => s.colaboradorId === colab.id).length;
+                    const ultimaSolicitacao = this.dados.solicitacoes
+                        .filter(s => s.colaboradorId === colab.id)
+                        .sort((a, b) => new Date(b.data) - new Date(a.data))[0];
+                    
                     tr.innerHTML = `
                         <td>${colab.nome}</td>
                         <td>${departamentoNome}</td>
                         <td><span class="empresa-badge">${empresaNome}</span></td>
                         <td>${this.formatarData(colab.admissao)}</td>
-                        <td>${colab.solicitacoes}</td>
-                        <td>${colab.ultimaSolicitacao ? this.formatarData(colab.ultimaSolicitacao) : 'Nenhuma'}</td>
+                        <td>${solicitacoesColab}</td>
+                        <td>${ultimaSolicitacao ? this.formatarData(ultimaSolicitacao.data) : 'Nenhuma'}</td>
                         <td><span class="badge ${colab.status === 'ativo' ? 'badge-success' : 'badge-danger'}">${colab.status}</span></td>
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="sistema.editarColaborador(${colab.id})">
@@ -3590,6 +3664,12 @@
                 
                 this.dados.itens.forEach(item => {
                     const tempoMedio = this.calcularTempoMedioItem(item.id);
+                    const solicitacoesItem = this.dados.solicitacoes.filter(solic => {
+                        return solic.itens.some(itemSolic => {
+                            const itemNome = itemSolic.split(' (')[0];
+                            return itemNome === item.nome;
+                        });
+                    }).length;
                     
                     const tr = document.createElement('tr');
                     
@@ -3597,7 +3677,7 @@
                         <td>${item.nome}</td>
                         <td>${this.formatarCategoria(item.categoria)}</td>
                         <td>${item.tamanhos}</td>
-                        <td>${item.solicitacoes}</td>
+                        <td>${solicitacoesItem}</td>
                         <td>
                             ${tempoMedio ? `
                                 <span class="badge ${this.getClassTempoMedio(tempoMedio.dias)}" title="Baseado em ${tempoMedio.quantidadeSolicitacoes} solicitações (todas)">
@@ -3627,9 +3707,17 @@
                 
                 const itensComTempoMedio = this.dados.itens.map(item => {
                     const tempoMedio = this.calcularTempoMedioItem(item.id);
+                    const solicitacoesItem = this.dados.solicitacoes.filter(solic => {
+                        return solic.itens.some(itemSolic => {
+                            const itemNome = itemSolic.split(' (')[0];
+                            return itemNome === item.nome;
+                        });
+                    }).length;
+                    
                     return {
                         ...item,
-                        tempoMedio: tempoMedio
+                        tempoMedio: tempoMedio,
+                        solicitacoes: solicitacoesItem
                     };
                 });
                 
@@ -3690,7 +3778,7 @@
 
             calcularTempoMedioItem(itemId) {
                 const item = this.dados.itens.find(i => i.id === itemId);
-                if (!item || item.solicitacoes < 2) return null;
+                if (!item) return null;
                 
                 // Inclui TODAS as solicitações (pendentes, não precisa, realizadas)
                 const solicitacoesDoItem = this.dados.solicitacoes.filter(solic => {
@@ -3883,7 +3971,7 @@
                     solicitacao.status = novoStatus;
                     
                     // Salvar no Firebase se disponível
-                    if (this.useFirebase) {
+                    if (this.useFirebase && this.firebaseReady) {
                         try {
                             await this.salvarItemFirebase('solicitacoes', solicitacao);
                         } catch (error) {
@@ -4059,9 +4147,7 @@
                         empresaId,
                         departamentoId,
                         admissao,
-                        status,
-                        solicitacoes: 0,
-                        ultimaSolicitacao: null
+                        status
                     };
                     
                     this.dados.colaboradores.push(novoColaborador);
@@ -4069,7 +4155,7 @@
                 }
 
                 // Salvar no Firebase se disponível
-                if (this.useFirebase) {
+                if (this.useFirebase && this.firebaseReady) {
                     try {
                         const colaborador = this.dados.colaboradores.find(c => c.id == colaboradorId);
                         await this.salvarItemFirebase('colaboradores', colaborador);
@@ -4097,7 +4183,7 @@
             async excluirColaborador(id) {
                 if (confirm('Tem certeza que deseja excluir este colaborador?')) {
                     // Excluir do Firebase se disponível
-                    if (this.useFirebase) {
+                    if (this.useFirebase && this.firebaseReady) {
                         try {
                             await this.excluirItemFirebase('colaboradores', id);
                         } catch (error) {
@@ -4157,7 +4243,7 @@
                 }
 
                 // Salvar no Firebase se disponível
-                if (this.useFirebase) {
+                if (this.useFirebase && this.firebaseReady) {
                     try {
                         const item = this.dados.itens.find(i => i.id == itemId);
                         await this.salvarItemFirebase('itens', item);
@@ -4185,7 +4271,7 @@
             async excluirItem(id) {
                 if (confirm('Tem certeza que deseja excluir este item?')) {
                     // Excluir do Firebase se disponível
-                    if (this.useFirebase) {
+                    if (this.useFirebase && this.firebaseReady) {
                         try {
                             await this.excluirItemFirebase('itens', id);
                         } catch (error) {
@@ -4230,9 +4316,7 @@
                     const novoDepartamento = {
                         id: novoId,
                         nome,
-                        status,
-                        colaboradores: 0,
-                        solicitacoes: 0
+                        status
                     };
                     
                     this.dados.departamentos.push(novoDepartamento);
@@ -4240,7 +4324,7 @@
                 }
 
                 // Salvar no Firebase se disponível
-                if (this.useFirebase) {
+                if (this.useFirebase && this.firebaseReady) {
                     try {
                         const departamento = this.dados.departamentos.find(d => d.id == departamentoId);
                         await this.salvarItemFirebase('departamentos', departamento);
@@ -4274,7 +4358,7 @@
                     }
                     
                     // Excluir do Firebase se disponível
-                    if (this.useFirebase) {
+                    if (this.useFirebase && this.firebaseReady) {
                         try {
                             await this.excluirItemFirebase('departamentos', id);
                         } catch (error) {
@@ -4325,10 +4409,7 @@
                     const novaEmpresa = {
                         id: novoId,
                         nome,
-                        status,
-                        departamentos: 0,
-                        colaboradores: 0,
-                        solicitacoes: 0
+                        status
                     };
                     
                     this.dados.empresas.push(novaEmpresa);
@@ -4336,7 +4417,7 @@
                 }
 
                 // Salvar no Firebase se disponível
-                if (this.useFirebase) {
+                if (this.useFirebase && this.firebaseReady) {
                     try {
                         const empresa = this.dados.empresas.find(e => e.id == empresaId);
                         await this.salvarItemFirebase('empresas', empresa);
@@ -4370,7 +4451,7 @@
                     }
                     
                     // Excluir do Firebase se disponível
-                    if (this.useFirebase) {
+                    if (this.useFirebase && this.firebaseReady) {
                         try {
                             await this.excluirItemFirebase('empresas', id);
                         } catch (error) {
@@ -4512,8 +4593,8 @@
                                 const [, itemNome, quantidadeStr] = match;
                                 const quantidade = parseInt(quantidadeStr);
                                 const item = this.dados.itens.find(i => i.nome === itemNome);
-                                if (item && item.solicitacoes >= quantidade) {
-                                    item.solicitacoes -= quantidade;
+                                if (item) {
+                                    item.solicitacoes = Math.max(0, (item.solicitacoes || 0) - quantidade);
                                 }
                             }
                         });
@@ -4530,7 +4611,7 @@
                         };
                         
                         itensParaAtualizar.forEach(item => {
-                            item.solicitacoes++;
+                            item.solicitacoes = (item.solicitacoes || 0) + 1;
                         });
                     }
                 } else {
@@ -4552,38 +4633,15 @@
                     solicitacaoId = novoId;
                     
                     itensParaAtualizar.forEach(item => {
-                        item.solicitacoes++;
+                        item.solicitacoes = (item.solicitacoes || 0) + 1;
                     });
-                    
-                    colaborador.solicitacoes++;
-                    colaborador.ultimaSolicitacao = data;
-                    
-                    if (departamento) {
-                        departamento.solicitacoes = (departamento.solicitacoes || 0) + 1;
-                    }
-                    
-                    if (empresa) {
-                        empresa.solicitacoes = (empresa.solicitacoes || 0) + 1;
-                    }
                 }
                 
                 // Salvar no Firebase se disponível
-                if (this.useFirebase) {
+                if (this.useFirebase && this.firebaseReady) {
                     try {
                         const solicitacao = this.dados.solicitacoes.find(s => s.id == solicitacaoId);
                         await this.salvarItemFirebase('solicitacoes', solicitacao);
-                        
-                        // Atualizar também o colaborador no Firebase
-                        await this.salvarItemFirebase('colaboradores', colaborador);
-                        
-                        // Atualizar departamento e empresa se necessário
-                        if (departamento) {
-                            await this.salvarItemFirebase('departamentos', departamento);
-                        }
-                        
-                        if (empresa) {
-                            await this.salvarItemFirebase('empresas', empresa);
-                        }
                         
                         // Atualizar itens
                         for (const item of itensParaAtualizar) {
@@ -4621,51 +4679,16 @@
                                 const [, itemNome, quantidadeStr] = match;
                                 const quantidade = parseInt(quantidadeStr);
                                 const item = this.dados.itens.find(i => i.nome === itemNome);
-                                if (item && item.solicitacoes >= quantidade) {
-                                    item.solicitacoes -= quantidade;
+                                if (item) {
+                                    item.solicitacoes = Math.max(0, (item.solicitacoes || 0) - quantidade);
                                 }
                             }
                         });
                         
-                        const colaborador = this.dados.colaboradores.find(c => c.id === solicitacao.colaboradorId);
-                        if (colaborador && colaborador.solicitacoes > 0) {
-                            colaborador.solicitacoes--;
-                            
-                            const outrasSolicitacoes = this.dados.solicitacoes
-                                .filter(s => s.id !== id && s.colaboradorId === colaborador.id)
-                                .sort((a, b) => new Date(b.data) - new Date(a.data));
-                            
-                            colaborador.ultimaSolicitacao = outrasSolicitacoes.length > 0 ? 
-                                outrasSolicitacoes[0].data : null;
-                        }
-                        
-                        const departamento = this.dados.departamentos.find(d => d.id === solicitacao.departamentoId);
-                        if (departamento && departamento.solicitacoes > 0) {
-                            departamento.solicitacoes--;
-                        }
-                        
-                        const empresa = this.dados.empresas.find(e => e.id === solicitacao.empresaId);
-                        if (empresa && empresa.solicitacoes > 0) {
-                            empresa.solicitacoes--;
-                        }
-                        
                         // Excluir do Firebase se disponível
-                        if (this.useFirebase) {
+                        if (this.useFirebase && this.firebaseReady) {
                             try {
                                 await this.excluirItemFirebase('solicitacoes', id);
-                                
-                                // Atualizar outros documentos no Firebase
-                                if (colaborador) {
-                                    await this.salvarItemFirebase('colaboradores', colaborador);
-                                }
-                                
-                                if (departamento) {
-                                    await this.salvarItemFirebase('departamentos', departamento);
-                                }
-                                
-                                if (empresa) {
-                                    await this.salvarItemFirebase('empresas', empresa);
-                                }
                             } catch (error) {
                                 console.error("Erro ao excluir do Firebase:", error);
                             }
@@ -5227,7 +5250,7 @@
             }
 
             async recarregarDados() {
-                if (this.useFirebase) {
+                if (this.useFirebase && this.firebaseReady) {
                     await this.carregarDadosFirebase();
                 } else {
                     this.dados = this.carregarDados();
