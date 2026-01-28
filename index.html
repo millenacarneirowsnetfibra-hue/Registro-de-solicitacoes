@@ -2992,9 +2992,9 @@
                 
                 console.log("🔄 Carregando dados do Firebase...");
                 
-                // Configurar listeners em tempo real para empresas
+                // Configurar listeners em tempo real para empresas - ORDENADO POR NOME
                 db.collection('empresas')
-                    .orderBy('criadoEm', 'desc')
+                    .orderBy('nome', 'asc')
                     .onSnapshot((snapshot) => {
                         console.log("📁 Snapshot empresas recebido");
                         empresas = [];
@@ -3006,7 +3006,7 @@
                                 criadoEm: data.criadoEm ? data.criadoEm.toDate() : new Date()
                             });
                         });
-                        console.log(`✅ ${empresas.length} empresas carregadas`);
+                        console.log(`✅ ${empresas.length} empresas carregadas (ordenadas por nome)`);
                         calcularSolicitacoesPorEmpresa();
                         carregarEmpresas();
                         atualizarFiltrosColaboradores();
@@ -3021,9 +3021,9 @@
                         usarDadosMock();
                     });
 
-                // Configurar listeners em tempo real para departamentos
+                // Configurar listeners em tempo real para departamentos - ORDENADO POR NOME
                 db.collection('departamentos')
-                    .orderBy('criadoEm', 'desc')
+                    .orderBy('nome', 'asc')
                     .onSnapshot((snapshot) => {
                         console.log("📁 Snapshot departamentos recebido");
                         departamentos = [];
@@ -3035,7 +3035,7 @@
                                 criadoEm: data.criadoEm ? data.criadoEm.toDate() : new Date()
                             });
                         });
-                        console.log(`✅ ${departamentos.length} departamentos carregados`);
+                        console.log(`✅ ${departamentos.length} departamentos carregados (ordenados por nome)`);
                         calcularSolicitacoesPorDepartamento();
                         carregarDepartamentos();
                         atualizarFiltrosColaboradores();
@@ -3047,9 +3047,9 @@
                         console.error('❌ Erro ao carregar departamentos:', error);
                     });
 
-                // Configurar listeners em tempo real para colaboradores
+                // Configurar listeners em tempo real para colaboradores - ORDENADO POR NOME
                 db.collection('colaboradores')
-                    .orderBy('criadoEm', 'desc')
+                    .orderBy('nome', 'asc')
                     .onSnapshot((snapshot) => {
                         console.log("📁 Snapshot colaboradores recebido");
                         colaboradores = [];
@@ -3067,7 +3067,7 @@
                                 criadoEm: data.criadoEm ? data.criadoEm.toDate() : new Date()
                             });
                         });
-                        console.log(`✅ ${colaboradores.length} colaboradores carregados`);
+                        console.log(`✅ ${colaboradores.length} colaboradores carregados (ordenados por nome)`);
                         carregarColaboradores();
                         atualizarSelectColaboradoresSolicitacao();
                         atualizarEstatisticas();
@@ -3076,9 +3076,9 @@
                         console.error('❌ Erro ao carregar colaboradores:', error);
                     });
 
-                // Configurar listeners em tempo real para itens
+                // Configurar listeners em tempo real para itens - ORDENADO POR NOME
                 db.collection('itens')
-                    .orderBy('criadoEm', 'desc')
+                    .orderBy('nome', 'asc')
                     .onSnapshot((snapshot) => {
                         console.log("📁 Snapshot itens recebido");
                         itens = [];
@@ -3092,7 +3092,7 @@
                                 criadoEm: data.criadoEm ? data.criadoEm.toDate() : new Date()
                             });
                         });
-                        console.log(`✅ ${itens.length} itens carregados`);
+                        console.log(`✅ ${itens.length} itens carregados (ordenados por nome)`);
                         calcularSolicitacoesPorItem();
                         carregarItens();
                         atualizarItensSelectSolicitacao();
@@ -3102,11 +3102,11 @@
                         console.error('❌ Erro ao carregar itens:', error);
                     });
 
-                // Configurar listeners em tempo real para solicitações
+                // Configurar listeners em tempo real para solicitações - ORDENADO POR DATA MAIS RECENTE PRIMEIRO
                 db.collection('solicitacoes')
                     .orderBy('dataSolicitacao', 'desc')
                     .onSnapshot((snapshot) => {
-                        console.log("📁 Snapshot solicitações recebido");
+                        console.log("📁 Snapshot solicitações recebido (mais recentes primeiro)");
                         solicitacoes = [];
                         snapshot.forEach((doc) => {
                             const data = doc.data();
@@ -3124,7 +3124,7 @@
                                 criadoEm: data.criadoEm ? data.criadoEm.toDate() : new Date()
                             });
                         });
-                        console.log(`✅ ${solicitacoes.length} solicitações carregadas`);
+                        console.log(`✅ ${solicitacoes.length} solicitações carregadas (mais recentes primeiro)`);
                         
                         // Recalcular contagens
                         calcularSolicitacoesPorEmpresa();
@@ -3158,11 +3158,17 @@
                 { id: '2', nome: 'Empresa Exemplo 2', criadoEm: new Date() }
             ];
             
+            // Ordenar empresas por nome (ordem alfabética)
+            empresas.sort((a, b) => a.nome.localeCompare(b.nome));
+            
             departamentos = [
                 { id: '1', nome: 'RH - Recursos Humanos', criadoEm: new Date() },
                 { id: '2', nome: 'TI - Tecnologia da Informação', criadoEm: new Date() },
                 { id: '3', nome: 'Vendas', criadoEm: new Date() }
             ];
+            
+            // Ordenar departamentos por nome (ordem alfabética)
+            departamentos.sort((a, b) => a.nome.localeCompare(b.nome));
             
             colaboradores = [
                 { 
@@ -3199,6 +3205,9 @@
                     criadoEm: new Date()
                 }
             ];
+            
+            // Ordenar colaboradores por nome (ordem alfabética)
+            colaboradores.sort((a, b) => a.nome.localeCompare(b.nome));
             
             itens = [
                 {
@@ -3237,6 +3246,9 @@
                     criadoEm: new Date()
                 }
             ];
+            
+            // Ordenar itens por nome (ordem alfabética)
+            itens.sort((a, b) => a.nome.localeCompare(b.nome));
             
             // Dados mock de solicitações
             const dataAtual = new Date();
@@ -3330,6 +3342,9 @@
                     criadoEm: new Date('2023-01-15')
                 }
             ];
+            
+            // Ordenar solicitações por data (mais recentes primeiro)
+            solicitacoes.sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
             
             // Calcular contagens
             calcularSolicitacoesPorEmpresa();
@@ -4000,7 +4015,10 @@
             
             emptyEmpresas.style.display = 'none';
             
-            empresas.forEach(empresa => {
+            // Já vem ordenado por nome do Firebase, mas ordenamos novamente por segurança
+            const empresasOrdenadas = [...empresas].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            empresasOrdenadas.forEach(empresa => {
                 const count = solicitacoesPorEmpresa[empresa.id] || 0;
                 const countClass = getSolicitacoesClass(count);
                 
@@ -4038,7 +4056,10 @@
             
             emptyDepartamentos.style.display = 'none';
             
-            departamentos.forEach(depto => {
+            // Já vem ordenado por nome do Firebase, mas ordenamos novamente por segurança
+            const departamentosOrdenados = [...departamentos].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            departamentosOrdenados.forEach(depto => {
                 const count = solicitacoesPorDepartamento[depto.id] || 0;
                 const countClass = getSolicitacoesClass(count);
                 
@@ -4076,7 +4097,10 @@
             
             emptyColaboradores.style.display = 'none';
             
-            colaboradores.forEach(colaborador => {
+            // Já vem ordenado por nome do Firebase, mas ordenamos novamente por segurança
+            const colaboradoresOrdenados = [...colaboradores].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            colaboradoresOrdenados.forEach(colaborador => {
                 const dataAdmissao = new Date(colaborador.dataAdmissao);
                 const dataFormatada = dataAdmissao.toLocaleDateString('pt-BR');
                 
@@ -4110,7 +4134,10 @@
             
             emptyItens.style.display = 'none';
             
-            itens.forEach(item => {
+            // Já vem ordenado por nome do Firebase, mas ordenamos novamente por segurança
+            const itensOrdenados = [...itens].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            itensOrdenados.forEach(item => {
                 const count = solicitacoesPorItem[item.id] || 0;
                 const countClass = getSolicitacoesClass(count);
                 
@@ -4162,7 +4189,10 @@
             
             emptySolicitacoes.style.display = 'none';
             
-            solicitacoes.forEach(solicitacao => {
+            // Já vem ordenado por data (mais recentes primeiro) do Firebase, mas ordenamos novamente por segurança
+            const solicitacoesOrdenadas = [...solicitacoes].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
+            
+            solicitacoesOrdenadas.forEach(solicitacao => {
                 const dataSolicitacao = new Date(solicitacao.dataSolicitacao);
                 const dataFormatada = dataSolicitacao.toLocaleDateString('pt-BR');
                 
@@ -4241,7 +4271,9 @@
                     nome: nome.trim(),
                     criadoEm: new Date()
                 };
-                empresas.unshift(novaEmpresa);
+                empresas.push(novaEmpresa);
+                // Ordenar empresas por nome após adicionar
+                empresas.sort((a, b) => a.nome.localeCompare(b.nome));
                 calcularSolicitacoesPorEmpresa();
                 carregarEmpresas();
                 atualizarFiltrosColaboradores();
@@ -4280,7 +4312,9 @@
                     nome: nome.trim(),
                     criadoEm: new Date()
                 };
-                departamentos.unshift(novoDepartamento);
+                departamentos.push(novoDepartamento);
+                // Ordenar departamentos por nome após adicionar
+                departamentos.sort((a, b) => a.nome.localeCompare(b.nome));
                 calcularSolicitacoesPorDepartamento();
                 carregarDepartamentos();
                 atualizarFiltrosColaboradores();
@@ -4344,7 +4378,9 @@
                     criadoEm: new Date()
                 };
                 
-                colaboradores.unshift(novoColaborador);
+                colaboradores.push(novoColaborador);
+                // Ordenar colaboradores por nome após adicionar
+                colaboradores.sort((a, b) => a.nome.localeCompare(b.nome));
                 carregarColaboradores();
                 atualizarSelectColaboradoresSolicitacao();
                 atualizarEstatisticas();
@@ -4399,7 +4435,9 @@
                     criadoEm: new Date()
                 };
                 
-                itens.unshift(novoItem);
+                itens.push(novoItem);
+                // Ordenar itens por nome após adicionar
+                itens.sort((a, b) => a.nome.localeCompare(b.nome));
                 calcularSolicitacoesPorItem();
                 carregarItens();
                 atualizarItensSelectSolicitacao();
@@ -4463,7 +4501,7 @@
                     criadoEm: new Date()
                 };
                 
-                solicitacoes.unshift(novaSolicitacao);
+                solicitacoes.unshift(novaSolicitacao); // Adicionar no início para manter ordem de mais recentes primeiro
                 calcularSolicitacoesPorEmpresa();
                 calcularSolicitacoesPorDepartamento();
                 calcularSolicitacoesPorItem();
@@ -4961,7 +4999,10 @@
             } else {
                 emptyEmpresas.style.display = 'none';
                 
-                empresasFiltradas.forEach(empresa => {
+                // Ordenar empresas filtradas por nome
+                const empresasOrdenadas = [...empresasFiltradas].sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                empresasOrdenadas.forEach(empresa => {
                     const count = solicitacoesPorEmpresa[empresa.id] || 0;
                     const countClass = getSolicitacoesClass(count);
                     
@@ -4996,7 +5037,10 @@
             } else {
                 emptyDepartamentos.style.display = 'none';
                 
-                departamentosFiltrados.forEach(depto => {
+                // Ordenar departamentos filtrados por nome
+                const departamentosOrdenados = [...departamentosFiltrados].sort((a, b) => a.nome.localeCompare(b.nome));
+                
+                departamentosOrdenados.forEach(depto => {
                     const count = solicitacoesPorDepartamento[depto.id] || 0;
                     const countClass = getSolicitacoesClass(count);
                     
@@ -5035,7 +5079,10 @@
             
             emptyColaboradores.style.display = 'none';
             
-            colaboradoresFiltrados.forEach(colaborador => {
+            // Ordenar colaboradores filtrados por nome
+            const colaboradoresOrdenados = [...colaboradoresFiltrados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            colaboradoresOrdenados.forEach(colaborador => {
                 const dataAdmissao = new Date(colaborador.dataAdmissao);
                 const dataFormatada = dataAdmissao.toLocaleDateString('pt-BR');
                 
@@ -5069,7 +5116,10 @@
             
             emptyItens.style.display = 'none';
             
-            itensFiltrados.forEach(item => {
+            // Ordenar itens filtrados por nome
+            const itensOrdenados = [...itensFiltrados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            itensOrdenados.forEach(item => {
                 const count = solicitacoesPorItem[item.id] || 0;
                 const countClass = getSolicitacoesClass(count);
                 
@@ -5120,7 +5170,10 @@
             
             emptySolicitacoes.style.display = 'none';
             
-            solicitacoesFiltradas.forEach(solicitacao => {
+            // Ordenar solicitações filtradas por data (mais recentes primeiro)
+            const solicitacoesOrdenadas = [...solicitacoesFiltradas].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
+            
+            solicitacoesOrdenadas.forEach(solicitacao => {
                 const dataSolicitacao = new Date(solicitacao.dataSolicitacao);
                 const dataFormatada = dataSolicitacao.toLocaleDateString('pt-BR');
                 
@@ -5740,6 +5793,9 @@
                 return '<p>Nenhuma empresa encontrada com os filtros aplicados.</p>';
             }
             
+            // Ordenar empresas por nome
+            const empresasOrdenadas = [...empresasDados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
             let html = `
                 <table class="preview-table">
                     <thead>
@@ -5752,7 +5808,7 @@
                     <tbody>
             `;
             
-            empresasDados.forEach(empresa => {
+            empresasOrdenadas.forEach(empresa => {
                 const dataCriacao = new Date(empresa.criadoEm).toLocaleDateString('pt-BR');
                 const totalSolicitacoes = empresa.solicitacoesFiltradas !== undefined ? empresa.solicitacoesFiltradas : solicitacoesPorEmpresa[empresa.id] || 0;
                 
@@ -5768,7 +5824,7 @@
             html += `
                     </tbody>
                 </table>
-                <p style="margin-top: 10px;"><strong>Total:</strong> ${empresasDados.length} empresa(s)</p>
+                <p style="margin-top: 10px;"><strong>Total:</strong> ${empresasOrdenadas.length} empresa(s)</p>
             `;
             
             return html;
@@ -5778,6 +5834,9 @@
             if (!departamentosDados || departamentosDados.length === 0) {
                 return '<p>Nenhum departamento encontrado com os filtros aplicados.</p>';
             }
+            
+            // Ordenar departamentos por nome
+            const departamentosOrdenados = [...departamentosDados].sort((a, b) => a.nome.localeCompare(b.nome));
             
             let html = `
                 <table class="preview-table">
@@ -5791,7 +5850,7 @@
                     <tbody>
             `;
             
-            departamentosDados.forEach(departamento => {
+            departamentosOrdenados.forEach(departamento => {
                 const dataCriacao = new Date(departamento.criadoEm).toLocaleDateString('pt-BR');
                 const totalSolicitacoes = departamento.solicitacoesFiltradas !== undefined ? departamento.solicitacoesFiltradas : solicitacoesPorDepartamento[departamento.id] || 0;
                 
@@ -5807,7 +5866,7 @@
             html += `
                     </tbody>
                 </table>
-                <p style="margin-top: 10px;"><strong>Total:</strong> ${departamentosDados.length} departamento(s)</p>
+                <p style="margin-top: 10px;"><strong>Total:</strong> ${departamentosOrdenados.length} departamento(s)</p>
             `;
             
             return html;
@@ -5817,6 +5876,9 @@
             if (!colaboradoresDados || colaboradoresDados.length === 0) {
                 return '<p>Nenhum colaborador encontrado com os filtros aplicados.</p>';
             }
+            
+            // Ordenar colaboradores por nome
+            const colaboradoresOrdenados = [...colaboradoresDados].sort((a, b) => a.nome.localeCompare(b.nome));
             
             let html = `
                 <table class="preview-table">
@@ -5833,7 +5895,7 @@
                     <tbody>
             `;
             
-            colaboradoresDados.forEach(colaborador => {
+            colaboradoresOrdenados.forEach(colaborador => {
                 const dataAdmissao = new Date(colaborador.dataAdmissao).toLocaleDateString('pt-BR');
                 const totalSolicitacoes = colaborador.solicitacoesFiltradas !== undefined ? colaborador.solicitacoesFiltradas : solicitacoes.filter(s => s.colaboradorId === colaborador.id).length;
                 
@@ -5852,7 +5914,7 @@
             html += `
                     </tbody>
                 </table>
-                <p style="margin-top: 10px;"><strong>Total:</strong> ${colaboradoresDados.length} colaborador(es)</p>
+                <p style="margin-top: 10px;"><strong>Total:</strong> ${colaboradoresOrdenados.length} colaborador(es)</p>
             `;
             
             return html;
@@ -5862,6 +5924,9 @@
             if (!itensDados || itensDados.length === 0) {
                 return '<p>Nenhum item encontrado com os filtros aplicados.</p>';
             }
+            
+            // Ordenar itens por nome
+            const itensOrdenados = [...itensDados].sort((a, b) => a.nome.localeCompare(b.nome));
             
             let html = `
                 <table class="preview-table">
@@ -5877,7 +5942,7 @@
                     <tbody>
             `;
             
-            itensDados.forEach(item => {
+            itensOrdenados.forEach(item => {
                 const dataCriacao = new Date(item.criadoEm).toLocaleDateString('pt-BR');
                 const tamanhos = item.tamanhos && item.tamanhos.length > 0 ? item.tamanhos.join(', ') : 'N/A';
                 const totalSolicitacoes = item.solicitacoesFiltradas !== undefined ? item.solicitacoesFiltradas : solicitacoesPorItem[item.id] || 0;
@@ -5896,7 +5961,7 @@
             html += `
                     </tbody>
                 </table>
-                <p style="margin-top: 10px;"><strong>Total:</strong> ${itensDados.length} item(ns)</p>
+                <p style="margin-top: 10px;"><strong>Total:</strong> ${itensOrdenados.length} item(ns)</p>
             `;
             
             return html;
@@ -5906,6 +5971,9 @@
             if (!solicitacoesDados || solicitacoesDados.length === 0) {
                 return '<p>Nenhuma solicitação encontrada com os filtros aplicados.</p>';
             }
+            
+            // Ordenar solicitações por data (mais recentes primeiro)
+            const solicitacoesOrdenadas = [...solicitacoesDados].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
             
             let html = `
                 <table class="preview-table">
@@ -5922,7 +5990,7 @@
                     <tbody>
             `;
             
-            solicitacoesDados.forEach(solicitacao => {
+            solicitacoesOrdenadas.forEach(solicitacao => {
                 const dataSolicitacao = new Date(solicitacao.dataSolicitacao).toLocaleDateString('pt-BR');
                 const itensResumo = solicitacao.itens && solicitacao.itens.length > 0 
                     ? solicitacao.itens.map(i => `${i.quantidade}x ${i.item} (${i.tamanho})`).join(', ')
@@ -5943,7 +6011,7 @@
             html += `
                     </tbody>
                 </table>
-                <p style="margin-top: 10px;"><strong>Total:</strong> ${solicitacoesDados.length} solicitação(ões)</p>
+                <p style="margin-top: 10px;"><strong>Total:</strong> ${solicitacoesOrdenadas.length} solicitação(ões)</p>
             `;
             
             return html;
@@ -6122,7 +6190,10 @@
         }
         
         function prepararDadosExcelEmpresas(empresasDados) {
-            return empresasDados.map(empresa => ({
+            // Ordenar empresas por nome
+            const empresasOrdenadas = [...empresasDados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            return empresasOrdenadas.map(empresa => ({
                 'Nome da Empresa': empresa.nome,
                 'Solicitações': empresa.solicitacoesFiltradas !== undefined ? empresa.solicitacoesFiltradas : solicitacoesPorEmpresa[empresa.id] || 0,
                 'Data de Criação': new Date(empresa.criadoEm).toLocaleDateString('pt-BR')
@@ -6130,7 +6201,10 @@
         }
         
         function prepararDadosExcelDepartamentos(departamentosDados) {
-            return departamentosDados.map(departamento => ({
+            // Ordenar departamentos por nome
+            const departamentosOrdenados = [...departamentosDados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            return departamentosOrdenados.map(departamento => ({
                 'Nome do Departamento': departamento.nome,
                 'Solicitações': departamento.solicitacoesFiltradas !== undefined ? departamento.solicitacoesFiltradas : solicitacoesPorDepartamento[departamento.id] || 0,
                 'Data de Criação': new Date(departamento.criadoEm).toLocaleDateString('pt-BR')
@@ -6138,7 +6212,10 @@
         }
         
         function prepararDadosExcelColaboradores(colaboradoresDados) {
-            return colaboradoresDados.map(colaborador => ({
+            // Ordenar colaboradores por nome
+            const colaboradoresOrdenados = [...colaboradoresDados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            return colaboradoresOrdenados.map(colaborador => ({
                 'Nome': colaborador.nome,
                 'Empresa': colaborador.empresa,
                 'Departamento': colaborador.departamento,
@@ -6149,7 +6226,10 @@
         }
         
         function prepararDadosExcelItens(itensDados) {
-            return itensDados.map(item => ({
+            // Ordenar itens por nome
+            const itensOrdenados = [...itensDados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            return itensOrdenados.map(item => ({
                 'Nome do Item': item.nome,
                 'Categoria': item.categoria,
                 'Tamanhos Disponíveis': item.tamanhos && item.tamanhos.length > 0 ? item.tamanhos.join(', ') : 'N/A',
@@ -6159,7 +6239,10 @@
         }
         
         function prepararDadosExcelSolicitacoes(solicitacoesDados) {
-            return solicitacoesDados.map(solicitacao => ({
+            // Ordenar solicitações por data (mais recentes primeiro)
+            const solicitacoesOrdenadas = [...solicitacoesDados].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
+            
+            return solicitacoesOrdenadas.map(solicitacao => ({
                 'Colaborador': solicitacao.colaborador,
                 'Empresa': solicitacao.empresa,
                 'Departamento': solicitacao.departamento,
@@ -6374,6 +6457,9 @@
                 return;
             }
             
+            // Ordenar empresas por nome
+            const empresasOrdenadas = [...empresasDados].sort((a, b) => a.nome.localeCompare(b.nome));
+            
             // Cabeçalho da tabela
             doc.setFont('helvetica', 'bold');
             doc.text('Empresa', startX, currentY);
@@ -6387,7 +6473,7 @@
             
             // Dados
             doc.setFont('helvetica', 'normal');
-            empresasDados.forEach(empresa => {
+            empresasOrdenadas.forEach(empresa => {
                 const totalSolicitacoes = empresa.solicitacoesFiltradas !== undefined ? empresa.solicitacoesFiltradas : solicitacoesPorEmpresa[empresa.id] || 0;
                 const dataCriacao = new Date(empresa.criadoEm).toLocaleDateString('pt-BR');
                 
@@ -6399,7 +6485,7 @@
             
             // Total
             doc.setFont('helvetica', 'bold');
-            doc.text(`Total: ${empresasDados.length} empresa(s)`, startX, currentY);
+            doc.text(`Total: ${empresasOrdenadas.length} empresa(s)`, startX, currentY);
         }
         
         function gerarPDFDepartamentos(doc, departamentosDados, startX, startY) {
@@ -6409,6 +6495,9 @@
                 doc.text('Nenhum departamento encontrado com os filtros aplicados.', startX, currentY);
                 return;
             }
+            
+            // Ordenar departamentos por nome
+            const departamentosOrdenados = [...departamentosDados].sort((a, b) => a.nome.localeCompare(b.nome));
             
             // Cabeçalho da tabela
             doc.setFont('helvetica', 'bold');
@@ -6423,7 +6512,7 @@
             
             // Dados
             doc.setFont('helvetica', 'normal');
-            departamentosDados.forEach(departamento => {
+            departamentosOrdenados.forEach(departamento => {
                 const totalSolicitacoes = departamento.solicitacoesFiltradas !== undefined ? departamento.solicitacoesFiltradas : solicitacoesPorDepartamento[departamento.id] || 0;
                 const dataCriacao = new Date(departamento.criadoEm).toLocaleDateString('pt-BR');
                 
@@ -6435,7 +6524,7 @@
             
             // Total
             doc.setFont('helvetica', 'bold');
-            doc.text(`Total: ${departamentosDados.length} departamento(s)`, startX, currentY);
+            doc.text(`Total: ${departamentosOrdenados.length} departamento(s)`, startX, currentY);
         }
         
         function gerarPDFColaboradores(doc, colaboradoresDados, startX, startY) {
@@ -6445,6 +6534,9 @@
                 doc.text('Nenhum colaborador encontrado com os filtros aplicados.', startX, currentY);
                 return;
             }
+            
+            // Ordenar colaboradores por nome
+            const colaboradoresOrdenados = [...colaboradoresDados].sort((a, b) => a.nome.localeCompare(b.nome));
             
             // Cabeçalho da tabela
             doc.setFont('helvetica', 'bold');
@@ -6460,7 +6552,7 @@
             
             // Dados
             doc.setFont('helvetica', 'normal');
-            colaboradoresDados.forEach(colaborador => {
+            colaboradoresOrdenados.forEach(colaborador => {
                 const totalSolicitacoes = colaborador.solicitacoesFiltradas !== undefined ? colaborador.solicitacoesFiltradas : solicitacoes.filter(s => s.colaboradorId === colaborador.id).length;
                 
                 doc.text(colaborador.nome.substring(0, 20), startX, currentY);
@@ -6472,7 +6564,7 @@
             
             // Total
             doc.setFont('helvetica', 'bold');
-            doc.text(`Total: ${colaboradoresDados.length} colaborador(es)`, startX, currentY);
+            doc.text(`Total: ${colaboradoresOrdenados.length} colaborador(es)`, startX, currentY);
         }
         
         function gerarPDFItens(doc, itensDados, startX, startY) {
@@ -6482,6 +6574,9 @@
                 doc.text('Nenhum item encontrado com os filtros aplicados.', startX, currentY);
                 return;
             }
+            
+            // Ordenar itens por nome
+            const itensOrdenados = [...itensDados].sort((a, b) => a.nome.localeCompare(b.nome));
             
             // Cabeçalho da tabela
             doc.setFont('helvetica', 'bold');
@@ -6496,7 +6591,7 @@
             
             // Dados
             doc.setFont('helvetica', 'normal');
-            itensDados.forEach(item => {
+            itensOrdenados.forEach(item => {
                 const totalSolicitacoes = item.solicitacoesFiltradas !== undefined ? item.solicitacoesFiltradas : solicitacoesPorItem[item.id] || 0;
                 
                 doc.text(item.nome.substring(0, 25), startX, currentY);
@@ -6507,7 +6602,7 @@
             
             // Total
             doc.setFont('helvetica', 'bold');
-            doc.text(`Total: ${itensDados.length} item(ns)`, startX, currentY);
+            doc.text(`Total: ${itensOrdenados.length} item(ns)`, startX, currentY);
         }
         
         function gerarPDFSolicitacoes(doc, solicitacoesDados, startX, startY) {
@@ -6517,6 +6612,9 @@
                 doc.text('Nenhuma solicitação encontrada com os filtros aplicados.', startX, currentY);
                 return;
             }
+            
+            // Ordenar solicitações por data (mais recentes primeiro)
+            const solicitacoesOrdenadas = [...solicitacoesDados].sort((a, b) => new Date(b.dataSolicitacao) - new Date(a.dataSolicitacao));
             
             // Cabeçalho da tabela
             doc.setFont('helvetica', 'bold');
@@ -6532,7 +6630,7 @@
             
             // Dados
             doc.setFont('helvetica', 'normal');
-            solicitacoesDados.forEach(solicitacao => {
+            solicitacoesOrdenadas.forEach(solicitacao => {
                 const dataSolicitacao = new Date(solicitacao.dataSolicitacao).toLocaleDateString('pt-BR');
                 
                 doc.text(solicitacao.colaborador.substring(0, 20), startX, currentY);
@@ -6544,7 +6642,7 @@
             
             // Total
             doc.setFont('helvetica', 'bold');
-            doc.text(`Total: ${solicitacoesDados.length} solicitação(ões)`, startX, currentY);
+            doc.text(`Total: ${solicitacoesOrdenadas.length} solicitação(ões)`, startX, currentY);
         }
         
         function gerarPDFDashboard(doc, dashboardDados, startX, startY) {
@@ -6965,6 +7063,8 @@
         console.log("📌 Na aba Relatórios, selecione os tipos de dados e exporte para PDF ou Excel");
         console.log("📌 Os relatórios agora incluem informações de tamanho dos itens solicitados");
         console.log("📌 Tempo médio de troca agora ajusta automaticamente a unidade (dias/meses/anos)");
+        console.log("📌 Empresas, departamentos, colaboradores e itens agora aparecem em ordem alfabética");
+        console.log("📌 Solicitações aparecem com as mais recentes primeiro");
     </script>
 </body>
 </html>
