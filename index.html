@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UniformControl | Gestão de Uniformes</title>
+    <title>Gestão de Uniformes</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
@@ -269,51 +269,6 @@
             gap: 24px;
         }
 
-        .notification {
-            position: relative;
-            width: 44px;
-            height: 44px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            background-color: #F5F7FB;
-        }
-
-        .notification:hover {
-            background-color: var(--primary-extra-light);
-            color: var(--primary);
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 9px;
-            height: 9px;
-            background-color: var(--accent);
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-
-        .current-time {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            font-weight: 500;
-            padding: 8px 16px;
-            background-color: #F5F7FB;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .current-time i {
-            color: var(--primary);
-        }
-
         /* Content Area - Página Atual */
         .content-wrapper {
             flex: 1;
@@ -484,7 +439,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 24px;
-            margin-bottom: 32px;
         }
 
         .chart-card {
@@ -524,82 +478,6 @@
             position: relative;
             height: 300px;
             width: 100%;
-        }
-
-        /* Atividades Recentes */
-        .recent-activity {
-            background-color: var(--lighter);
-            border-radius: var(--border-radius);
-            padding: 32px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-            border: 1px solid var(--border);
-            position: relative;
-        }
-
-        .recent-activity::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
-        }
-
-        .section-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title i {
-            color: var(--primary);
-        }
-
-        .activity-list {
-            list-style: none;
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 16px;
-            background-color: var(--primary-extra-light);
-            color: var(--primary);
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-text {
-            font-weight: 500;
-            color: var(--text);
-            margin-bottom: 4px;
-        }
-
-        .activity-time {
-            font-size: 0.85rem;
-            color: var(--text-light);
         }
 
         /* Estilos específicos para as abas */
@@ -1604,40 +1482,6 @@
             background-color: #F5F7FB;
         }
 
-        /* Footer */
-        .main-footer {
-            padding: 22px 32px;
-            border-top: 1px solid var(--border);
-            background-color: var(--lighter);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .footer-info p {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .footer-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        .footer-links a {
-            color: var(--text-light);
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-
         /* Overlay para mobile */
         .sidebar-overlay {
             position: fixed;
@@ -1842,8 +1686,8 @@
                 <i class="fas fa-tshirt"></i>
             </div>
             <div class="app-name">
-                <h2>UniformControl</h2>
-                <p>Gestão de Uniformes</p>
+                <h2>Gestão de Uniformes</h2>
+                <p>Sistema de Controle</p>
             </div>
         </div>
         
@@ -1890,10 +1734,12 @@
         </div>
         
         <div class="sidebar-footer">
-            <div class="user-avatar">AD</div>
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
             <div class="user-info">
-                <h4>Administrador</h4>
-                <p>admin@empresa.com</p>
+                <h4>Sistema</h4>
+                <p>Gestão de Uniformes</p>
             </div>
         </div>
     </nav>
@@ -1914,7 +1760,7 @@
             </div>
             
             <div class="header-right">
-                <!-- Notificação e hora removidos conforme solicitado -->
+                <!-- Área vazia conforme solicitado -->
             </div>
         </header>
 
@@ -2004,11 +1850,7 @@
                     <div class="stat-label">Tempo Médio de Troca</div>
                     <div class="tempo-medio-filter">
                         <i class="fas fa-calendar-alt"></i>
-                        <select id="tempoMedioFiltro">
-                            <option value="dias">Dias</option>
-                            <option value="meses">Meses</option>
-                            <option value="anos">Anos</option>
-                        </select>
+                        <div id="tempoMedioUnidade">dias</div>
                     </div>
                 </div>
                 
@@ -2068,28 +1910,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Atividades Recentes -->
-            <div class="recent-activity">
-                <div class="section-title">
-                    <i class="fas fa-history"></i>
-                    Atividades Recentes
-                </div>
-                
-                <ul class="activity-list" id="activityList">
-                    <li class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-text">Bem-vindo ao UniformControl!</div>
-                            <div class="activity-time">Agora mesmo</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Footer removido conforme solicitado -->
         </div>
 
         <!-- Conteúdo Empresa -->
@@ -2189,8 +2009,6 @@
                     <p>Clique em "Novo Departamento" para adicionar seu primeiro departamento.</p>
                 </div>
             </div>
-
-            <!-- Footer removido conforme solicitado -->
         </div>
 
         <!-- Conteúdo Colaboradores -->
@@ -2280,8 +2098,6 @@
                     <p>Clique em "Novo Colaborador" para adicionar seu primeiro colaborador.</p>
                 </div>
             </div>
-
-            <!-- Footer removido conforme solicitado -->
         </div>
 
         <!-- Conteúdo Itens -->
@@ -2355,8 +2171,6 @@
                     <p>Clique em "Novo Item" para adicionar seu primeiro item.</p>
                 </div>
             </div>
-
-            <!-- Footer removido conforme solicitado -->
         </div>
 
         <!-- Conteúdo Solicitações -->
@@ -2463,8 +2277,6 @@
                     <p>Clique em "Nova Solicitação" para adicionar sua primeira solicitação.</p>
                 </div>
             </div>
-
-            <!-- Footer removido conforme solicitado -->
         </div>
 
         <!-- Conteúdo Relatórios -->
@@ -2627,8 +2439,6 @@
                     </button>
                 </div>
             </div>
-
-            <!-- Footer removido conforme solicitado -->
         </div>
     </main>
 
@@ -2925,10 +2735,9 @@
         const totalColaboradores = document.getElementById('totalColaboradores');
         const totalSolicitacoes = document.getElementById('totalSolicitacoes');
         const tempoMedioTroca = document.getElementById('tempoMedioTroca');
-        const tempoMedioFiltro = document.getElementById('tempoMedioFiltro');
+        const tempoMedioUnidade = document.getElementById('tempoMedioUnidade');
         const dashboardMetrica = document.getElementById('dashboardMetrica');
         const dashboardDetalhe = document.getElementById('dashboardDetalhe');
-        const activityList = document.getElementById('activityList');
         
         // Elementos do Dashboard Filtros
         const dashboardDataInicio = document.getElementById('dashboardDataInicio');
@@ -3035,35 +2844,6 @@
         const modalSolicitacaoTitle = document.getElementById('modalSolicitacaoTitle');
         const saveSolicitacaoBtn = document.getElementById('saveSolicitacao');
 
-        // Adicionar atividade ao dashboard
-        function adicionarAtividade(texto) {
-            const agora = new Date();
-            const hora = agora.toLocaleTimeString('pt-BR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            const atividadeItem = document.createElement('li');
-            atividadeItem.className = 'activity-item';
-            atividadeItem.innerHTML = `
-                <div class="activity-icon">
-                    <i class="fas fa-info-circle"></i>
-                </div>
-                <div class="activity-content">
-                    <div class="activity-text">${texto}</div>
-                    <div class="activity-time">${hora}</div>
-                </div>
-            `;
-            
-            // Adicionar no início da lista
-            activityList.insertBefore(atividadeItem, activityList.firstChild);
-            
-            // Manter apenas as últimas 5 atividades
-            while (activityList.children.length > 5) {
-                activityList.removeChild(activityList.lastChild);
-            }
-        }
-
         // Atualizar estatísticas do dashboard
         function atualizarEstatisticas() {
             totalColaboradores.textContent = colaboradores.length;
@@ -3078,10 +2858,11 @@
             calcularTempoMedioTroca();
         }
 
-        // Calcular tempo médio de troca
+        // Calcular tempo médio de troca com unidade automática
         function calcularTempoMedioTroca() {
             if (solicitacoes.length === 0) {
                 tempoMedioTroca.textContent = "0";
+                tempoMedioUnidade.textContent = "dias";
                 return;
             }
             
@@ -3122,35 +2903,33 @@
             
             if (contagemIntervalos === 0) {
                 tempoMedioTroca.textContent = "N/A";
+                tempoMedioUnidade.textContent = "";
                 return;
             }
             
-            // Converter para unidade selecionada
-            const unidade = tempoMedioFiltro.value;
+            // Converter para dias
             const intervaloMedioMs = totalIntervalos / contagemIntervalos;
+            const intervaloMedioDias = intervaloMedioMs / (1000 * 60 * 60 * 24);
             
-            let tempoMedio;
-            let texto;
+            // Determinar unidade automática
+            let valorFinal, unidade;
             
-            switch(unidade) {
-                case 'dias':
-                    tempoMedio = intervaloMedioMs / (1000 * 60 * 60 * 24);
-                    texto = Math.round(tempoMedio * 10) / 10;
-                    break;
-                case 'meses':
-                    tempoMedio = intervaloMedioMs / (1000 * 60 * 60 * 24 * 30);
-                    texto = Math.round(tempoMedio * 10) / 10;
-                    break;
-                case 'anos':
-                    tempoMedio = intervaloMedioMs / (1000 * 60 * 60 * 24 * 365);
-                    texto = Math.round(tempoMedio * 10) / 10;
-                    break;
-                default:
-                    tempoMedio = intervaloMedioMs / (1000 * 60 * 60 * 24);
-                    texto = Math.round(tempoMedio * 10) / 10;
+            if (intervaloMedioDias <= 30) {
+                // Até 30 dias: mostrar em dias
+                valorFinal = Math.round(intervaloMedioDias * 10) / 10;
+                unidade = "dias";
+            } else if (intervaloMedioDias <= 365) {
+                // Até 1 ano: mostrar em meses
+                valorFinal = Math.round((intervaloMedioDias / 30) * 10) / 10;
+                unidade = "meses";
+            } else {
+                // Acima de 1 ano: mostrar em anos
+                valorFinal = Math.round((intervaloMedioDias / 365) * 10) / 10;
+                unidade = "anos";
             }
             
-            tempoMedioTroca.textContent = texto;
+            tempoMedioTroca.textContent = valorFinal;
+            tempoMedioUnidade.textContent = unidade;
         }
 
         // Função para obter classe CSS baseada na quantidade de solicitações
@@ -3207,7 +2986,6 @@
             try {
                 if (!db) {
                     console.error("Firebase não inicializado!");
-                    adicionarAtividade("⚠️ Modo offline - Firebase não conectado");
                     usarDadosMock();
                     return;
                 }
@@ -3238,13 +3016,8 @@
                         atualizarEstatisticas();
                         atualizarFiltrosRelatorios();
                         atualizarFiltrosDashboard();
-                        
-                        if (empresas.length > 0) {
-                            adicionarAtividade(`${empresas.length} empresas carregadas`);
-                        }
                     }, (error) => {
                         console.error('❌ Erro ao carregar empresas:', error);
-                        adicionarAtividade('⚠️ Erro ao carregar empresas');
                         usarDadosMock();
                     });
 
@@ -3272,7 +3045,6 @@
                         atualizarFiltrosDashboard();
                     }, (error) => {
                         console.error('❌ Erro ao carregar departamentos:', error);
-                        adicionarAtividade('⚠️ Erro ao carregar departamentos');
                     });
 
                 // Configurar listeners em tempo real para colaboradores
@@ -3300,13 +3072,8 @@
                         atualizarSelectColaboradoresSolicitacao();
                         atualizarEstatisticas();
                         atualizarFiltrosDashboard();
-                        
-                        if (colaboradores.length > 0) {
-                            adicionarAtividade(`${colaboradores.length} colaboradores carregados`);
-                        }
                     }, (error) => {
                         console.error('❌ Erro ao carregar colaboradores:', error);
-                        adicionarAtividade('⚠️ Erro ao carregar colaboradores');
                     });
 
                 // Configurar listeners em tempo real para itens
@@ -3331,13 +3098,8 @@
                         atualizarItensSelectSolicitacao();
                         atualizarEstatisticas();
                         atualizarFiltrosDashboard();
-                        
-                        if (itens.length > 0) {
-                            adicionarAtividade(`${itens.length} itens carregados`);
-                        }
                     }, (error) => {
                         console.error('❌ Erro ao carregar itens:', error);
-                        adicionarAtividade('⚠️ Erro ao carregar itens');
                     });
 
                 // Configurar listeners em tempo real para solicitações
@@ -3376,20 +3138,12 @@
                         carregarSolicitacoes();
                         atualizarEstatisticas();
                         atualizarGraficosDashboard();
-                        
-                        if (solicitacoes.length > 0) {
-                            adicionarAtividade(`${solicitacoes.length} solicitações carregadas`);
-                        }
                     }, (error) => {
                         console.error('❌ Erro ao carregar solicitações:', error);
-                        adicionarAtividade('⚠️ Erro ao carregar solicitações');
                     });
 
-                adicionarAtividade('Sistema carregado com sucesso');
-                
             } catch (error) {
                 console.error('❌ Erro geral ao carregar dados do Firebase:', error);
-                adicionarAtividade('⚠️ Erro ao conectar com o banco de dados');
                 usarDadosMock();
             }
         }
@@ -3596,8 +3350,6 @@
             atualizarFiltrosDashboard();
             atualizarEstatisticas();
             atualizarGraficosDashboard();
-            
-            adicionarAtividade('Modo offline - Dados de exemplo carregados');
         }
 
         // Atualizar filtros do dashboard
@@ -4479,7 +4231,6 @@
                 });
                 
                 console.log(`✅ Empresa salva com ID: ${docRef.id}`);
-                adicionarAtividade(`Empresa "${nome}" cadastrada com sucesso`);
                 return docRef.id;
             } catch (error) {
                 console.error('❌ Erro ao adicionar empresa:', error);
@@ -4500,7 +4251,6 @@
                 atualizarFiltrosRelatorios();
                 atualizarFiltrosDashboard();
                 atualizarEstatisticas();
-                adicionarAtividade(`Empresa "${nome}" salva localmente (modo offline)`);
                 
                 return null;
             }
@@ -4520,7 +4270,6 @@
                 });
                 
                 console.log(`✅ Departamento salvo com sucesso`);
-                adicionarAtividade(`Departamento "${nome}" cadastrado com sucesso`);
                 return true;
             } catch (error) {
                 console.error('❌ Erro ao adicionar departamento:', error);
@@ -4539,7 +4288,6 @@
                 atualizarSelectsModalColaborador();
                 atualizarEstatisticas();
                 atualizarFiltrosDashboard();
-                adicionarAtividade(`Departamento "${nome}" salvo localmente (modo offline)`);
                 
                 return false;
             }
@@ -4573,7 +4321,6 @@
                 });
                 
                 console.log(`✅ Colaborador salvo com ID: ${docRef.id}`);
-                adicionarAtividade(`Colaborador "${colaboradorData.nome}" cadastrado com sucesso`);
                 return docRef.id;
             } catch (error) {
                 console.error('❌ Erro ao adicionar colaborador:', error);
@@ -4602,7 +4349,6 @@
                 atualizarSelectColaboradoresSolicitacao();
                 atualizarEstatisticas();
                 atualizarFiltrosDashboard();
-                adicionarAtividade(`Colaborador "${colaboradorData.nome}" salvo localmente (modo offline)`);
                 
                 return null;
             }
@@ -4632,7 +4378,6 @@
                 });
                 
                 console.log(`✅ Item salvo com ID: ${docRef.id}`);
-                adicionarAtividade(`Item "${itemData.nome}" cadastrado com sucesso`);
                 return docRef.id;
             } catch (error) {
                 console.error('❌ Erro ao adicionar item:', error);
@@ -4660,7 +4405,6 @@
                 atualizarItensSelectSolicitacao();
                 atualizarEstatisticas();
                 atualizarFiltrosDashboard();
-                adicionarAtividade(`Item "${itemData.nome}" salvo localmente (modo offline)`);
                 
                 return null;
             }
@@ -4695,7 +4439,6 @@
                 });
                 
                 console.log(`✅ Solicitação salva com ID: ${docRef.id}`);
-                adicionarAtividade(`Solicitação para "${colaboradorSelecionado.nome}" cadastrada com sucesso`);
                 return docRef.id;
             } catch (error) {
                 console.error('❌ Erro ao adicionar solicitação:', error);
@@ -4730,7 +4473,6 @@
                 carregarItens();
                 atualizarEstatisticas();
                 atualizarGraficosDashboard();
-                adicionarAtividade(`Solicitação salva localmente (modo offline)`);
                 
                 return null;
             }
@@ -4754,8 +4496,6 @@
                 await db.collection('solicitacoes').doc(id).update({
                     status: novoStatus
                 });
-                
-                adicionarAtividade(`Status da solicitação de "${solicitacao.colaborador}" alterado para "${novoStatus}"`);
                 
                 // Atualizar localmente também
                 solicitacao.status = novoStatus;
@@ -4788,7 +4528,6 @@
                             nome: nome
                         });
                         
-                        adicionarAtividade(`Empresa "${nome}" atualizada com sucesso`);
                         fecharModalEmpresa();
                     } catch (error) {
                         console.error('❌ Erro ao atualizar empresa:', error);
@@ -4821,7 +4560,6 @@
                             nome: nome
                         });
                         
-                        adicionarAtividade(`Departamento "${nome}" atualizado com sucesso`);
                         fecharModalDepartamento();
                     } catch (error) {
                         console.error('❌ Erro ao atualizar departamento:', error);
@@ -4964,7 +4702,6 @@
                 if (!db) throw new Error("Firebase não inicializado");
                 
                 await db.collection('empresas').doc(id).delete();
-                adicionarAtividade(`Empresa "${empresa.nome}" excluída com sucesso`);
             } catch (error) {
                 console.error('❌ Erro ao excluir empresa:', error);
                 alert('❌ Erro ao excluir empresa. Tente novamente.');
@@ -4990,7 +4727,6 @@
                 if (!db) throw new Error("Firebase não inicializado");
                 
                 await db.collection('departamentos').doc(id).delete();
-                adicionarAtividade(`Departamento "${departamento.nome}" excluído com sucesso`);
             } catch (error) {
                 console.error('❌ Erro ao excluir departamento:', error);
                 alert('❌ Erro ao excluir departamento. Tente novamente.');
@@ -5017,7 +4753,6 @@
                 if (!db) throw new Error("Firebase não inicializado");
                 
                 await db.collection('colaboradores').doc(id).delete();
-                adicionarAtividade(`Colaborador "${colaborador.nome}" excluído com sucesso`);
             } catch (error) {
                 console.error('❌ Erro ao excluir colaborador:', error);
                 alert('❌ Erro ao excluir colaborador. Tente novamente.');
@@ -5047,7 +4782,6 @@
                 if (!db) throw new Error("Firebase não inicializado");
                 
                 await db.collection('itens').doc(id).delete();
-                adicionarAtividade(`Item "${item.nome}" excluído com sucesso`);
             } catch (error) {
                 console.error('❌ Erro ao excluir item:', error);
                 alert('❌ Erro ao excluir item. Tente novamente.');
@@ -5066,7 +4800,6 @@
                 if (!db) throw new Error("Firebase não inicializado");
                 
                 await db.collection('solicitacoes').doc(id).delete();
-                adicionarAtividade(`Solicitação excluída com sucesso`);
             } catch (error) {
                 console.error('❌ Erro ao excluir solicitação:', error);
                 alert('❌ Erro ao excluir solicitação. Tente novamente.');
@@ -5957,7 +5690,7 @@
             const dataGeracao = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR');
             html += `
                 <div class="report-header">
-                    <h3>Relatório UniformControl</h3>
+                    <h3>Relatório Gestão de Uniformes</h3>
                     <p><strong>Data de geração:</strong> ${dataGeracao}</p>
                     <p><strong>Período:</strong> ${dadosRelatorio.dashboard?.periodo.inicio || reportDataInicio.value || 'Não especificado'} até ${dadosRelatorio.dashboard?.periodo.fim || reportDataFim.value || 'Não especificado'}</p>
                     <p><strong>Tipos incluídos:</strong> ${selectedReportTypes.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(', ')}</p>
@@ -6377,12 +6110,10 @@
                 
                 // Gerar nome do arquivo com data
                 const dataAtual = new Date().toISOString().split('T')[0];
-                const nomeArquivo = `relatorio_uniformcontrol_${dataAtual}.xlsx`;
+                const nomeArquivo = `relatorio_uniformes_${dataAtual}.xlsx`;
                 
                 // Exportar arquivo
                 XLSX.writeFile(wb, nomeArquivo);
-                
-                adicionarAtividade('Relatório exportado para Excel com sucesso');
                 
             } catch (error) {
                 console.error('❌ Erro ao exportar para Excel:', error);
@@ -6548,7 +6279,7 @@
                 // Cabeçalho
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Relatório UniformControl', pageWidth / 2, currentY, { align: 'center' });
+                doc.text('Relatório Gestão de Uniformes', pageWidth / 2, currentY, { align: 'center' });
                 currentY += 8;
                 
                 doc.setFontSize(10);
@@ -6624,12 +6355,10 @@
                 
                 // Gerar nome do arquivo com data
                 const dataAtual = new Date().toISOString().split('T')[0];
-                const nomeArquivo = `relatorio_uniformcontrol_${dataAtual}.pdf`;
+                const nomeArquivo = `relatorio_uniformes_${dataAtual}.pdf`;
                 
                 // Salvar PDF
                 doc.save(nomeArquivo);
-                
-                adicionarAtividade('Relatório exportado para PDF com sucesso');
                 
             } catch (error) {
                 console.error('❌ Erro ao exportar para PDF:', error);
@@ -6932,11 +6661,7 @@
         // Event Listeners para Dashboard
         btnAplicarFiltrosDashboard.addEventListener('click', function() {
             atualizarGraficosDashboard();
-            adicionarAtividade('Filtros do dashboard aplicados');
         });
-
-        // Event listener para o filtro de tempo médio
-        tempoMedioFiltro.addEventListener('change', calcularTempoMedioTroca);
 
         // Event Listeners para a aba Relatórios
         btnPreviewReport.addEventListener('click', function() {
@@ -6988,7 +6713,6 @@
                         status: colaboradorData.status
                     });
                     
-                    adicionarAtividade(`Colaborador "${colaboradorData.nome}" atualizado com sucesso`);
                     fecharModalColaborador();
                 } catch (error) {
                     console.error('❌ Erro ao atualizar colaborador:', error);
@@ -7036,7 +6760,6 @@
                         tamanhos: tamanhosArray
                     });
                     
-                    adicionarAtividade(`Item "${itemData.nome}" atualizado com sucesso`);
                     fecharModalItem();
                 } catch (error) {
                     console.error('❌ Erro ao atualizar item:', error);
@@ -7139,7 +6862,6 @@
                         status: solicitacaoData.status
                     });
                     
-                    adicionarAtividade(`Solicitação atualizada com sucesso`);
                     fecharModalSolicitacao();
                 } catch (error) {
                     console.error('❌ Erro ao atualizar solicitação:', error);
@@ -7198,7 +6920,6 @@
                     carregarDadosFirebase();
                 } else {
                     console.log("⚠️ Firebase não inicializado, usando modo offline");
-                    adicionarAtividade("⚠️ Modo offline - Conectando localmente");
                     usarDadosMock();
                 }
                 
@@ -7238,12 +6959,12 @@
         window.atualizarTamanhosSelect = atualizarTamanhosSelect;
         
         // Adicionar mensagem de debug no console
-        console.log("👋 Sistema UniformControl carregado!");
+        console.log("👋 Sistema de Gestão de Uniformes carregado!");
         console.log("📌 Para testar, clique em 'Dashboard' para visualizar os gráficos");
         console.log("📌 Use os filtros no dashboard para analisar dados específicos");
         console.log("📌 Na aba Relatórios, selecione os tipos de dados e exporte para PDF ou Excel");
         console.log("📌 Os relatórios agora incluem informações de tamanho dos itens solicitados");
-        console.log("📌 Tempo médio de troca implementado com filtro de dias/meses/anos");
+        console.log("📌 Tempo médio de troca agora ajusta automaticamente a unidade (dias/meses/anos)");
     </script>
 </body>
 </html>
