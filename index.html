@@ -3369,17 +3369,8 @@
 
         // Atualizar filtros do dashboard
         function atualizarFiltrosDashboard() {
-            // Configurar data padrão para o mês atual
-            const hoje = new Date();
-            const primeiroDiaMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-            
-            if (!dashboardDataInicio.value) {
-                dashboardDataInicio.value = primeiroDiaMes.toISOString().split('T')[0];
-            }
-            
-            if (!dashboardDataFim.value) {
-                dashboardDataFim.value = hoje.toISOString().split('T')[0];
-            }
+            // REMOVIDA A CONFIGURAÇÃO DE DATA PRÉ-DEFINIDA
+            // Os campos agora começam vazios conforme solicitado
             
             // Atualizar filtro de empresas
             const empresaSelect = dashboardEmpresa;
@@ -7065,6 +7056,7 @@
         console.log("📌 Tempo médio de troca agora ajusta automaticamente a unidade (dias/meses/anos)");
         console.log("📌 Empresas, departamentos, colaboradores e itens agora aparecem em ordem alfabética");
         console.log("📌 Solicitações aparecem com as mais recentes primeiro");
+        console.log("📌 Filtros do dashboard começam vazios - você deve definir as datas para filtrar");
     </script>
 </body>
 </html>
